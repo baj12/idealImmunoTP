@@ -545,7 +545,7 @@ myde <- res_subset$id
 myassayed <- rownames(res_airway)
 mygo <- goseqTable(de.genes = myde,
                    assayed.genes = myassayed,
-                   genome = "hg38",
+                   genome = "hg19",
                    id = "ensGene",
                    testCats = "GO:BP",
                    addGeneToTerms = FALSE)

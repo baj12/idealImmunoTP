@@ -1,6 +1,10 @@
 # library(ideal)
-library(airway)
+# BiocManager::install("apeglm")
+# install.packages("ashr")
 
+# library(ashr)
+library(airway)
+library(apeglm)
 library(DESeq2) 
 library(SummarizedExperiment) 
 library(GenomicRanges) 
@@ -60,19 +64,27 @@ load(file = "testData.RData")
 ideal_ui <- NULL
 ideal_server <- NULL
 library(RColorBrewer)
+library(topGO)
 source("R/helpers.R")
 source("R/table-enhancers.R")
 source("R/plot_ma.R")
 source("R/plot_volcano.R")
 source("R/ggplotCounts.R")
+source("R/")
 source("R/res2tbl.R")
 source("R/plotCoefficients.R")
+source("R/genesignatures.R")
+source("R/goseqTable.R")
 source("R/ideal.R", local = T)
+source("R/iSEE_plug.R")
 library(plotly)
-  dds_obj = dds_airway
-  res_obj = res_airway
-  annotation_obj = annotation_airway
-  countmatrix = NULL
+dds_obj = dds_airway
+res_obj = res_airway
+annotation_obj = annotation_airway
+dds_obj = NULL
+res_obj = NULL
+annotation_obj = NULL
+countmatrix = NULL
   expdesign = NULL
   gene_signatures = NULL
 

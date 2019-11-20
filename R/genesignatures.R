@@ -90,7 +90,8 @@ sig_heatmap <- function(vst_data, my_signature,
                         ) {
   
   mydata <- assay(vst_data)
-  
+  save(file = "~/SCHNAPPsDebug/ideal.RData", list = c(ls()))
+  # load("~/SCHNAPPsDebug/ideal.RData")
   signature_original_ids <- names(annovec)[match(my_signature,annovec)]
   
   sig_to_keep <- (signature_original_ids %in% rownames(mydata))#
@@ -112,7 +113,7 @@ sig_heatmap <- function(vst_data, my_signature,
     de_to_keep <- rownames(mydata_sig) %in% de_genes
     mydata_sig <- mydata_sig[de_to_keep,]
   }
-  
+
   pheatmap(mydata_sig,
            # annotation_col = anno_colData,
            cluster_rows = cluster_rows, cluster_cols = cluster_cols,

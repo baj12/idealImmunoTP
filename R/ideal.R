@@ -119,55 +119,60 @@ ideal_ui <- shinydashboard::dashboardPage(
   
   # sidebar definition -----------------------------------------------------------
   dashboardSidebar(
-    width = 280,
-    menuItem("App settings",
-             icon = icon("cogs"),
-             startExpanded = TRUE,
-             uiOutput("color_by"),
-             shinyBS::bsTooltip(
-               "color_by", 
-               paste0("Select the group(s) of samples to stratify the analysis, and ideally match the contrast of interest. Can also assume multiple values, in this case the interaction of the factors is used."),
-               "right", options = list(container = "body")),
-             uiOutput("available_genes"),
-             shinyBS::bsTooltip(
-               "available_genes", 
-               paste0("Select one or more features (genes) from the list to inspect. Autocompletion is provided, so you can easily find your genes of interest by started typing their names. Defaults to the row names if no annotation object is provided."),
-               "right", options = list(container = "body")),
-             numericInput("FDR","False Discovery Rate",value = 0.05, min = 0, max = 1, step = 0.01),
-             shinyBS::bsTooltip(
-               "FDR", 
-               paste0("Select the alpha level at which you would like to control the FDR (False Discovery Rate) for the set of multiple tests in your dataset. The sensible choice of 0.05 is provided as default, 0.1 is more liberal, while 0.01 is more stringent - keep in mind this does not tell anything on the effect size for the expression change."),
-               "right", options = list(container = "body"))
-             
-    ),
-    menuItem("Plot export settings", 
-             icon = icon("paint-brush"),
-             startExpanded = TRUE,
-             numericInput("export_width",label = "Width of exported figures (cm)",value = 16,min = 2),
-             shinyBS::bsTooltip(
-               "export_width", paste0("Width of the figures to export, expressed in cm"),
-               "right", options = list(container = "body")),
-             numericInput("export_height",label = "Height of exported figures (cm)",value = 10,min = 2),
-             shinyBS::bsTooltip(
-               "export_height", paste0("Height of the figures to export, expressed in cm"),
-               "right", options = list(container = "body"))
-    ),
-    menuItem("Quick viewer", 
-             icon = icon("flash"), 
-             startExpanded = TRUE,
-             id = "qvmenu",
-             fluidRow(
-               fluidRow(column(6,p("Count matrix")), column(6,uiOutput("ok_cm"))),
-               fluidRow(column(6,p("Experimental design")), column(6,uiOutput("ok_ed"))),
-               fluidRow(column(6,p("DESeqDataset")), column(6,uiOutput("ok_dds"))),
-               fluidRow(column(6,p("Annotation")), column(6,uiOutput("ok_anno"))),
-               fluidRow(column(6,p("Results")), column(6,uiOutput("ok_resu")))
-             )),
-    menuItem("First steps help", 
-             icon = icon("question-circle"),
-             startExpanded = TRUE,
-             actionButton("btn", "Click me for a quick tour", icon("info"),
-                          style="color: #ffffff; background-color: #0092AC; border-color: #2e6da4")
+    width = 340,
+    sidebarMenu(style = "position: fixed; overflow: visible;",
+                id = "sidebarMenu",
+                menuItem("App settings",
+                         icon = icon("cogs"),
+                         startExpanded = TRUE,
+                         uiOutput("color_by"),
+                         shinyBS::bsTooltip(
+                           "color_by", 
+                           paste0("Select the group(s) of samples to stratify the analysis, and ideally match the contrast of interest. Can also assume multiple values, in this case the interaction of the factors is used."),
+                           "right", options = list(container = "body")),
+                         uiOutput("available_genes"),
+                         shinyBS::bsTooltip(
+                           "available_genes", 
+                           paste0("Select one or more features (genes) from the list to inspect. Autocompletion is provided, so you can easily find your genes of interest by started typing their names. Defaults to the row names if no annotation object is provided."),
+                           "right", options = list(container = "body")),
+                         numericInput("FDR","False Discovery Rate",value = 0.05, min = 0, max = 1, step = 0.01),
+                         shinyBS::bsTooltip(
+                           "FDR", 
+                           paste0("Select the alpha level at which you would like to control the FDR (False Discovery Rate) for the set of multiple tests in your dataset. The sensible choice of 0.05 is provided as default, 0.1 is more liberal, while 0.01 is more stringent - keep in mind this does not tell anything on the effect size for the expression change."),
+                           "right", options = list(container = "body"))
+                         
+                ),
+                menuItem("Plot export settings", 
+                         icon = icon("paint-brush"),
+                         startExpanded = TRUE,
+                         numericInput("export_width",label = "Width of exported figures (cm)",value = 16,min = 2),
+                         shinyBS::bsTooltip(
+                           "export_width", paste0("Width of the figures to export, expressed in cm"),
+                           "right", options = list(container = "body")),
+                         numericInput("export_height",label = "Height of exported figures (cm)",value = 10,min = 2),
+                         shinyBS::bsTooltip(
+                           "export_height", paste0("Height of the figures to export, expressed in cm"),
+                           "right", options = list(container = "body"))
+                ),
+                menuItem("Quick viewer", 
+                         icon = icon("flash"), 
+                         startExpanded = TRUE,
+                         id = "qvmenu",
+                         fluidRow(column(12,
+                                         fluidRow(column(6,p("Count matrix")), column(6,uiOutput("ok_cm"))),
+                                         fluidRow(column(6,p("Experimental design")), column(6,uiOutput("ok_ed"))),
+                                         fluidRow(column(6,p("Annotation")), column(6,uiOutput("ok_anno"))),
+                                         # Maybe we need this when having preoaded count matrix?
+                                         # fluidRow(column(6,p("DESeqDataset")), column(6,uiOutput("ok_dds"))),
+                                         fluidRow(column(6,p("DESeqRun")), column(6,uiOutput("ok_ddsRun"))),
+                                         fluidRow(column(6,p("Results")), column(6,uiOutput("ok_resu")))
+                         ))),
+                menuItem("First steps help", 
+                         icon = icon("question-circle"),
+                         startExpanded = TRUE,
+                         actionButton("btn", "Click me for a quick tour", icon("info"),
+                                      style="color: #ffffff; background-color: #0092AC; border-color: #2e6da4")
+                )
     )
   ), # end of dashboardSidebar
   
@@ -324,7 +329,7 @@ ideal_ui <- shinydashboard::dashboardPage(
                       column(
                         width = 12,
                         offset = 0.5,
-                        plotOutput("nonZeroCountsPlot"))
+                        shinyjqui::jqui_resizable(plotOutput("nonZeroCountsPlot")))
                     )
                     
                 )
@@ -338,7 +343,7 @@ ideal_ui <- shinydashboard::dashboardPage(
                       column(
                         width = 12,
                         offset = 0.5,
-                        plotOutput("alignedSequencesPlot"))
+                        shinyjqui::jqui_resizable(plotOutput("alignedSequencesPlot")))
                     )
                     
                 )
@@ -467,11 +472,11 @@ ideal_ui <- shinydashboard::dashboardPage(
                 fluidRow({
                   column(
                     width = 12,
-                    uiOutput("geneHeatmap_plotUI")
+                    shinyjqui::jqui_resizable(uiOutput("geneHeatmap_plotUI"))
                   )
                 }
                 ))
-            ),
+          ),
           conditionalPanel(
             condition="output.checkdds",
             h2("You did not create the dds object yet. Please go the main tab and generate it")
@@ -502,7 +507,8 @@ ideal_ui <- shinydashboard::dashboardPage(
             fluidRow(
               column(
                 width = 6,
-                uiOutput("choose_fac")
+                uiOutput("choose_fac"),
+                uiOutput("choose_fac2")
               )
             ),
             fluidRow(
@@ -514,22 +520,23 @@ ideal_ui <- shinydashboard::dashboardPage(
                   uiOutput("fac1"),
                   uiOutput("fac2"),
                   # continuous covariate
-                  uiOutput("facnum")
+                  # uiOutput("facnum")
                 )
                 
-              ),
-              column(
-                width = 4,
-                # factor with > 2 levels
-                wellPanel(
-                  width = 4,
-                  uiOutput("lrtavailable"),
-                  uiOutput("lrtfull"),
-                  uiOutput("lrtreduced")
-                ),
-                
-                uiOutput("runlrt")
               )
+              # ,
+              # column(
+              #   width = 4,
+              #   # factor with > 2 levels
+              #   wellPanel(
+              #     width = 4,
+              #     uiOutput("lrtavailable"),
+              #     uiOutput("lrtfull"),
+              #     uiOutput("lrtreduced")
+              #   ),
+              #   
+              #   uiOutput("runlrt")
+              # )
             ),
             
             ## general options for result function
@@ -540,8 +547,8 @@ ideal_ui <- shinydashboard::dashboardPage(
                 wellPanel(id = "resu_opts",
                           selectInput("resu_indfil",label = "Apply independent filtering automatically",
                                       choices = c(TRUE,FALSE), selected = TRUE),
-                          selectInput("resu_lfcshrink",label = "Shrink the log fold change for the contrast of interest",
-                                      choices = c(TRUE,FALSE), selected = TRUE),
+                          # selectInput("resu_lfcshrink",label = "Shrink the log fold change for the contrast of interest",
+                          #             choices = c(TRUE,FALSE), selected = TRUE),
                           selectInput("resu_ihw", "Use Independent Hypothesis Weighting (IHW) as a filtering function",
                                       choices = c(TRUE, FALSE), selected = FALSE)
                 )
@@ -666,13 +673,13 @@ ideal_ui <- shinydashboard::dashboardPage(
             ),
             fluidRow(
               column(6,
-                     plotOutput("heatbrush"),
+                     shinyjqui::jqui_resizable(plotOutput("heatbrush")) ,
                      div(align = "right", style = "margin-right:15px; margin-bottom:10px",
                          downloadButton("download_plot_heatbrush", "Download Plot"),
                          textInput("filename_plot_heatbrush",label = "Save as...",value = "plot_heatbrush.pdf"))
               ),
               column(6,
-                     d3heatmapOutput("heatbrushD3"))
+                     shinyjqui::jqui_resizable(d3heatmapOutput("heatbrushD3")))
             ),
             
             box(
@@ -812,7 +819,7 @@ ideal_ui <- shinydashboard::dashboardPage(
                                   uiOutput("ui_DT_gse_up_topgo"),
                                   # DT::dataTableOutput("DT_gse_up_topgo"),
                                   downloadButton("downloadGOTbl_up","Download", class = "btn btn-success")),
-                           column(width = 3, plotOutput("goterm_heatmap_up_topgo"))
+                           column(width = 3, shinyjqui::jqui_resizable(plotOutput("goterm_heatmap_up_topgo")))
                          )
                 ),
                 tabPanel("DOWNregu", icon = icon("arrow-circle-down"),
@@ -828,7 +835,7 @@ ideal_ui <- shinydashboard::dashboardPage(
                                   # DT::dataTableOutput("DT_gse_down_topgo"),
                                   uiOutput("ui_DT_gse_down_topgo"),
                                   downloadButton("downloadGOTbl_down","Download", class = "btn btn-success")),
-                           column(width = 3, plotOutput("goterm_heatmap_down_topgo"))
+                           column(width = 3, shinyjqui::jqui_resizable(plotOutput("goterm_heatmap_down_topgo")))
                          )
                 ),
                 tabPanel("UPDOWN", icon = icon("arrows-v"),
@@ -843,7 +850,7 @@ ideal_ui <- shinydashboard::dashboardPage(
                            column(width = 9, 
                                   uiOutput("ui_DT_gse_updown_topgo"),
                                   downloadButton("downloadGOTbl_updown","Download", class = "btn btn-success")),
-                           column(width = 3, plotOutput("goterm_heatmap_updown_topgo"))
+                           column(width = 3, shinyjqui::jqui_resizable(plotOutput("goterm_heatmap_updown_topgo")))
                          )
                 ),
                 tabPanel("List1", icon = icon("list"),
@@ -864,7 +871,7 @@ ideal_ui <- shinydashboard::dashboardPage(
                                   # DT::dataTableOutput("DT_gse_list1_topgo"),
                                   uiOutput("ui_DT_gse_list1_topgo"),
                                   downloadButton("downloadGOTbl_l1","Download", class = "btn btn-success")),
-                           column(width = 3, plotOutput("goterm_heatmap_l1_topgo"))
+                           column(width = 3, shinyjqui::jqui_resizable(plotOutput("goterm_heatmap_l1_topgo")))
                          )
                          
                 ),
@@ -886,7 +893,7 @@ ideal_ui <- shinydashboard::dashboardPage(
                                   # DT::dataTableOutput("DT_gse_list2_topgo"),
                                   uiOutput("ui_DT_gse_list2_topgo"),
                                   downloadButton("downloadGOTbl_l2","Download", class = "btn btn-success")),
-                           column(width = 3, plotOutput("goterm_heatmap_l2_topgo"))
+                           column(width = 3, shinyjqui::jqui_resizable(plotOutput("goterm_heatmap_l2_topgo")))
                          )
                 )
               )
@@ -1294,24 +1301,53 @@ ideal_server <- shinyServer(function(input, output, session) {
         tags$li("You already provided a count matrix or a DESeqDataSet object as input. You can check your input data in the collapsible box here below."), offset = 2)))
     } else {
       return(fileInput(inputId = "uploadcmfile",
-                       label = "Upload a count matrix file",
+                       label = "Upload one or more count matrix file(s)",
                        accept = c("text/csv", "text/comma-separated-values",
                                   "text/tab-separated-values", "text/plain",
-                                  ".csv", ".tsv"), multiple = FALSE))
+                                  ".csv", ".tsv", ".xls"), multiple = TRUE))
     }
   })
   
   readCountmatrix <- reactive({
     if (is.null(input$uploadcmfile))
       return(NULL)
-    guessed_sep <- sepguesser(input$uploadcmfile$datapath)
-    cm <- utils::read.delim(input$uploadcmfile$datapath, header = TRUE,
+    on.exit({
+      if (!is.null(getDefaultReactiveDomain())) {
+        removeNotification(id = "readCountmatrix")
+      }
+    })
+    if (!is.null(getDefaultReactiveDomain())) {
+      showNotification("readCountmatrix",
+                       id = "readCountmatrix",
+                       duration = NULL
+      )
+    }
+    
+    guessed_sep <- sepguesser(input$uploadcmfile$datapath[1])
+    cm <- utils::read.delim(input$uploadcmfile$datapath[1], header = TRUE,
                             as.is = TRUE, sep = guessed_sep, quote = "",
                             row.names = 1, # https://github.com/federicomarini/pcaExplorer/issues/1
                             ## TODO: tell the user to use tsv, or use heuristics
                             ## to check what is most frequently occurring separation character? -> see sepGuesser.R
                             check.names = FALSE)
-    
+    if (nrow(input$uploadcmfile) > 1){
+      for (r in 2:nrow(input$uploadcmfile)) {
+        cmt <- utils::read.delim(input$uploadcmfile$datapath[r], header = TRUE,
+                                 as.is = TRUE, sep = guessed_sep, quote = "",
+                                 row.names = 1, # https://github.com/federicomarini/pcaExplorer/issues/1
+                                 ## TODO: tell the user to use tsv, or use heuristics
+                                 ## to check what is most frequently occurring separation character? -> see sepGuesser.R
+                                 check.names = FALSE)
+        cm2 = base::merge(cm, cmt, by = 0,  all=T)
+        rownames(cm2) = cm2$Row.names
+        cm2$Row.names = NULL
+        cm = cm2
+      }
+    }
+    cm[is.na(cm)] <- 0
+    cat(file = stderr(), paste("read count data: rows:", nrow(cm), "ncol:", ncol(cm), "\n", "sample names:", colnames(cm), "\n"))
+    # browser()
+    # write.csv(cm, file = "~/GoogleDrive/pasteur/Tp2019/allPreviousYears2.csv")
     return(cm)
   })
   
@@ -1334,11 +1370,24 @@ ideal_server <- shinyServer(function(input, output, session) {
   readMetadata <- reactive({
     if (is.null(input$uploadmetadatafile))
       return(NULL)
+    # browser()
+    
     guessed_sep <- sepguesser(input$uploadmetadatafile$datapath)
     expdesign <- utils::read.delim(input$uploadmetadatafile$datapath, header = TRUE,
-                                   as.is = TRUE, sep = guessed_sep, quote = "",
-                                   check.names = FALSE)
-    
+                                   sep = guessed_sep, quote = "",
+                                   check.names = FALSE, stringsAsFactors = TRUE)
+    if (colnames(expdesign)[1] == "") {
+      tryCatch({
+        rownames(expdesign) <- expdesign[,1]},
+        error = function(e) {
+          showNotification(paste("Error while load meta data:\n", e),
+                           type = "error")
+          return(NULL)
+        }
+      )
+      expdesign <- expdesign[,-1]
+    }
+    cat(file = stderr(), paste("read metadata: rows:", nrow(expdesign), "colnames:", colnames(expdesign), "\n"))
     return(expdesign)
   })
   
@@ -1391,7 +1440,24 @@ ideal_server <- shinyServer(function(input, output, session) {
       return(NULL)
     poss_covars <- colnames(values$expdesign)
     selectInput('dds_design', label = 'Select the design for your experiment: ',
-                choices = c(NULL, poss_covars), selected = NULL,multiple = TRUE)
+                choices = c(NULL, poss_covars), selected = values$dds_design, multiple = TRUE)
+  })
+  
+  output$ddsintercept <- renderUI({
+    if(is.null(values$expdesign))
+      return(NULL)
+    if(is.null(input$dds_design))
+      return(NULL)
+    if(!input$dds_design %in% colnames(values$expdesign))
+      return(NULL)
+    # browser()
+    poss_covars <- levels(values$expdesign[,input$dds_design[1]])
+    selectInput('dds_intercept', label = 'Select the intercept for your experiment: ',
+                choices = c(NULL, poss_covars), selected = values$dds_intercept, multiple = FALSE)
+  })
+  
+  observeEvent(input$dds_intercept, {
+    values$dds_intercept = input$dds_intercept
   })
   
   # server ui steps -----------------------------------------------------------
@@ -1406,6 +1472,9 @@ ideal_server <- shinyServer(function(input, output, session) {
             column(
               width = 6,
               uiOutput("ddsdesign"),
+              uiOutput("ddsintercept"),
+              checkboxInput(inputId = "multiplyDesign", label = "multiply first two arguments",value = FALSE),
+              textInput("geneFilter", "Reg. expr. to fileter genes", value = values$geneFilter),
               uiOutput("ui_diydds"),
               hr(),
               # uiOutput("ok_dds"),
@@ -1476,12 +1545,12 @@ ideal_server <- shinyServer(function(input, output, session) {
     actionButton("button_getanno","Retrieve the gene symbol annotation for the uploaded data", class = "btn btn-primary")
   })
   
-  output$ui_nrcores <- renderUI({
-    mincores <- 1
-    maxcores <- BiocParallel::multicoreWorkers()
-    sliderInput("nrcores",label = "Choose how many cores to use for computing:",
-                min = mincores, max = maxcores,value = 1,step = 1)
-  })
+  # output$ui_nrcores <- renderUI({
+  #   mincores <- 1
+  #   maxcores <- BiocParallel::multicoreWorkers()
+  #   sliderInput("nrcores",label = "Choose how many cores to use for computing:",
+  #               min = mincores, max = maxcores,value = 2, step = 1)
+  # })
   
   output$ui_step3 <- renderUI({
     if (is.null(values$dds_obj)) #
@@ -1490,12 +1559,12 @@ ideal_server <- shinyServer(function(input, output, session) {
         tagList(
           h2("Run DESeq!"),
           
-          fluidRow(
-            column(
-              width = 4,
-              uiOutput("ui_nrcores")
-            )
-          ),
+          # fluidRow(
+          #   column(
+          #     width = 4,
+          #     uiOutput("ui_nrcores")
+          #   )
+          # ),
           
           uiOutput("rundeseq"),
           verbatimTextOutput("printDIYresults"),
@@ -1509,6 +1578,7 @@ ideal_server <- shinyServer(function(input, output, session) {
       return(NULL)
     if (!"results" %in% mcols(mcols(values$dds_obj))$type) #
       return(NULL)
+    
     tagList(
       h2("Good to go!"),
       box(width = 6, title = "Diagnostic plot", status = "info", solidHeader = TRUE,
@@ -1529,7 +1599,7 @@ ideal_server <- shinyServer(function(input, output, session) {
     tags$div(HTML('<i class="fa fa-check fa-3x icon-done"></i>'))
   })
   output$ok_ed <- renderUI({
-    if (is.null(values$expdesign))
+    if (is.null(values$dds_obj))
       return(NULL)
     # icon("check",class = "icon-done") # this does not allow to set the size? go manually with..
     tags$div(HTML('<i class="fa fa-check fa-3x icon-done"></i>'))
@@ -1546,6 +1616,13 @@ ideal_server <- shinyServer(function(input, output, session) {
     # icon("check",class = "icon-done") # this does not allow to set the size? go manually with..
     tags$div(HTML('<i class="fa fa-check fa-3x icon-done"></i>'))
   })
+  output$ok_ddsRun <- renderUI({
+    if(is.null(values$dds_obj))
+      return(NULL)
+    if (!"results" %in% mcols(mcols(values$dds_obj))$type) #
+      return(NULL)
+    tags$div(HTML('<i class="fa fa-check fa-3x icon-done"></i>'))
+  })
   output$ok_resu <- renderUI({
     if (is.null(values$res_obj))
       return(NULL)
@@ -1560,32 +1637,94 @@ ideal_server <- shinyServer(function(input, output, session) {
     is.null(values$res_obj)
   })
   
-  outputOptions(output, 'checkresu', suspendWhenHidden=FALSE)
-  outputOptions(output, 'checkdds', suspendWhenHidden=FALSE)
+  outputOptions(output, 'checkresu', suspendWhenHidden = FALSE)
+  outputOptions(output, 'checkdds', suspendWhenHidden = FALSE)
   
   output$dt_cm <- DT::renderDataTable({
     if(is.null(values$countmatrix))
       return(NULL)
-    datatable(values$countmatrix,options = list(scrollX = TRUE,scrollY = "400px"))
+    datatable(values$countmatrix, options = list(scrollX = TRUE, scrollY = "400px"))
   })
   
   output$dt_ed <- DT::renderDataTable({
     if(is.null(values$expdesign))
       return(NULL)
-    datatable(values$expdesign,options = list(scrollX = TRUE))
+    datatable(values$expdesign, options = list(scrollX = TRUE))
   })
   
+  observeEvent(input$geneFilter, {
+    if (is.null(values$geneFilter)) {
+      updateTextInput(session, inputId = "geneFilter", value = "^MT-|^RP")
+    } 
+    values$geneFilter = input$geneFilter
+    values$dds_obj = NULL
+  })
   # http://stackoverflow.com/questions/17024685/how-to-use-a-character-string-in-formula
   # http://stats.stackexchange.com/questions/29477/how-to-write-a-linear-model-formula-with-100-variables-in-r
   # http://stackoverflow.com/questions/7666807/anova-test-fails-on-lme-fits-created-with-pasted-formula/7668846#7668846
   diyDDS <- reactive({
-    if(is.null(values$countmatrix) | is.null(values$expdesign) | is.null(input$dds_design))
+    if (is.null(values$countmatrix) | is.null(values$expdesign) | is.null(input$dds_design)) {
       return(NULL)
+    }
+    # browser()
+    if (!is.null(readCountmatrix()))
+      values$countmatrix <- readCountmatrix()
+    if (!is.null(readMetadata()))
+      values$expdesign <- readMetadata()
+    comSamples <- intersect(colnames(values$countmatrix), rownames(values$expdesign))
+    metaData <- readMetadata()
+    values$expdesign <- values$expdesign[comSamples, ]
+    dsgn <- input$dds_design
+    filterExp <- input$geneFilter
+    values$geneFilter = input$geneFilter
+    values$dds_design = input$dds_design
+    values$res_obj = NULL
+    if (!dsgn[1] == "~") {
+      dStr <- paste0("~", paste(input$dds_design, collapse = " + "))
+      if (input$multiplyDesign) {
+        dStr <- sub('\\+', '*', dStr)
+      }
+      dsgn <- as.formula(dStr)
+    }
+    locfunc <- stats::median
+    # browser()
+    counts <- values$countmatrix[, comSamples]
+    counts <- counts[grep(filterExp, rownames(counts), invert = TRUE), ]
+    values$countmatrix <- counts
+    cGenes = 1:nrow(counts)
     
-    dds <- DESeqDataSetFromMatrix(countData = values$countmatrix,
-                                  colData = values$expdesign,
-                                  design=as.formula(paste0("~",paste(input$dds_design, collapse=" + "))))
-    dds <- estimateSizeFactors(dds)
+    md = readMetadata()
+    rc = readCountmatrix()
+    colData = values$expdesign[comSamples, ]
+    c1 = colnames(values$countmatrix)
+    c2= rownames(values$expdesign)
+    design = dsgn
+    # save(file = "~/SCHNAPPsDebug/idealDDS.RData", list = c('counts', "colData", "design", "comSamples", "c1", "c2", "md", "rc"))
+    colData[, input$dds_design[1]] = relevel(colData[, input$dds_design[1]], ref = values$dds_intercept)
+    dds <- tryCatch(
+      {
+        # reset if count data was supplied via GUI and not as parameter
+        dds <- DESeqDataSetFromMatrix(
+          countData = counts,
+          colData = colData,
+          design = design
+        )
+        dds <- estimateSizeFactors(dds)
+      },
+      error = function(e) {
+        cat(file = stderr(), paste("error during creation of dds object:", e))
+        # save(file = "~/SCHNAPPsDebug/idealDDS.RData", list = c('counts', "colData", "design", "comSamples", "c1", "c2", "md", "rc"))
+        # cp =load("/Users/bernd/SCHNAPPsDebug/idealDDS.RData")
+        showNotification(
+          paste(
+            "Error during creation of DDS object",
+            "-----", e
+          ),
+          type = "error"
+        )
+        return(NULL)
+      }
+    )
     return(dds)
   })
   
@@ -1598,7 +1737,10 @@ ideal_server <- shinyServer(function(input, output, session) {
   output$debugdiy <- renderPrint({
     if(!is.null(values$dds_obj)){
       print(values$dds_obj)
+      print("Design:")
       print(design(values$dds_obj))
+      print("Gene filter:")
+      print(values$geneFilter)
     }
   })
   
@@ -1606,11 +1748,15 @@ ideal_server <- shinyServer(function(input, output, session) {
   observeEvent(input$uploadcmfile,
                {
                  values$countmatrix <- readCountmatrix()
+                 values$dds_obj <- NULL
+                 values$res_obj <- NULL
                })
   
   observeEvent(input$uploadmetadatafile,
                {
                  values$expdesign <- readMetadata()
+                 values$dds_obj <- NULL
+                 values$res_obj <- NULL
                })
   
   
@@ -1641,7 +1787,7 @@ ideal_server <- shinyServer(function(input, output, session) {
   annoSpecies_df$species_short[grep(pattern = "eg.db",annoSpecies_df$pkg)] <- gsub(".eg.db","",gsub("org.","",annoSpecies_df$pkg))[grep(pattern = "eg.db",annoSpecies_df$pkg) ]
   # to match to the goseq genome setting
   annoSpecies_df$goseq_shortcut <- c("","anoGam1","Arabidopsis","bosTau8","canFam3","galGal4","panTro4","E. coli K12","E. coli Sakai",
-                                     "dm6","hg38","Malaria","mm10","susScr3","rn6","rheMac","","","ce11","xenTro","sacCer3","danRer10")
+                                     "dm6","hg19","Malaria","mm10","susScr3","rn6","rheMac","","","ce11","xenTro","sacCer3","danRer10")
   rownames(annoSpecies_df) <- annoSpecies_df$species # easier to access afterwards
   # annoSpecies_df <- annoSpecies_df[annoSpecies_df$species %in% c("","Human", "Mouse", "Rat", "Fly", "Chimp"),]
   
@@ -1649,7 +1795,7 @@ ideal_server <- shinyServer(function(input, output, session) {
     if (is.null(values$dds_obj)) #
       return(NULL)
     selectInput("speciesSelect",label = "Select the species of your samples - it will also be used for enhancing result tables",
-                choices = annoSpecies_df$species,selected="")
+                choices = annoSpecies_df$species,selected="Human")
   })
   
   output$ui_idtype <- renderUI({
@@ -1666,7 +1812,7 @@ ideal_server <- shinyServer(function(input, output, session) {
       pkg_choices <- keytypes(get(annopkg))
       std_choices <- union(std_choices, pkg_choices)
     }
-    selectInput("idtype", "select the id type in your data", choices=std_choices)
+    selectInput("idtype", "select the id type in your data", choices=std_choices, selected = "SYMBOL")
   })
   
   output$speciespkg <- renderText({
@@ -1694,10 +1840,22 @@ ideal_server <- shinyServer(function(input, output, session) {
   output$ui_selectoutliers <- renderUI({
     if(is.null(values$dds_obj))
       return(NULL)
-    else
-      selectInput("selectoutliers","Select the samples to remove - candidate outliers",
-                  choices = colnames(values$dds_obj), selected = NULL,multiple = TRUE
-      )
+    cat(file = stderr(), "ui_selectoutliers UI\n")
+    md = colnames(values$dds_obj)
+    cm = colnames(values$dds_obj)
+    if (!is.null(readCountmatrix()))
+      cm <- readCountmatrix()
+    if (!is.null(readMetadata()))
+      md <- readMetadata()
+    comSamples <- intersect(colnames(cm), rownames(md))
+    sele <- values$removedsamples
+    
+    
+      checkboxGroupInput("selectoutliers","Select the samples to remove - candidate outliers",
+                         choices = comSamples, selected = sele)
+      # selectInput("selectoutliers","Select the samples to remove - candidate outliers",
+      #             choices = colnames(values$dds_obj), selected = NULL,multiple = TRUE
+      # )
   })
   
   output$outliersout <- renderUI({
@@ -1713,11 +1871,23 @@ ideal_server <- shinyServer(function(input, output, session) {
       outliersamples <- input$selectoutliers
       
       keptsamples <- setdiff(allsamples,outliersamples)
-      dds <- DESeqDataSetFromMatrix(countData = values$countmatrix[,keptsamples],
+      dds <- tryCatch({DESeqDataSetFromMatrix(countData = values$countmatrix[,keptsamples],
                                     colData = values$expdesign[keptsamples,],
                                     design= design(values$dds_obj)
                                     # design=as.formula(paste0("~",paste(input$dds_design, collapse=" + ")))
-      )
+      )}, error = function(e) {
+        showNotification(
+          paste(
+            "Error during creation of DDS object",
+            "-----", e
+          ),
+          type = "error"
+        )
+        return(NULL)
+      })
+      if (is.null(dds)) {
+        return(NULL)
+      }
       dds <- estimateSizeFactors(dds)
       
       # return(dds)
@@ -1752,13 +1922,30 @@ ideal_server <- shinyServer(function(input, output, session) {
                                 curr_species <- input$speciesSelect
                                 incProgress(0.1)
                                 
-                                if(input$nrcores == 1)
-                                  values$dds_obj <- DESeq(values$dds_obj)
-                                else
-                                  # leave open option for computing in parallel?
-                                  values$dds_obj <- DESeq(values$dds_obj,
-                                                          parallel = TRUE,
-                                                          BPPARAM = MulticoreParam(workers = input$nrcores))
+                                # if(input$nrcores == 1){
+                                #   pa = FALSE
+                                #   bp = bpparam()
+                                # } else {
+                                  pa = TRUE
+                                  bp = MulticoreParam(workers = 2)
+                                # }
+                                # leave open option for computing in parallel?
+                                values$dds_obj <- tryCatch({
+                                  DESeq(values$dds_obj,
+                                        parallel = pa,
+                                        BPPARAM = bp)},
+                                  # BPPARAM = MulticoreParam(workers = input$nrcores))},
+                                  error = function(e) {
+                                    showNotification(
+                                      paste(
+                                        "Error during creation of DDS object",
+                                        "-----", e
+                                      ),
+                                      type = "error"
+                                    )
+                                    return(values$dds_obj)
+                                  }
+                                )
                                 incProgress(0.89)
                                 updateSelectInput(session, inputId = "speciesSelect", selected = curr_species)
                               })
@@ -1781,7 +1968,7 @@ ideal_server <- shinyServer(function(input, output, session) {
            "dds object provided, but couldn't find results. you should first run DESeq() with the button up here"
       )
     )
-    summary(results(values$dds_obj), alpha = input$FDR)
+    summary(DESeq2::results(values$dds_obj), alpha = input$FDR)
   })
   
   # server counts overview --------------------------------------------------------
@@ -1846,6 +2033,7 @@ ideal_server <- shinyServer(function(input, output, session) {
     rld <- rlog(values$dds_obj, blind = FALSE)
     plotPCA(rld, intgroup = input$color_by, ntop = 1000)
   })
+  
   output$sizeFactorsPlot <- renderPlot({
     col <- brewer.pal(3, "Dark2")
     if(is.null(input$color_by)) {
@@ -1898,7 +2086,7 @@ ideal_server <- shinyServer(function(input, output, session) {
     
     # and extract the count data from the DESeq2 object.
     heatmapcounts <- assay(nt)[select, ]
-    save(file = "~/scShinyHubDebug/ideal.RData", list = c(ls(), ls(envir = globalenv())))
+    # save(file = "~/scShinyHubDebug/ideal.RData", list = c(ls(), ls(envir = globalenv())))
     # load(file="~/scShinyHubDebug/ideal.RData")
     # if("symbol" %in% names(dds_obj)) {
     #   p <- plot_ma(values$res_obj,
@@ -2128,23 +2316,30 @@ ideal_server <- shinyServer(function(input, output, session) {
                {
                  withProgress(message="Retrieving the annotation...",
                               detail = "Locating package", value = 0,{
-                                
+                                # browser()
                                 annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect]
                                 incProgress(0.1,detail = "Matching identifiers")
-                                tryCatch({
-                                  annotation_obj <- get_annotation_orgdb(values$dds_obj,orgdb_species = annopkg, idtype = input$idtype)
-                                  values$annotation_obj <- annotation_obj
-                                  # and also, set the species in the reactiveValues
-                                  values$cur_species <- input$speciesSelect
-                                  values$cur_type <- input$idtype
-                                },
-                                error=function(e) {
-                                  showNotification(
-                                    paste("Warning! The annotation object was not generated,",
-                                          "because of an error in the underlying `mapIds` function:",
-                                          "-----", e), type = "warning")
-                                })
+                                values$cur_species <- input$speciesSelect
+                                values$cur_type <- input$idtype
+                                
+                                if (input$idtype == "SYMBOL") {
+                                  values$annotation_obj = data.frame(gene_id = rownames(values$dds_obj), gene_name = rownames(values$dds_obj), 
+                                                                     stringsAsFactors = FALSE, row.names = rownames(values$dds_obj))
+                                } else {
+                                  tryCatch({
+                                    annotation_obj <- get_annotation_orgdb(values$dds_obj,orgdb_species = annopkg, idtype = input$idtype)
+                                    values$annotation_obj <- annotation_obj
+                                    # and also, set the species in the reactiveValues
+                                  },
+                                  error=function(e) {
+                                    showNotification(
+                                      paste("Warning! The annotation object was not generated,",
+                                            "because of an error in the underlying `mapIds` function:",
+                                            "-----", e), type = "warning")
+                                  })
+                                }
                               })
+                 
                })
   
   output$printDIYanno <- renderPrint({
@@ -2224,6 +2419,7 @@ ideal_server <- shinyServer(function(input, output, session) {
   
   observeEvent(input$button_enrUP_goseq,
                {
+                 # browser()
                  withProgress(message="GOSEQ - Performing Gene Set Enrichment on upregulated genes...",value = 0,{
                    if (is.null(input$speciesSelect)) {
                      showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
@@ -2237,22 +2433,33 @@ ideal_server <- shinyServer(function(input, output, session) {
                    } else {
                      de.genes <- values$genelistUP() # assumed to be in symbols
                      assayed.genes.ids <- rownames(values$dds_obj) # as IDs, but then to be converted back
-                     assayed.genes <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                             keys=assayed.genes.ids,
-                                             column="SYMBOL",
-                                             keytype=input$idtype,
-                                             multiVals="first")
+                     if (!input$idtype == "SYMBOL") {
+                       assayed.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                                                   keys=assayed.genes.ids,
+                                                   column="SYMBOL",
+                                                   keytype=input$idtype,
+                                                   multiVals="first")
+                     } else {
+                       assayed.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                                                   keys=assayed.genes.ids,
+                                                   column="ENSEMBL",
+                                                   keytype="SYMBOL",
+                                                   multiVals="first")
+                       assayed.genes.ids = assayed.genes.ids[!is.na(assayed.genes.ids)]
+                     }
                      de.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                             keys=de.genes,
                                             column="ENSEMBL",
                                             keytype="SYMBOL",
                                             multiVals="first")
                      incProgress(0.1, detail = "IDs mapped")
-                     
-                     values$gse_up_goseq <- goseqTable(de.genes.ids,
-                                                       assayed.genes.ids,
+                     de.genes.ids = de.genes.ids[!is.na(de.genes.ids)]
+                     library(goseq)
+                     library(GO.db)
+                     values$gse_up_goseq <- goseqTable(de.genes = de.genes.ids,
+                                                       assayed.genes = unique(assayed.genes.ids),
                                                        genome = annoSpecies_df[values$cur_species,]$goseq_short,
-                                                       id= "ensGene",
+                                                       id = "ensGene",
                                                        testCats=paste0("GO:",input$go_cats),
                                                        FDR_GO_cutoff = 1,
                                                        nTop = 200,
@@ -2267,6 +2474,7 @@ ideal_server <- shinyServer(function(input, output, session) {
   
   observeEvent(input$button_enrUP_topgo,
                {
+                 # browser()
                  withProgress(message="TOPGO - Performing Gene Set Enrichment on upregulated genes...",value = 0,{
                    if (is.null(input$speciesSelect)) {
                      showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
@@ -2280,11 +2488,15 @@ ideal_server <- shinyServer(function(input, output, session) {
                    } else {
                      de_symbols <- values$genelistUP() # assumed to be in symbols
                      bg_ids <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj)) > 0]
-                     bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                          keys=bg_ids,
-                                          column="SYMBOL",
-                                          keytype=input$idtype,
-                                          multiVals="first")
+                     if (input$idtype == "SYMBOL") {
+                       bg_symbols <- bg_ids
+                     } else {
+                       bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                                            keys=bg_ids,
+                                            column="SYMBOL",
+                                            keytype=input$idtype,
+                                            multiVals="first")
+                     }
                      incProgress(0.1, detail = "IDs mapped")
                      # library(topGO)
                      # requireNamespace("topGO")
@@ -2370,7 +2582,7 @@ ideal_server <- shinyServer(function(input, output, session) {
                      values$gse_down_goseq <- goseqTable(de.genes.ids,
                                                          assayed.genes.ids,
                                                          genome = annoSpecies_df[values$cur_species,]$goseq_short,
-                                                         id= "ensGene",
+                                                         id= "geneSymbol",
                                                          testCats=paste0("GO:",input$go_cats),
                                                          FDR_GO_cutoff = 1,
                                                          nTop = 200,
@@ -2491,7 +2703,7 @@ ideal_server <- shinyServer(function(input, output, session) {
                      values$gse_updown_goseq <- goseqTable(de.genes.ids,
                                                            assayed.genes.ids,
                                                            genome = annoSpecies_df[values$cur_species,]$goseq_short,
-                                                           id= "ensGene",
+                                                           id= "geneSymbol",
                                                            testCats=paste0("GO:",input$go_cats),
                                                            FDR_GO_cutoff = 1,
                                                            nTop = 200,
@@ -3050,19 +3262,22 @@ ideal_server <- shinyServer(function(input, output, session) {
   output$goterm_heatmap_up_topgo <- renderPlot({
     
     s <- input$DT_gse_up_topgo_rows_selected
+    idtype <- input$idtype
+    speciesSelect <- input$speciesSelect
+    dds_obj <- values$dds_obj
     if(length(s) == 0)
       return(NULL)
     
     # allow only one selected line
-    mygenes <- values$topgo_up[input$DT_gse_up_topgo_rows_selected,]$genes[1]
+    mygenes <- values$topgo_up[s,]$genes[1]
     myterm <- paste0(
-      values$topgo_up[input$DT_gse_up_topgo_rows_selected,]$`GO.ID`, " - ",
-      values$topgo_up[input$DT_gse_up_topgo_rows_selected,]$Term)
+      values$topgo_up[s,]$`GO.ID`, " - ",
+      values$topgo_up[s,]$Term)
     
     genevec <- unlist(strsplit(mygenes,split=","))
-    annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect]
-    genevec_ids <- mapIds(eval(parse(text=annopkg)),genevec,input$idtype,"SYMBOL",multiVals="first")
-    log2things <- assay(normTransform(values$dds_obj))
+    annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==speciesSelect]
+    genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,idtype,"SYMBOL",multiVals="first"))
+    log2things <- assay(normTransform(dds_obj))
     selectedLogvalues <- log2things[genevec_ids,]
     
     # check that I do not have nas or similar...
@@ -3072,6 +3287,8 @@ ideal_server <- shinyServer(function(input, output, session) {
       rowlabs <- genevec_ids
       # rowlabs <- ifelse(, genevec, genevec_ids)
     }
+    # save(file = "~/SCHNAPPsDebug/ideal.goterm_heatmap_up_topgo.RData", list = ls())
+    # load("~/SCHNAPPsDebug/ideal.goterm_heatmap_up_topgo.RData")
     pheatmap(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
     
   })
@@ -3090,7 +3307,7 @@ ideal_server <- shinyServer(function(input, output, session) {
     
     genevec <- unlist(strsplit(mygenes,split=","))
     annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect]
-    genevec_ids <- mapIds(eval(parse(text=annopkg)),genevec,input$idtype,"SYMBOL",multiVals="first")
+    genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,input$idtype,"SYMBOL",multiVals="first"))
     log2things <- assay(normTransform(values$dds_obj))
     selectedLogvalues <- log2things[genevec_ids,]
     
@@ -3101,6 +3318,7 @@ ideal_server <- shinyServer(function(input, output, session) {
       rowlabs <- genevec_ids
       # rowlabs <- ifelse(, genevec, genevec_ids)
     }
+    # save(file = "~/SCHNAPPsDebug/ideal.goterm_heatmap_down_topgo.RData", list = ls())
     pheatmap(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
     
   })
@@ -3121,7 +3339,7 @@ ideal_server <- shinyServer(function(input, output, session) {
     
     genevec <- unlist(strsplit(mygenes,split=","))
     annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect]
-    genevec_ids <- mapIds(eval(parse(text=annopkg)),genevec,input$idtype,"SYMBOL",multiVals="first")
+    genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,input$idtype,"SYMBOL",multiVals="first"))
     log2things <- assay(normTransform(values$dds_obj))
     selectedLogvalues <- log2things[genevec_ids,]
     
@@ -3132,6 +3350,7 @@ ideal_server <- shinyServer(function(input, output, session) {
       rowlabs <- genevec_ids
       # rowlabs <- ifelse(, genevec, genevec_ids)
     }
+    # save(file = "~/SCHNAPPsDebug/ideal.goterm_heatmap_updown_topgo.RData", list = ls())
     pheatmap(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
     
   })
@@ -3150,7 +3369,7 @@ ideal_server <- shinyServer(function(input, output, session) {
     
     genevec <- unlist(strsplit(mygenes,split=","))
     annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect]
-    genevec_ids <- mapIds(eval(parse(text=annopkg)),genevec,input$idtype,"SYMBOL",multiVals="first")
+    genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,input$idtype,"SYMBOL",multiVals="first"))
     log2things <- assay(normTransform(values$dds_obj))
     selectedLogvalues <- log2things[genevec_ids,]
     
@@ -3161,6 +3380,7 @@ ideal_server <- shinyServer(function(input, output, session) {
       rowlabs <- genevec_ids
       # rowlabs <- ifelse(, genevec, genevec_ids)
     }
+    # save(file = "~/SCHNAPPsDebug/ideal.goterm_heatmap_l1_topgo.RData", list = ls())
     pheatmap(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
     
   })
@@ -3179,7 +3399,7 @@ ideal_server <- shinyServer(function(input, output, session) {
     
     genevec <- unlist(strsplit(mygenes,split=","))
     annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect]
-    genevec_ids <- mapIds(eval(parse(text=annopkg)),genevec,input$idtype,"SYMBOL",multiVals="first")
+    genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,input$idtype,"SYMBOL",multiVals="first"))
     log2things <- assay(normTransform(values$dds_obj))
     selectedLogvalues <- log2things[genevec_ids,]
     
@@ -3190,6 +3410,7 @@ ideal_server <- shinyServer(function(input, output, session) {
       rowlabs <- genevec_ids
       # rowlabs <- ifelse(, genevec, genevec_ids)
     }
+    # save(file = "~/SCHNAPPsDebug/ideal.goterm_heatmap_l2_topgo.RData", list = ls())
     pheatmap(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
     
   })
@@ -3308,16 +3529,22 @@ ideal_server <- shinyServer(function(input, output, session) {
   
   observeEvent(input$sig_convert_setup,
                {
+                 
                  withProgress(message="Matching the identifiers",
                               detail = "Locating package", value = 0,{
                                 require(input$sig_orgdbpkg,character.only=TRUE)
                                 incProgress(0.1,detail = "Matching identifiers")
                                 
                                 x <- get(input$sig_orgdbpkg)
-                                values$anno_vec <- mapIds(x, rownames(values$dds_obj),
-                                                          column = input$sig_id_sigs,
-                                                          keytype = input$sig_id_data)
-                                
+                                if (input$sig_id_sigs == "SYMBOL" & input$sig_id_data == "SYMBOL") {
+                                  anno_vec = rownames(values$dds_obj)
+                                  names(anno_vec) = rownames(values$dds_obj)
+                                  values$anno_vec = anno_vec
+                                } else {
+                                  values$anno_vec <- mapIds(x, rownames(values$dds_obj),
+                                                            column = input$sig_id_sigs,
+                                                            keytype = input$sig_id_data)
+                                }
                               })
                })
   
@@ -3392,12 +3619,18 @@ ideal_server <- shinyServer(function(input, output, session) {
   })
   
   design_factors <- reactive({
-    rev(attributes(terms.formula(design(values$dds_obj)))$term.labels)
+    # rev(attributes(terms.formula(design(values$dds_obj)))$term.labels)
+    resultsNames(values$dds_obj)
+    
   })
   
   output$choose_fac <- renderUI({
-    selectInput("choose_expfac",label = "Choose the experimental factor to build the contrast upon (must be in the design formula)",
-                choices = c("",design_factors()), selected = "")
+    selectInput("choose_expfac",label = "Choose the experimental factor to build the contrast (numerator)",
+                choices = c("",design_factors()), selected = "", multiple = TRUE)
+  })
+  output$choose_fac2 <- renderUI({
+    selectInput("choose_expfac2",label = "Choose the experimental factor to build the contrast (denominator)",
+                choices = c("",design_factors()), selected = "", multiple = TRUE)
   })
   
   observe({
@@ -3407,90 +3640,100 @@ ideal_server <- shinyServer(function(input, output, session) {
   
   # server DE results --------------------------------------------------------
   # nrl <- reactive
-  output$lrtavailable <- renderUI({
-    if(is.null(values$dds_obj))
-      return(NULL)
-    shiny::validate(
-      need(input$choose_expfac!="",
-           ""
-      )
-    )
-    fac1 <- input$choose_expfac
-    nrl <- length(levels(colData(values$dds_obj)[,fac1]))
-    
-    if(nrl > 2)
-      p("I can perform a LRT test on the chosen factor, select the full and the reduced model")
-    
-  })
-  
-  output$lrtfull <- renderUI({
-    if(is.null(values$dds_obj))
-      return(NULL)
-    shiny::validate(
-      need(input$choose_expfac!="",
-           ""
-      )
-    )
-    fac1 <- input$choose_expfac
-    nrl <- length(levels(colData(values$dds_obj)[,fac1]))
-    
-    if(nrl > 2)
-      selectInput("choose_lrt_full",label = "Choose the factors for the full model",
-                  choices = c("",design_factors()), selected = "", multiple = TRUE)
-    
-  })
-  
-  output$lrtreduced <- renderUI({
-    if(is.null(values$dds_obj))
-      return(NULL)
-    shiny::validate(
-      need(input$choose_expfac!="",
-           ""
-      )
-    )
-    fac1 <- input$choose_expfac
-    nrl <- length(levels(colData(values$dds_obj)[,fac1]))
-    
-    if(nrl > 2)
-      selectInput("choose_lrt_reduced",label = "Choose the factor(s) for the reduced model",
-                  choices = c("",design_factors()), selected = "", multiple = TRUE)
-  })
-  
-  
-  output$runlrt <- renderUI({
-    if(is.null(values$dds_obj))
-      return(NULL)
-    shiny::validate(
-      need(input$choose_expfac!="",
-           ""
-      )
-    )
-    fac1 <- input$choose_expfac
-    nrl <- length(levels(colData(values$dds_obj)[,fac1]))
-    
-    if(nrl > 2)
-      actionButton("button_runlrt",label = "(re)Run LRT for the dataset",class = "btn btn-primary")
-  })
-  
-  observeEvent(input$button_runlrt,{
-    withProgress(message="Computing the LRT results...",
-                 detail = "This step can take a little while",
-                 value = 0,{
-                   
-                   values$ddslrt <- DESeq(values$dds_obj,test = "LRT",
-                                          full = as.formula(paste0("~",paste(input$choose_lrt_full, collapse=" + "))),
-                                          reduced = as.formula(paste0("~",paste(input$choose_lrt_reduced, collapse=" + "))))
-                   
-                   values$reslrt <- results(values$ddslrt)
-                   
-                   
-                   if(!is.null(values$annotation_obj))
-                     values$reslrt$symbol <- values$annotation_obj$gene_name[match(rownames(values$reslrt),
-                                                                                   rownames(values$annotation_obj))]
-                 })
-    
-  })
-  
+  # output$lrtavailable <- renderUI({
+  #   if(is.null(values$dds_obj))
+  #     return(NULL)
+  #   shiny::validate(
+  #     need(input$choose_expfac!="",
+  #          ""
+  #     )
+  #   )
+  #   fac1 <- input$choose_expfac
+  #   nrl <- length(levels(colData(values$dds_obj)[,fac1]))
+  # 
+  #   if(nrl > 2)
+  #     p("I can perform a LRT test on the chosen factor, select the full and the reduced model")
+  # 
+  # })
+  # 
+  # output$lrtfull <- renderUI({
+  #   if(is.null(values$dds_obj))
+  #     return(NULL)
+  #   shiny::validate(
+  #     need(input$choose_expfac!="",
+  #          ""
+  #     )
+  #   )
+  #   fac1 <- input$choose_expfac
+  #   nrl <- length(levels(colData(values$dds_obj)[,fac1]))
+  #   
+  #   if(nrl > 2)
+  #     selectInput("choose_lrt_full",label = "Choose the factors for the full model",
+  #                 choices = c("",design_factors()), selected = "", multiple = TRUE)
+  #   
+  # })
+  # 
+  # output$lrtreduced <- renderUI({
+  #   if(is.null(values$dds_obj))
+  #     return(NULL)
+  #   shiny::validate(
+  #     need(input$choose_expfac!="",
+  #          ""
+  #     )
+  #   )
+  #   fac1 <- input$choose_expfac
+  #   nrl <- length(levels(colData(values$dds_obj)[,fac1]))
+  #   
+  #   if(nrl > 2)
+  #     selectInput("choose_lrt_reduced",label = "Choose the factor(s) for the reduced model",
+  #                 choices = c("",design_factors()), selected = "", multiple = TRUE)
+  # })
+  # 
+  # 
+  # output$runlrt <- renderUI({
+  #   if(is.null(values$dds_obj))
+  #     return(NULL)
+  #   shiny::validate(
+  #     need(input$choose_expfac!="",
+  #          ""
+  #     )
+  #   )
+  #   fac1 <- input$choose_expfac
+  #   nrl <- length(levels(colData(values$dds_obj)[,fac1]))
+  #   
+  #   if(nrl > 2)
+  #     actionButton("button_runlrt",label = "(re)Run LRT for the dataset",class = "btn btn-primary")
+  # })
+  # 
+  # observeEvent(input$button_runlrt,{
+  #   withProgress(message="Computing the LRT results...",
+  #                detail = "This step can take a little while",
+  #                value = 0,{
+  #                  
+  #                  values$ddslrt <- tryCatch(DESeq(values$dds_obj,test = "LRT",
+  #                                                  full = as.formula(paste0("~",paste(input$choose_lrt_full, collapse=" + "))),
+  #                                                  reduced = as.formula(paste0("~",paste(input$choose_lrt_reduced, collapse=" + ")))),
+  #                                            error = function(e){
+  #                                              showNotification(paste("Error while computing the LRT results:\n", e),
+  #                                                               type = "error")
+  #                                              return(NULL)
+  #                                            })
+  #                  
+  #                  values$reslrt <- tryCatch(results(values$ddslrt),
+  #                                            error = function(e){
+  #                                              showNotification(paste("Error while computing the LRT results:\n", e),
+  #                                                               type = "error")
+  #                                              return(NULL)
+  #                                            })
+  #                  
+  #                  
+  #                  if(!is.null(values$annotation_obj))
+  #                    values$reslrt$symbol <- values$annotation_obj$gene_name[match(rownames(values$reslrt),
+  #                                                                                  rownames(values$annotation_obj))]
+  #                })
+  #   
+  # })
+  # 
   # copy this in the report for debugging purposes or so
   # # section title
   #
@@ -3522,51 +3765,51 @@ ideal_server <- shinyServer(function(input, output, session) {
   ## TODO; think if we want to allow for a continuous factor in the results, if so then do something like building
   # the ui elements accordingly
   
-  output$fac1 <- renderUI({
-    shiny::validate(
-      need(input$choose_expfac!="",
-           "Please select an experimental factor to generate the results"
-      )
-    )
-    fac1 <- input$choose_expfac
-    fac1_vals <- colData(values$dds_obj)[,fac1]
-    
-    fac1_levels <- levels(fac1_vals)
-    if(is.factor(colData(values$dds_obj)[,fac1]))
-      selectInput("fac1_c1","Select the name of the numerator level for the fold change",choices = c("",fac1_levels), selected = "")
-    # selectInput("fac1_c2","c2",choices = fac1_levels)
-  })
-  
-  output$fac2 <- renderUI({
-    shiny::validate(
-      need(input$choose_expfac!="",
-           ""
-      )
-    )
-    fac1 <- input$choose_expfac
-    fac1_vals <- colData(values$dds_obj)[,fac1]
-    fac1_levels <- levels(fac1_vals)
-    if(is.factor(colData(values$dds_obj)[,fac1]))
-      # selectInput("fac1_c1","c1",choices = fac1_levels)
-      selectInput("fac1_c2","Select the name of the denominator level for the fold change (must be different from the numerator)",choices = c("",fac1_levels), selected = "")
-  })
-  
-  output$facnum <- renderPrint({
-    shiny::validate(
-      need(input$choose_expfac!="",
-           ""
-      )
-    )
-    fac1 <- input$choose_expfac
-    fac1_vals <- colData(values$dds_obj)[,fac1]
-    
-    # fac1_levels <- levels(fac1_vals)
-    if(class(colData(values$dds_obj)[,fac1]) %in% c("integer","numeric"))
-      print("numeric/integer factor provided")
-    
-    # selectInput("fac1_num","num/int",choices = c("",fac1_levels), selected = "")
-    # selectInput("fac1_c2","c2",choices = fac1_levels)
-  })
+  # output$fac1 <- renderUI({
+  #   shiny::validate(
+  #     need(input$choose_expfac!="",
+  #          "Please select an experimental factor to generate the results"
+  #     )
+  #   )
+  #   fac1 <- input$choose_expfac
+  #   fac1_vals <- colData(values$dds_obj)[,fac1]
+  #   
+  #   fac1_levels <- levels(fac1_vals)
+  #   if(is.factor(colData(values$dds_obj)[,fac1]))
+  #     selectInput("fac1_c1","Select the name of the numerator level for the fold change",choices = c("",fac1_levels), selected = "")
+  #   # selectInput("fac1_c2","c2",choices = fac1_levels)
+  # })
+  # 
+  # output$fac2 <- renderUI({
+  #   shiny::validate(
+  #     need(input$choose_expfac!="",
+  #          ""
+  #     )
+  #   )
+  #   fac1 <- input$choose_expfac
+  #   fac1_vals <- colData(values$dds_obj)[,fac1]
+  #   fac1_levels <- levels(fac1_vals)
+  #   if(is.factor(colData(values$dds_obj)[,fac1]))
+  #     # selectInput("fac1_c1","c1",choices = fac1_levels)
+  #     selectInput("fac1_c2","Select the name of the denominator level for the fold change (must be different from the numerator)",choices = c("",fac1_levels), selected = "")
+  # })
+  # 
+  # output$facnum <- renderPrint({
+  #   shiny::validate(
+  #     need(input$choose_expfac!="",
+  #          ""
+  #     )
+  #   )
+  #   fac1 <- input$choose_expfac
+  #   fac1_vals <- colData(values$dds_obj)[,fac1]
+  #   
+  #   # fac1_levels <- levels(fac1_vals)
+  #   if(class(colData(values$dds_obj)[,fac1]) %in% c("integer","numeric"))
+  #     print("numeric/integer factor provided")
+  #   
+  #   # selectInput("fac1_num","num/int",choices = c("",fac1_levels), selected = "")
+  #   # selectInput("fac1_c2","c2",choices = fac1_levels)
+  # })
   
   output$runresults <- renderUI({
     shiny::validate(
@@ -3574,17 +3817,17 @@ ideal_server <- shinyServer(function(input, output, session) {
            "Select a factor for the contrast first")
     )
     
-    fac1 <- input$choose_expfac
-    fac1_vals <- colData(values$dds_obj)[,fac1]
-    
-    if(!(class(colData(values$dds_obj)[,fac1]) %in% c("integer","numeric"))){
-      
-      shiny::validate(
-        need(input$fac1_c1 != "" & input$fac1_c2 != "" & input$fac1_c1 != input$fac1_c2,
-             "Select two different levels of the factor for the contrast")
-      )
-    }
-    
+    # fac1 <- input$choose_expfac
+    # fac1_vals <- colData(values$dds_obj)[,fac1]
+    # 
+    # if(!(class(colData(values$dds_obj)[,fac1]) %in% c("integer","numeric"))){
+    #   
+    #   shiny::validate(
+    #     need(input$fac1_c1 != "" & input$fac1_c2 != "" & input$fac1_c1 != input$fac1_c2,
+    #          "Select two different levels of the factor for the contrast")
+    #   )
+    # }
+    # 
     # if((class(colData(values$dds_obj)[,fac1]) %in% c("integer","numeric"))){
     # 
     #   shiny::validate(
@@ -3592,11 +3835,11 @@ ideal_server <- shinyServer(function(input, output, session) {
     #          "Set the Add the unshrunken MLE to FALSE")
     #   )
     # }
-    shiny::validate(
-      need("results" %in% mcols(mcols(values$dds_obj))$type ,
-           "I couldn't find results. you should first run DESeq() with the button up here"
-      )
-    )
+    # shiny::validate(
+    #   need("results" %in% mcols(mcols(values$dds_obj))$type ,
+    #        "I couldn't find results. you should first run DESeq() with the button up here"
+    #   )
+    # )
     
     # if(input$choose_expfac=="" | input$fac1_c1 == "" | input$fac1_c2 == "" | input$fac1_c1 == input$fac1_c2)
     #   return(NULL)
@@ -3605,50 +3848,66 @@ ideal_server <- shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$button_runresults, {
+    choose_expfac2 <- input$choose_expfac2
+    if (is.null(choose_expfac2)) 
+      choose_expfac2 = character()
+    resultsNames(values$dds_obj)
+    choose_expfac <- input$choose_expfac
+    # choose_expfac <- c("Intercept", "STIMULUS_LPS_vs_antiCD3CD28" )
+    # choose_expfac2 = "STIMULUS_null_vs_antiCD3CD28"
+    # browser()
     withProgress(message="Computing the results...",
                  detail = "DE table on its way!",
                  value = 0,{
                    # handling the experimental covariate correctly to extract the results...
-                   if(is.factor(colData(values$dds_obj)[,input$choose_expfac])) {
+                   # if(is.factor(colData(values$dds_obj)[,input$choose_expfac])) {
                      if(input$resu_ihw) {
                        values$res_obj <- results(values$dds_obj,
-                                                 contrast = c(input$choose_expfac, input$fac1_c1, input$fac1_c2),
+                                                 # contrast = c(input$choose_expfac, input$fac1_c1, input$fac1_c2),
+                                                 contrast = list(c(choose_expfac),c(choose_expfac2)),
                                                  independentFiltering = input$resu_indfil, 
                                                  alpha = input$FDR,
                                                  filterFun = ihw)
                        
-                       if(input$resu_lfcshrink) {
-                         incProgress(amount = 0.15,detail = "Results extracted. Shrinking the logFC now...")
-                         values$res_obj <- lfcShrink(values$dds_obj,
-                                                     contrast = c(input$choose_expfac, input$fac1_c1, input$fac1_c2),
-                                                     res = values$res_obj)
-                         incProgress(amount = 0.8,detail = "logFC shrunken, adding annotation info...")
-                       } else {
+                       # if(input$resu_lfcshrink) {
+                       #   incProgress(amount = 0.15,detail = "Results extracted. Shrinking the logFC now...")
+                       #   values$res_obj <- lfcShrink(values$dds_obj,
+                       #                               # contrast = c(input$choose_expfac, input$fac1_c1, input$fac1_c2),
+                       #                               contrast = list(c(input$choose_expfac),c(choose_expfac2)),
+                       #                               res = values$res_obj)
+                       #   incProgress(amount = 0.8,detail = "logFC shrunken, adding annotation info...")
+                       # } else {
                          incProgress(amount = 0.9,detail = "logFC left unshrunken, adding annotation info...")
-                       }
+                       # }
                      } else {
                        values$res_obj <- results(values$dds_obj,
-                                                 contrast = c(input$choose_expfac, input$fac1_c1, input$fac1_c2),
+                                                 # contrast = c(input$choose_expfac, input$fac1_c1, input$fac1_c2),
+                                                 contrast = list(c(choose_expfac),c(choose_expfac2)),
                                                  independentFiltering = input$resu_indfil, 
                                                  alpha = input$FDR)
-                       if(input$resu_lfcshrink) {
-                         incProgress(amount = 0.15,detail = "Results extracted. Shrinking the logFC now...")
-                         values$res_obj <- lfcShrink(values$dds_obj,
-                                                     contrast = c(input$choose_expfac, input$fac1_c1, input$fac1_c2),
-                                                     res = values$res_obj)
-                         incProgress(amount = 0.8,detail = "logFC shrunken, adding annotation info...")
-                       } else {
+                       # if(input$resu_lfcshrink) {
+                       #   incProgress(amount = 0.15,detail = "Results extracted. Shrinking the logFC now...")
+                       #   
+                       #   coef = c("Intercept", "STIMULUS_LPS_vs_antiCD3CD28")
+                       #   values$res_obj <- lfcShrink(values$dds_obj,
+                       #                               # contrast = c(input$choose_expfac, input$fac1_c1, input$fac1_c2),
+                       #                               contrast = list(c(input$choose_expfac),c(choose_expfac2)),
+                       #                               res = values$res_obj,
+                       #                               type = "ashr")
+                       #   incProgress(amount = 0.8,detail = "logFC shrunken, adding annotation info...")
+                       # } else {
                          incProgress(amount = 0.9,detail = "logFC left unshrunken, adding annotation info...")
-                       }
+                       # }
                      }
-                   }
-                   
-                   if(class(colData(values$dds_obj)[,input$choose_expfac]) %in% c("integer","numeric"))
-                     values$res_obj <- results(values$dds_obj,name = input$choose_expfac,
-                                               independentFiltering = input$resu_indfil, 
-                                               alpha = input$FDR
-                                               # , addMLE = input$resu_lfcshrink
-                     )
+                   # }
+                   # should not happen as all are factors,
+                   # BJ commenting out
+                   # if(class(colData(values$dds_obj)[,input$choose_expfac]) %in% c("integer","numeric"))
+                   #   values$res_obj <- results(values$dds_obj,name = input$choose_expfac,
+                   #                             independentFiltering = input$resu_indfil, 
+                   #                             alpha = input$FDR
+                   #                             # , addMLE = input$resu_lfcshrink
+                   #   )
                    
                    # adding info from the annotation
                    if(!is.null(values$annotation_obj))
@@ -3659,9 +3918,13 @@ ideal_server <- shinyServer(function(input, output, session) {
   })
   
   output$diyres_summary <- renderPrint({
+    c1  = input$choose_expfac
+    c2 = input$choose_expfac2
+    # browser()
     shiny::validate(
-      need(input$choose_expfac!="" & input$fac1_c1 != "" & input$fac1_c2 != "" & input$fac1_c1 != input$fac1_c2 ,
-           "Please select the factor to build the contrast upon, and two different levels to build the contrast"
+      # need(input$choose_expfac!="" & input$fac1_c1 != "" & input$fac1_c2 != "" & input$fac1_c1 != input$fac1_c2 ,
+           need(input$choose_expfac != ""  ,
+                "Please select a coefficient to build the contrast"
       )
     )
     shiny::validate(
@@ -3831,7 +4094,7 @@ ideal_server <- shinyServer(function(input, output, session) {
   })
   
   output$nonZeroCountsPlot <- renderPlot({
-    counts <- assays(dds_obj)[["counts"]]
+    counts <- assays(values$dds_obj)[["counts"]]
     # colSums sums over each column producing a vector of counts.
     countsNz <- colSums(counts)
     # adjust the maximum for being able to plot numbers on top of the bars
@@ -3848,7 +4111,7 @@ ideal_server <- shinyServer(function(input, output, session) {
     )
   })
   output$alignedSequencesPlot <- renderPlot({
-    counts <- assays(dds_obj)[["counts"]]
+    counts <- assays(values$dds_obj)[["counts"]]
     ylim <- c(0, 1.4 * max(colSums(counts)))
     op <- par(mar = c(4, 10, 4, 2) + 0.1)
     
@@ -4026,7 +4289,7 @@ ideal_server <- shinyServer(function(input, output, session) {
       return((x - m)/s)
     }
     if(input$rowscale) toplot <- mat_rowscale(toplot)
-    d3heatmap(toplot,Colv = as.logical(input$heatmap_colv),colors = mycolss)
+    d3heatmap(toplot,Colv = as.logical(input$heatmap_colv),colors = mycolss, cexCol = 1)
   })
   
   
@@ -4092,7 +4355,7 @@ ideal_server <- shinyServer(function(input, output, session) {
         "Select a species first in the Data Setup panel"
       )
     )
-    
+    # browser()
     selectedGene <- as.character(curDataClick()$ID)
     selgene_entrez <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                              selectedGene, "ENTREZID", input$idtype)
@@ -4329,7 +4592,7 @@ ideal_server <- shinyServer(function(input, output, session) {
     # browser()
     mysym <- input$avail_symbols[1]
     myid <- values$annotation_obj$gene_id[match(mysym, values$annotation_obj$gene_name)]
-    plotCoefficients(dds_obj, myid, legend = T)
+    plotCoefficients(values$dds_obj, myid, legend = T)
     
     
   })
