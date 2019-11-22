@@ -4,7 +4,7 @@
 \alias{goseqTable}
 \title{Extract functional terms enriched in the DE genes, based on goseq}
 \usage{
-goseqTable(de.genes, assayed.genes, genome = "hg38", id = "ensGene",
+goseqTable(de.genes, assayed.genes, genome = "hg19", id = "ensGene",
   testCats = c("GO:BP", "GO:MF", "GO:CC"), FDR_GO_cutoff = 1,
   nTop = 200, orgDbPkg = "org.Hs.eg.db", addGeneToTerms = TRUE)
 }

@@ -1,0 +1,83 @@
+---
+title: "Adv. Immo Tutorial"
+author: "Bernd Jagla"
+date: "11/22/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Getting started
+
+Load the app using RStudio and calling 
+
+```
+library(ideal)
+ideal()
+```
+
+This will open a web-browser with the application. Please be a bit patient as it sometimes takes a few seconds to load everything. This holds true for most of the tabs. The only way to check if there is still something running is to check the process manager.
+
+
+```{r, out.width='90%', fig.align='center', fig.cap='Overview, showing entry screen', echo=FALSE}
+knitr::include_graphics('figures/tut1.png')
+```
+
+After the introduction screen is opened we are ready to load the data. To do so, please click on "Data Setup" (see arrow in figure above).
+
+
+```{r, out.width='90%', fig.align='center', fig.cap='Data loading 1', echo=FALSE}
+knitr::include_graphics('figures/tut2.png')
+```
+
+Here, we need to provide the actual count data (1) and the meta-data or information about the samples (2).
+
+1. The count file is a comma-separated text file where the first row holds the sample names and the first column holds the gene names.
+We use a manually modified version where we have changed the column names to follow the following convention. The name "D1a_O_L_L" can be read as **D**onor **1** of year **a** (a=1st year, b=2nd year,...) **_** who is **old** (vs. Y = young) **_** and was CMV positive (**P_**) (vs N) and was stimulated with LPS **L** (L = LPS, A = antiCD3/CD8, n = no stimmulation, P = polyIC). This conversion is done with a simple text editor. Excel could be used for this, but this has the tendancy to change values (e.g. Sep07 will be interpreted as a data and consequently be changed). Please see (<a style="color:red">REF</a>) for a more detailed discussion. 
+
+We are providing the data from the previous years in the file called "allPreviousYears.csv" and the results from this year in the files "<a style="color:red">CHANGEME.xls</a>" und <a style="color:red">CHANGEME.xls</a>"
+
+```{r, out.width='90%', fig.align='center', fig.cap='A CSV file with the count data', echo=FALSE}
+knitr::include_graphics('figures/tut3.png')
+```
+
+Though we have already encode most of the information about the samples in the name we still need to tell the program how to interprete the data. This, we do again using a TSV file that looks like this:
+
+```{r, out.width='90%', fig.align='center', fig.cap='A tab delimited file with the meta data', echo=FALSE}
+knitr::include_graphics('figures/tut4.png')
+```
+
+In this case, we are using "tabulators" instead of commas to separate the columns. Please also note the lines starting with **#**. Those lines will be ignored from both the meta data and the count data files. We have already removed most of the samples that didn't produce any useful data. There are still some that might be useable when sufficient other material is collected this year.
+
+It is up to your biological and scientific knowledge/experience and scientific question that will guide you to what to include and exclude.
+
+We can load multiple files. (This is one multiple modificatios I have introduced for this version of IDEAL.)
+We will be loading the data from all previous years and this year (2019), see following figure.
+
+```{r, out.width='90%', fig.align='center', fig.cap='Load multiple count data files', echo=FALSE}
+knitr::include_graphics('figures/tut5.png')
+```
+
+Next, we load the meta data (2) using the file "target.all.txt". (No figure)
+
+Please note, that as a result we notice changes highlighted in the following figure:
+
+
+```{r, out.width='90%', fig.align='center', fig.cap='Step 2', echo=FALSE}
+knitr::include_graphics('figures/tut6.png')
+```
+
+
+## Step 2
+
+Now, we have to choose the design of our experiment under "Step 2".
+
+Excurse: Design/design matrix.
+
+
+
+
+

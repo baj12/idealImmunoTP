@@ -26,7 +26,7 @@ plotCoefficients <- function(dds, geneName, legend=TRUE){
   if(!geneName %in% rownames(dds)){
     warning("geneName is not in dds")
   }
-  require(RColorBrewer)
+  # require(RColorBrewer)
   
   arrowDist = 0.1 # distance between arrows
   

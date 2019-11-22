@@ -1,6 +1,7 @@
-pandoc: 2.3.1
+pandoc: '2.4'
 pkgdown: 1.4.1
 pkgdown_sha: ~
 articles:
+  AdvImmoTutorial: advImm/AdvImmoTutorial.html
   ideal-usersguide: ideal-usersguide.html
 

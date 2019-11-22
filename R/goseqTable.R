@@ -100,8 +100,8 @@ goseqTable <- function(de.genes,                  # Differentially expressed gen
   
   # to reduce the load for adding the genes
   goseq_out <- goseq_out[seq_len(nTop),]
-  # browser()
-  if(addGeneToTerms) {
+
+    if(addGeneToTerms) {
     # for adding the gene ids/names...
     gene2cat = getgo(de.genes,genome=genome,id=id,fetch.cats= testCats)
     if (all(unlist(lapply(gene2cat, is.null)))) {

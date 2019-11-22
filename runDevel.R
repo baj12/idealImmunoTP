@@ -88,6 +88,8 @@ countmatrix = NULL
   expdesign = NULL
   gene_signatures = NULL
 
-  app <- shinyApp(ui = ideal_ui, server = ideal_server)
-  runApp(app)
+  # app <- shinyApp(ui = ideal_ui, server = ideal_server)
+  # runApp(app)
 # ideal(dds_obj = dds_airway, annotation_obj = annotation_airway, res_obj = res_airway)
+ideal()
+

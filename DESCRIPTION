@@ -31,6 +31,7 @@ Imports:
     stringr, 
     dplyr,
     limma, 
+    RColorBrewer,
     GOstats, 
     GO.db, 
     AnnotationDbi, 
@@ -47,6 +48,7 @@ Imports:
     BiocParallel, 
     grDevices, 
     base64enc,
+    shinyjqui,
     methods
 Suggests: 
     testthat, 

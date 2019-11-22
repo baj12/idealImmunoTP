@@ -29,7 +29,7 @@
 #' differential expression analysis
 #'
 #' @export
-#'
+#' 
 #' @examples
 #' # with simulated data...
 #' library(DESeq2)
@@ -55,12 +55,12 @@
 #' ideal(dds_airway, res_airway)
 #' }
 #'
-# ideal<- function(dds_obj = NULL,
-#                  res_obj = NULL,
-#                  annotation_obj = NULL,
-#                  countmatrix = NULL,
-#                  expdesign = NULL,
-#                  gene_signatures = NULL){
+ideal<- function(dds_obj = NULL,
+                 res_obj = NULL,
+                 annotation_obj = NULL,
+                 countmatrix = NULL,
+                 expdesign = NULL,
+                 gene_signatures = NULL){
 
 if ( !requireNamespace('shiny',quietly = TRUE) ) {
   stop("ideal requires 'shiny'. Please install it using
@@ -1346,8 +1346,6 @@ ideal_server <- shinyServer(function(input, output, session) {
     }
     cm[is.na(cm)] <- 0
     cat(file = stderr(), paste("read count data: rows:", nrow(cm), "ncol:", ncol(cm), "\n", "sample names:", colnames(cm), "\n"))
-    # browser()
-    # write.csv(cm, file = "~/GoogleDrive/pasteur/Tp2019/allPreviousYears2.csv")
     return(cm)
   })
   
@@ -1439,6 +1437,7 @@ ideal_server <- shinyServer(function(input, output, session) {
     if(is.null(values$expdesign))
       return(NULL)
     poss_covars <- colnames(values$expdesign)
+    cat(file = stderr(), "selectINPUT dds_design\n")
     selectInput('dds_design', label = 'Select the design for your experiment: ',
                 choices = c(NULL, poss_covars), selected = values$dds_design, multiple = TRUE)
   })
@@ -1551,7 +1550,7 @@ ideal_server <- shinyServer(function(input, output, session) {
   #   sliderInput("nrcores",label = "Choose how many cores to use for computing:",
   #               min = mincores, max = maxcores,value = 2, step = 1)
   # })
-  
+
   output$ui_step3 <- renderUI({
     if (is.null(values$dds_obj)) #
       return(NULL)
@@ -1687,7 +1686,6 @@ ideal_server <- shinyServer(function(input, output, session) {
       dsgn <- as.formula(dStr)
     }
     locfunc <- stats::median
-    # browser()
     counts <- values$countmatrix[, comSamples]
     counts <- counts[grep(filterExp, rownames(counts), invert = TRUE), ]
     values$countmatrix <- counts
@@ -2454,8 +2452,8 @@ ideal_server <- shinyServer(function(input, output, session) {
                                             multiVals="first")
                      incProgress(0.1, detail = "IDs mapped")
                      de.genes.ids = de.genes.ids[!is.na(de.genes.ids)]
-                     library(goseq)
-                     library(GO.db)
+                     # library(goseq)
+                     # library(GO.db)
                      values$gse_up_goseq <- goseqTable(de.genes = de.genes.ids,
                                                        assayed.genes = unique(assayed.genes.ids),
                                                        genome = annoSpecies_df[values$cur_species,]$goseq_short,
@@ -5040,6 +5038,6 @@ ideal_server <- shinyServer(function(input, output, session) {
 }) # end of server function definition
 #nocov end
 
-#   # launch the app!
-#   shinyApp(ui = ideal_ui, server = ideal_server)
-# }
+  # launch the app!
+  shinyApp(ui = ideal_ui, server = ideal_server)
+}
