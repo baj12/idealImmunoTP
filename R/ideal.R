@@ -582,13 +582,13 @@ ideal_ui <- shinydashboard::dashboardPage(
                     downloadButton("download_plot_pvals_hist_strat", "Download Plot"),
                     textInput("filename_plot_pvals_hist_strat",label = "Save as...",value = "plot_pvals_hist_strat.pdf"))
               ),
-              column(
-                width = 6,
-                plotOutput("pvals_ss"),
-                div(align = "right", style = "margin-right:15px; margin-bottom:10px",
-                    downloadButton("download_plot_pvals_ss", "Download Plot"),
-                    textInput("filename_plot_pvals_ss",label = "Save as...",value = "plot_pvals_ss.pdf"))
-              ),
+              # column(
+              #   width = 6,
+              #   plotOutput("pvals_ss"),
+              #   div(align = "right", style = "margin-right:15px; margin-bottom:10px",
+              #       downloadButton("download_plot_pvals_ss", "Download Plot"),
+              #       textInput("filename_plot_pvals_ss",label = "Save as...",value = "plot_pvals_ss.pdf"))
+              # ),
               column(
                 width = 6,
                 plotOutput("logfc_hist"),
