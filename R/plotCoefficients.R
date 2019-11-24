@@ -57,12 +57,12 @@ plotCoefficients <- function(dds, geneName, legend=TRUE){
   }
   if(length(coefs) < 8){
     if(length(coefs)<3){
-      cols <- brewer.pal(3,"Dark2")
+      cols <- RColorBrewer::brewer.pal(3,"Dark2")
     }else{
-      cols <- brewer.pal(length(coefs),"Dark2")
+      cols <- RColorBrewer::brewer.pal(length(coefs),"Dark2")
     }
   }else{
-    cols <- brewer.pal(length(coefs),"Paired")
+    cols <- RColorBrewer::brewer.pal(length(coefs),"Paired")
   }
   
   

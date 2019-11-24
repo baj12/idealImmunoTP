@@ -75,7 +75,91 @@ knitr::include_graphics('figures/tut6.png')
 
 Now, we have to choose the design of our experiment under "Step 2".
 
-Excurse: Design/design matrix.
+<a style="color:red">Excurse: Design/design matrix.</a>
+
+
+Based on what we learned about the design of an experiment we are going to set the model to 
+
+Stimulus + CMVstatus + age, with Stimulus = null as the reference.
+
+Ideally, we would include the donor as a <a style="color:red">WHAT???</a>, but we don't have enough replicats.
+
+```{r, out.width='90%', fig.align='center', fig.cap='Step 2 filled', echo=FALSE}
+knitr::include_graphics('figures/tut7.png')
+```
+
+After we generated the DESeq2 object, we can verify that all the parameters are correct:
+
+```{r, out.width='90%', fig.align='center', fig.cap='verify DESeq2 object', echo=FALSE}
+knitr::include_graphics('figures/tut8.png')
+```
+
+We can now also load additional annotation and select samples we would like to exclude (potential outliers). The annotation is needed later when we want to perform gene set enrichment analysis and other data integration processes. We will also see later during the quality control and data anlaysis which samples to exclude. The parameters for the annotation are already preset correctly. When working with different sources of count data this might have to be adjusted. This is dependant on the reference genome used for the alignment and the type of identifiers used. This is briefly described during the general bioinformatics presentation.
+
+```{r, out.width='90%', fig.align='center', fig.cap='Annotation and sample selection', echo=FALSE}
+knitr::include_graphics('figures/tut9.png')
+```
+
+We can now calculate all the coefficients for the design / model that we selected. This will take a minute or two.
+
+```{r, out.width='90%', fig.align='center', fig.cap='Run DESeq2', echo=FALSE}
+knitr::include_graphics('figures/tut10.png')
+```
+
+After this has finished we are ready to look at some of the results. We first see how many genes are up/down regulated
+
+```{r, out.width='90%', fig.align='center', fig.cap='DESeq2 finished', echo=FALSE}
+knitr::include_graphics('figures/tut11.png')
+```
+
+
+```{r, out.width='90%', fig.align='center', fig.cap='Dispersion plot', echo=FALSE}
+knitr::include_graphics('figures/tut12.png')
+```
+
+We can equally see how the samples compare when looking at the genes with no expression (zero counts), and the number of aligned sequences.
+The two table are there to check that the input has been correctly loaded.
+
+```{r, out.width='90%', fig.align='center', fig.cap='Summary stats', echo=FALSE}
+knitr::include_graphics('figures/tut13.png')
+```
+
+In the "Counts overview" we can perform mnore quality controls.
+
+```{r, out.width='90%', fig.align='center', fig.cap='Count overview', echo=FALSE}
+knitr::include_graphics('figures/tut14.png')
+```
+
+1). The checkmarks indicate what we have done so far.
+2). Similar information is available on the top of the page
+3). We have now moved to the "Counts overview" tab.
+
+The following tables are available
+
+```{r, out.width='90%', fig.align='center', fig.cap='Selection for table', echo=FALSE}
+knitr::include_graphics('figures/tut15.png')
+```
+
+
+<a style="color:red">Explain different tables</a>
+
+
+Filter out genes that are not well expressed.
+
+```{r, out.width='90%', fig.align='center', fig.cap='Filter genes', echo=FALSE}
+knitr::include_graphics('figures/tut16.png')
+```
+
+
+Pearson
+Spearman
+Kendal 
+Distance measures
+
+
+
+
+
 
 
 

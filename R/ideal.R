@@ -2033,7 +2033,8 @@ ideal_server <- shinyServer(function(input, output, session) {
   })
   
   output$sizeFactorsPlot <- renderPlot({
-    col <- brewer.pal(3, "Dark2")
+    
+    col <- RColorBrewer::brewer.pal(3, "Dark2")
     if(is.null(input$color_by)) {
       #TODO message about color_by
       return(NULL)

@@ -48,7 +48,8 @@
 #' @importFrom base64enc dataURI
 #' @importFrom grDevices dev.off pdf axisTicks
 #' @import methods
-#'
+#' @importFrom RColorBrewer brewer.pal
+#' 
 #' @author
 #' Federico Marini \email{marinif@@uni-mainz.de}, 2016-2017
 #'
