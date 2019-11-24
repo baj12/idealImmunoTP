@@ -582,13 +582,13 @@ ideal_ui <- shinydashboard::dashboardPage(
                     downloadButton("download_plot_pvals_hist_strat", "Download Plot"),
                     textInput("filename_plot_pvals_hist_strat",label = "Save as...",value = "plot_pvals_hist_strat.pdf"))
               ),
-              column(
-                width = 6,
-                plotOutput("pvals_ss"),
-                div(align = "right", style = "margin-right:15px; margin-bottom:10px",
-                    downloadButton("download_plot_pvals_ss", "Download Plot"),
-                    textInput("filename_plot_pvals_ss",label = "Save as...",value = "plot_pvals_ss.pdf"))
-              ),
+              # column(
+              #   width = 6,
+              #   plotOutput("pvals_ss"),
+              #   div(align = "right", style = "margin-right:15px; margin-bottom:10px",
+              #       downloadButton("download_plot_pvals_ss", "Download Plot"),
+              #       textInput("filename_plot_pvals_ss",label = "Save as...",value = "plot_pvals_ss.pdf"))
+              # ),
               column(
                 width = 6,
                 plotOutput("logfc_hist"),
@@ -904,7 +904,7 @@ ideal_ui <- shinydashboard::dashboardPage(
             # ,verbatimTextOutput("debuggls"),
             
             # verbatimTextOutput("printUPgenes"),
-            # verbatimTextOutput("debuglists"),
+            
             
             h2("Intersection of gene sets"),
             
@@ -932,7 +932,21 @@ ideal_ui <- shinydashboard::dashboardPage(
                      div(align = "right", style = "margin-right:15px; margin-bottom:10px",
                          downloadButton("download_plot_upsetlists", "Download Plot"),
                          textInput("filename_plot_upsetlists",label = "Save as...",value = "plot_upsetlists.pdf")),
-                     offset = 3))
+                     offset = 3)),
+            box(
+              title = "Gene lists", status = "primary", solidHeader = TRUE, collapsible = TRUE, width = 12, collapsed = TRUE,
+              id = "gll_lists",
+              fluidRow(
+                column(width = 12,
+                       verbatimTextOutput("debuglists")
+                )
+              ),
+              fluidRow(
+                column(width = 12,
+                       DT::dataTableOutput("debugTable")
+                )
+              )
+            )
             
           ),
           conditionalPanel(
@@ -991,7 +1005,7 @@ ideal_ui <- shinydashboard::dashboardPage(
                 width = 6,
                 wellPanel(
                   uiOutput("sig_ui_selectsig"),
-                  uiOutput("sig_ui_annocoldata"),
+                  # uiOutput("sig_ui_annocoldata"),
                   checkboxInput("sig_useDEonly",
                                 label = "Use only DE genes in the signature",value = FALSE)
                 )
@@ -1011,7 +1025,7 @@ ideal_ui <- shinydashboard::dashboardPage(
             fluidRow(
               column(
                 width = 8, offset = 2,
-                plotOutput("sig_heat")
+                shinyjqui::jqui_resizable(plotOutput("sig_heat"))
               )
             )
           ),
@@ -1472,7 +1486,7 @@ ideal_server <- shinyServer(function(input, output, session) {
               width = 6,
               uiOutput("ddsdesign"),
               uiOutput("ddsintercept"),
-              checkboxInput(inputId = "multiplyDesign", label = "multiply first two arguments",value = FALSE),
+              # checkboxInput(inputId = "multiplyDesign", label = "multiply first two arguments",value = FALSE),
               textInput("geneFilter", "Reg. expr. to fileter genes", value = values$geneFilter),
               uiOutput("ui_diydds"),
               hr(),
@@ -1680,9 +1694,9 @@ ideal_server <- shinyServer(function(input, output, session) {
     values$res_obj = NULL
     if (!dsgn[1] == "~") {
       dStr <- paste0("~", paste(input$dds_design, collapse = " + "))
-      if (input$multiplyDesign) {
-        dStr <- sub('\\+', '*', dStr)
-      }
+      # if (input$multiplyDesign) {
+      #   dStr <- sub('\\+', '*', dStr)
+      # }
       dsgn <- as.formula(dStr)
     }
     locfunc <- stats::median
@@ -1869,9 +1883,11 @@ ideal_server <- shinyServer(function(input, output, session) {
       outliersamples <- input$selectoutliers
       
       keptsamples <- setdiff(allsamples,outliersamples)
+      colData <- values$expdesign[keptsamples,]
+      colData[, input$dds_design[1]] = relevel(colData[, input$dds_design[1]], ref = values$dds_intercept)
       dds <- tryCatch({DESeqDataSetFromMatrix(countData = values$countmatrix[,keptsamples],
-                                    colData = values$expdesign[keptsamples,],
-                                    design= design(values$dds_obj)
+                                    colData = colData,
+                                    design  = design(values$dds_obj)
                                     # design=as.formula(paste0("~",paste(input$dds_design, collapse=" + ")))
       )}, error = function(e) {
         showNotification(
@@ -2286,11 +2302,31 @@ ideal_server <- shinyServer(function(input, output, session) {
     gll_final <- gll_nonempty[match(lists_tokeep,names(gll_nonempty))]
   })
   
-  output$debuglists <- renderPrint({
+  output$debuglists <- renderText({
     # length(gll_nonempty)
     # length(gll())
     # lapply(gll(),length)
-    print(gll())
+    gll <- gll()
+    txt = ""
+    # save(file = "~/SCHNAPPsDebug/ideal.RData", list = ls())
+    # load("~/SCHNAPPsDebug/ideal.RData")
+    for (li in 1:length(gll)) {
+      tx = paste(gll[[li]], sep = " ",collapse = " ")
+      txt = paste(c(txt, names(gll)[li],tx), collapse = "\n")
+    }
+     txt
+  })
+  
+  output$debugTable <- DT::renderDataTable({
+    gll <- gll()
+    txt = ""
+    # save(file = "~/SCHNAPPsDebug/ideal.RData", list = ls())
+    # load("~/SCHNAPPsDebug/ideal.RData")
+    upGll = UpSetR::fromList(gll)
+    ugll = unique(unlist(gll))
+    rownames(upGll) = ugll
+    datatable(upGll, 
+              filter = list(position = 'top', clear = FALSE))
   })
   
   output$vennlists <- renderPlot({

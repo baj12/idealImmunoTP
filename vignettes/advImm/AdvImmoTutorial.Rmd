@@ -2,7 +2,9 @@
 title: "Adv. Immo Tutorial"
 author: "Bernd Jagla"
 date: "11/22/2019"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -155,6 +157,243 @@ Pearson
 Spearman
 Kendal 
 Distance measures
+
+Pairwise correlation
+
+
+```{r, out.width='90%', fig.align='center', fig.cap='Pairwise correlation', echo=FALSE}
+knitr::include_graphics('figures/tut17.png')
+```
+
+Correlation between samples shows which samples are correlated using a heatmap. Potentially mislabeled samples can be identified.
+
+```{r, out.width='90%', fig.align='center', fig.cap='Correlation between samples', echo=FALSE}
+knitr::include_graphics('figures/tut18.png')
+```
+
+We have to set the "Group/color by:" to show the PCA and size factors:
+
+
+```{r, out.width='90%', fig.align='center', fig.cap='Highest expressing genes', echo=FALSE}
+knitr::include_graphics('figures/tut19.png')
+```
+
+The PCA and size factor visualizations show us which factors are determining the differences between the samples. I.e. by changing the "group" we can see which PCA groups are built.
+
+We can also identify the highest expressing genes and see who they correlate with the samples.
+
+
+
+```{r, out.width='90%', fig.align='center', fig.cap='Extract results', echo=FALSE}
+knitr::include_graphics('figures/tut21.png')
+```
+
+
+```{r, out.width='90%', fig.align='center', fig.cap='choose factor', echo=FALSE}
+knitr::include_graphics('figures/tut20.png')
+```
+
+<a style="color:red">What is the denominator for</a>
+<a style="color:red">explain independant filtering</a>
+<a style="color:red">Explain IHW</a>
+
+After clicking on the "Extract results" button we have everything for the following analyses.
+
+```{r, out.width='90%', fig.align='center', fig.cap='results are available', echo=FALSE}
+knitr::include_graphics('figures/tut22.png')
+```
+
+We see that there are 577 genes up-regulated for the comparison null vs. polyIC.
+
+Sortable table with p-values and links to ENSEMBL:
+
+```{r, out.width='90%', fig.align='center', fig.cap='results table', echo=FALSE}
+knitr::include_graphics('figures/tut23.png')
+```
+
+Diagnostic plots:
+
+P-value distribution
+
+P-value distribution for ranges of mean expression values.
+
+log2 fold change histogram.
+
+
+```{r, out.width='90%', fig.align='center', fig.cap='results histograms', echo=FALSE}
+knitr::include_graphics('figures/tut24.png')
+```
+
+Summary Plots
+
+this takes a few seconds to calculate
+
+<a style="color:red">Explain MA plot</a>
+
+
+Select a region in the MA plot
+
+```{r, out.width='90%', fig.align='center', fig.cap='Summary Plots', echo=FALSE}
+knitr::include_graphics('figures/tut25.png')
+```
+
+Then click on a gene in right plot.
+
+We then get detailed information on that gene, its expression over the groups that are selected on the left panel and information from the Web on that gene.
+
+```{r, out.width='90%', fig.align='center', fig.cap='info on Genes', echo=FALSE}
+knitr::include_graphics('figures/tut26.png')
+```
+
+
+
+Volcano plot
+
+```{r, out.width='90%', fig.align='center', fig.cap='Volcano plot', echo=FALSE}
+knitr::include_graphics('figures/tut27.png')
+```
+
+Resizable heatmap of selected genes.
+
+The right heatmap is zoomable.
+
+```{r, out.width='90%', fig.align='center', fig.cap='Heatmap of selected genes', echo=FALSE}
+knitr::include_graphics('figures/tut28.png')
+```
+
+
+```{r, out.width='90%', fig.align='center', fig.cap='zoomed heatmap', echo=FALSE}
+knitr::include_graphics('figures/tut29.png')
+```
+
+Table of zoomed region in MA plot.
+
+```{r, out.width='90%', fig.align='center', fig.cap='Table of zoomed region', echo=FALSE}
+knitr::include_graphics('figures/tut30.png')
+```
+
+# Gene Finder
+
+Select genes of interest on the left panel.
+
+```{r, out.width='90%', fig.align='center', fig.cap='Gene Finder', echo=FALSE}
+knitr::include_graphics('figures/tut31.png')
+```
+
+With additional group
+
+```{r, out.width='90%', fig.align='center', fig.cap='Gene Finder', echo=FALSE}
+knitr::include_graphics('figures/tut32.png')
+```
+
+We can also visualize the coefficients for the first gene selected.
+
+```{r, out.width='90%', fig.align='center', fig.cap='Gene Finder', echo=FALSE}
+knitr::include_graphics('figures/tut33.png')
+```
+
+Those genes are also highlighted in the MA plot and its statistic values are displayed in a table.
+
+```{r, out.width='90%', fig.align='center', fig.cap='Gene Finder', echo=FALSE}
+knitr::include_graphics('figures/tut34.png')
+```
+
+Given a text file with gene names (one per line) we can visualize those in the fashion:
+Here we have a list of genes that are associated to cytokine responds.
+
+```{r, out.width='90%', fig.align='center', fig.cap='Gene Finder', echo=FALSE}
+knitr::include_graphics('figures/tut35.png')
+```
+
+Functional analysis
+
+```{r, out.width='90%', fig.align='center', fig.cap='Gene Finder', echo=FALSE}
+knitr::include_graphics('figures/tut36.png')
+```
+
+Gene set enrichment analysis
+
+1. We are now in the Functoinal analysis panel.
+2. Select a Gene ontology
+3. Select up or down or both or one or two manually defined list of genes.
+4. calculate the enrichment
+5. the progress is shown on the bottom right.
+
+These calculations will take a few minutes.
+
+<a style="color:red">Explain different GO functions</a>
+
+Table with GO enrichments. Links out to external web-pages.
+
+
+```{r, out.width='90%', fig.align='center', fig.cap='GO table (goanna)', echo=FALSE}
+knitr::include_graphics('figures/tut37.png')
+```
+
+
+GO top table with heatmap.
+
+```{r, out.width='90%', fig.align='center', fig.cap='GO table (gotop)', echo=FALSE}
+knitr::include_graphics('figures/tut38.png')
+```
+
+
+Set operations. Here we have loaded again the cytokineResponds.list.txt
+
+
+```{r, out.width='90%', fig.align='center', fig.cap='set operations', echo=FALSE}
+knitr::include_graphics('figures/tut39.png')
+```
+
+Once expanded, the table allows identifying the genes that are in each category.
+
+```{r, out.width='90%', fig.align='center', fig.cap='set operations table', echo=FALSE}
+knitr::include_graphics('figures/tut44.png')
+```
+
+
+The signature analysis allows to compare to analysis stored for key experiments for signature genes.
+Those lists can be retrieved from the Broad institute (http://software.broadinstitute.org/gsea/msigdb/index.jsp).
+The immunology gene sets (C7) are the most interesting to us.
+
+
+```{r, out.width='90%', fig.align='center', fig.cap='signature analysis', echo=FALSE}
+knitr::include_graphics('figures/tut40.png')
+```
+
+1. we are now in the Signature analysis
+2. select the C7 set
+3. to make the correspondance between our annotation and the one used by the Broad we set the coresponding values.
+4. Here, we compare to the Flu vs. coli infection of PBMC up regulated genes
+5. We should cluster by column/sample to have the best visual impression.
+6. <a style="color:red">Don't know what this does.</a>
+
+Using per row standardization and only our differentially expressed genes give the following heatmap:
+
+```{r, out.width='90%', fig.align='center', fig.cap='signature analysis heatmap', echo=FALSE}
+knitr::include_graphics('figures/tut41.png')
+```
+
+
+## Report
+
+Creating the preview will take a few minutes.
+
+This allows creating a report of what we have done for reproducibility.
+
+```{r, out.width='90%', fig.align='center', fig.cap='Report generator', echo=FALSE}
+knitr::include_graphics('figures/tut42.png')
+```
+
+There are several option we can choose from to create a report, either in R-markdown or as an HTML report
+
+```{r, out.width='90%', fig.align='center', fig.cap='Report generator with options', echo=FALSE}
+knitr::include_graphics('figures/tut43.png')
+```
+
+
+
+
 
 
 

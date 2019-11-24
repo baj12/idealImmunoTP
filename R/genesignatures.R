@@ -90,7 +90,7 @@ sig_heatmap <- function(vst_data, my_signature,
                         ) {
   
   mydata <- assay(vst_data)
-  save(file = "~/SCHNAPPsDebug/ideal.RData", list = c(ls()))
+  # save(file = "~/SCHNAPPsDebug/ideal.RData", list = c(ls()))
   # load("~/SCHNAPPsDebug/ideal.RData")
   signature_original_ids <- names(annovec)[match(my_signature,annovec)]
   
