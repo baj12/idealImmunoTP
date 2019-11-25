@@ -49,6 +49,7 @@
 #' @importFrom grDevices dev.off pdf axisTicks
 #' @import methods
 #' @importFrom RColorBrewer brewer.pal
+#' @importFrom plotly plotlyOutput ggplotly renderPlotly
 #' 
 #' @author
 #' Federico Marini \email{marinif@@uni-mainz.de}, 2016-2017

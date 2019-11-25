@@ -1701,10 +1701,14 @@ ideal_server <- shinyServer(function(input, output, session) {
     }
     locfunc <- stats::median
     counts <- values$countmatrix[, comSamples]
-    counts <- counts[grep(filterExp, rownames(counts), invert = TRUE), ]
+    # save(file = "~/SCHNAPPsDebug/ideal.RData", list = ls())
+    # cp = load("~/SCHNAPPsDebug/ideal.RData")
+    if (nchar(filterExp)>0){
+      counts <- counts[grep(filterExp, rownames(counts), invert = TRUE), ]
+    }
     values$countmatrix <- counts
     cGenes = 1:nrow(counts)
-    
+    # browser()
     md = readMetadata()
     rc = readCountmatrix()
     colData = values$expdesign[comSamples, ]
@@ -3655,7 +3659,7 @@ ideal_server <- shinyServer(function(input, output, session) {
   
   design_factors <- reactive({
     # rev(attributes(terms.formula(design(values$dds_obj)))$term.labels)
-    resultsNames(values$dds_obj)
+    resultsNames(values$dds_obj)[-12]
     
   })
   
@@ -4368,7 +4372,7 @@ ideal_server <- shinyServer(function(input, output, session) {
     selectedGene <- as.character(curDataClick()$ID)
     selectedGeneSymbol <- values$annotation_obj$gene_name[match(selectedGene,values$annotation_obj$gene_id)]
     
-    p <- ggplotCounts(values$dds_obj, selectedGene, intgroup = input$color_by,annotation_obj=values$annotation_obj)
+    p <- ggplotCounts(values$dds_obj, selectedGene, intgroup = input$color_by, annotation_obj=values$annotation_obj)
     
     if(input$ylimZero_genes)
       p <- p + ylim(0.1, NA)
@@ -4505,7 +4509,7 @@ ideal_server <- shinyServer(function(input, output, session) {
         mysim <- ""
       }
     }
-    p <- ggplotCounts(values$dds_obj, myid, intgroup = input$color_by,annotation_obj=values$annotation_obj)
+    p <- ggplotCounts(values$dds_obj, myid, intgroup = input$color_by, annotation_obj=values$annotation_obj)
     if(input$ylimZero_genefinder)
       p <- p + ylim(0.1, NA)
     exportPlots$plotbp1 <- p
@@ -4608,6 +4612,12 @@ ideal_server <- shinyServer(function(input, output, session) {
     if(input$ylimZero_genefinder)
       p <- p + ylim(0.1, NA)
     exportPlots$plotbp4 <- p
+    dds = values$dds_obj
+    ann =values$annotation_obj
+    cb=input$color_by
+    # save(file = "~/SCHNAPPsDebug/ideal2.RData", list = ls())
+    # cp = load("~/SCHNAPPsDebug/ideal2.RData")
+    ggplotCounts(dds, myid, intgroup=cb, annotation_obj = ann)
     p
   })
   

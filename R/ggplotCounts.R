@@ -57,7 +57,6 @@ ggplotCounts <- function(dds,gene,intgroup="condition",annotation_obj=NULL,
   #     axisTicks(log10(range(x, na.rm = TRUE)), log = TRUE, nint = n)
   #   }
   # }
-  
   p <-
     ggplot(df, aes_string(x="plotby",y="count",col="plotby")) +
     geom_boxplot(outlier.shape = NA) +
