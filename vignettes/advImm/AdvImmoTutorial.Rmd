@@ -3,8 +3,10 @@ title: "Adv. Immo Tutorial"
 author: "Bernd Jagla"
 date: "11/22/2019"
 output:
+  html_document: 
+    number_sections: yes
+    toc: yes
   pdf_document: default
-  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -36,6 +38,13 @@ knitr::include_graphics('figures/tut47.png')
 knitr::include_graphics('figures/tut46.png')
 ```
 
+* Do the different lists of up or down regulated genes make any sense?
+** Are they part of a known pathway?
+** What is the overlapp between these lists?
+** What other information can be gained/integrated?
+
+* How would you propose to verify these results, or don't they need any verification?
+
 ## more technical questions
 
 * Are there outliers?
@@ -43,7 +52,7 @@ knitr::include_graphics('figures/tut46.png')
 * Which samples can be compared?
 * Are there enough good samples to answer all questions?
 * Which indications do we have for which of the previous conclusions?
-
+* What happens when more samples (with potentially less quality) are included in the analysis?
 
 # Getting started
 
@@ -81,7 +90,7 @@ Here, we need to provide the actual count data (1) and the meta-data or informat
 1. The count file is a comma-separated text file where the first row holds the sample names and the first column holds the gene names.
 We use a manually modified version where we have changed the column names to follow the following convention. The name "D1a_O_L_L" can be read as **D**onor **1** of year **a** (a=1st year, b=2nd year,...) **_** who is **old** (vs. Y = young) **_** and was CMV positive (**P_**) (vs N) and was stimulated with LPS **L** (L = LPS, A = antiCD3/CD8, n = no stimmulation, P = polyIC). This conversion is done with a simple text editor. Excel could be used for this, but this has the tendancy to change values (e.g. Sep07 will be interpreted as a data and consequently be changed). Please see ([geneNamesRef.pdf](references/geneNameErrors.pdf)) for a more detailed discussion. 
 
-We are providing the data from the previous years in the file called "allPreviousYears.csv" and the results from this year in the files "<a style="color:red">CHANGEME.xls</a>" und <a style="color:red">CHANGEME.xls</a>"
+We are providing the data from the previous years in the file called "allPreviousYears.csv" and the results from this year in the files "R_2019_grp12.xls"
 
 ```{r, out.width='90%', fig.align='center', fig.cap='A CSV file with the count data', echo=FALSE}
 knitr::include_graphics('figures/tut3.png')
@@ -268,6 +277,24 @@ Ideally, we would include the donor as a factor, but we don't have enough replic
 knitr::include_graphics('figures/tut7.png')
 ```
 
+***
+
+> **Excercise**
+>
+> Please try different models:
+> 
+> * just stimulus
+* just CMVstatus
+* stimulus + CMVStatus
+* stimulus + age
+* stimulus + age + CMVStatus
+> 
+> **Don't forget to remove samples again. (see below)**
+>
+ 
+***
+
+
 After we generated the DESeq2 object, we can verify that all the parameters are correct:
 
 ```{r, out.width='90%', fig.align='center', fig.cap='verify DESeq2 object', echo=FALSE}
@@ -280,6 +307,17 @@ We can now also load additional annotation and select samples we would like to e
 ```{r, out.width='90%', fig.align='center', fig.cap='Annotation and sample selection', echo=FALSE}
 knitr::include_graphics('figures/tut9.png')
 ```
+
+***
+
+> **Excercise**
+>
+> What is the right combinations of samples for each question:
+> 
+>
+ 
+***
+
 
 We can now calculate all the coefficients for the design / model that we selected. This will take a minute or two.
 
@@ -315,7 +353,7 @@ The next step in the differential expression analysis is the estimation of gene-
 
 **What is dispersion?** 
 
-Dispersion is a measure of spread or variability in the data. Variance, standard deviation, IQR, among other measures, can all be used to measure dispersion. However, DESeq2 uses a specific measure of dispersion (α) related to the mean (μ) and variance of the data: `Var = μ + α*μ^2`.  For genes with moderate to high count values, the square root of dispersion will be equal to the coefficient of variation (`Var / μ`). So 0.01 dispersion means 10% variation around the mean expected across biological replicates. 
+Dispersion is a measure of spread or variability in the data. Variance, standard deviation, IQR, among other measures, can all be used to measure dispersion. However, DESeq2 uses a specific measure of dispersion ( $ \alpha $ ) related to the mean ($ \mu $) and variance of the data: $Var = \mu + \alpha * \mu^2 $.  For genes with moderate to high count values, the square root of dispersion will be equal to the coefficient of variation ($Var / \mu $). So 0.01 dispersion means 10% variation around the mean expected across biological replicates. 
 
 **What does the DESeq2 dispersion represent?** 
 
@@ -366,7 +404,16 @@ Dispersion estimates that are slightly above the curve are also shrunk toward th
 
 **This is a good plot to examine to ensure your data is a good fit for the DESeq2 model.** You expect your data to generally scatter around the curve, with the dispersion decreasing with increasing mean expression levels. If you see a cloud or different shapes, then you might want to explore your data more to see if you have contamination (mitochondrial, etc.) or outlier samples.  Note how much shrinkage you get across the whole range of means in the `plotDispEsts()` plot for any experiment with low degrees of freedom.
 
-** compare to what happens when the MT/RB genes are included. **
+
+***
+
+> **Excercise**
+>
+> compare to what happens when the MT/RB genes are included.
+> 
+>
+ 
+***
 
 Examples of **worrisome dispersion plots** are shown below:
 
@@ -415,7 +462,7 @@ knitr::include_graphics('figures/tut14.png')
 
 The following tables are available
 
-```{r, out.width='90%', fig.align='center', fig.cap='Selection for table', echo=FALSE}
+```{r, out.width='40%', fig.align='center', fig.cap='Selection for table', echo=FALSE}
 knitr::include_graphics('figures/tut15.png')
 ```
 
@@ -466,13 +513,10 @@ knitr::include_graphics('figures/tut21.png')
 ```
 
 
-```{r, out.width='90%', fig.align='center', fig.cap='choose factor', echo=FALSE}
+```{r, out.width='40%', fig.align='center', fig.cap='choose factor', echo=FALSE}
 knitr::include_graphics('figures/tut20.png')
 ```
 
-<a style="color:red">What is the denominator for</a>
-<a style="color:red">explain independant filtering</a>
-<a style="color:red">Explain IHW</a>
 
 After clicking on the "Extract results" button we have everything for the following analyses.
 

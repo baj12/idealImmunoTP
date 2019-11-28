@@ -1,12 +1,12 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.6.3)  26 NOV 2019 16:57
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.6.3)  28 NOV 2019 13:53
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**/private/var/folders/tf/jwlc7r3d48z7pkq0w38_v7t40000gp/T/Rtmp9oyx5A/preview-9
-05146ec43ab.dir/AdvImmoTutorial.tex
+**/private/var/folders/tf/jwlc7r3d48z7pkq0w38_v7t40000gp/T/Rtmp1grYEz/preview-c
+d771bc9b254.dir/AdvImmoTutorial.tex
 
-(/private/var/folders/tf/jwlc7r3d48z7pkq0w38_v7t40000gp/T/Rtmp9oyx5A/preview-90
-5146ec43ab.dir/AdvImmoTutorial.tex
+(/private/var/folders/tf/jwlc7r3d48z7pkq0w38_v7t40000gp/T/Rtmp1grYEz/preview-cd
+771bc9b254.dir/AdvImmoTutorial.tex
 LaTeX2e <2018-12-01>
 (/usr/local/texlive/2019/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2018/09/03 v1.4i Standard LaTeX document class
@@ -775,21 +775,16 @@ File: figures/tut10.png Graphic file (type png)
 Package pdftex.def Info: figures/tut10.png  used on input line 696.
 (pdftex.def)             Requested size: 422.77104pt x 82.83774pt.
 [11 <./figures/tut7.png>] [12 <./figures/tut8.png> <./figures/tut9.png>]
-
-! Package inputenc Error: Unicode character α (U+03B1)
-(inputenc)                not set up for use with LaTeX.
-
-See the inputenc package documentation for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.739 dispersion (α
-                    ) related to the mean (μ) and variance of the data: 
+! Missing $ inserted.
+<inserted text> 
+                $
+l.739 dispersion ( \$ \alpha
+                             \$ ) related to the mean (\$ \mu \$) and variance 
 Here is how much of TeX's memory you used:
- 12597 strings out of 492616
- 184746 string characters out of 6129482
+ 12595 strings out of 492616
+ 184537 string characters out of 6129482
  297000 words of memory out of 5000000
- 16238 multiletter control sequences out of 15000+600000
+ 16237 multiletter control sequences out of 15000+600000
  49802 words of font info for 75 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  32i,5n,38p,1071b,435s stack positions out of 5000i,500n,10000p,200000b,80000s
