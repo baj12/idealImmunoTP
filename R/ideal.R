@@ -451,7 +451,7 @@ ideal_ui <- shinydashboard::dashboardPage(
             uiOutput("pairwise_plotUI"),
             box(width = 12,
                 title = "Correlation between samples", solidHeader = TRUE,
-                uiOutput("heatcorr_plotUI")
+                shinyjqui::jqui_resizable(uiOutput("heatcorr_plotUI"))
             ),
             br(),
             box(width = 12, 
