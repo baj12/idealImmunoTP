@@ -658,7 +658,7 @@ ideal_ui <- shinydashboard::dashboardPage(
             fluidRow(
               column(6,
                      h4("volcano plot"),
-                     plotOutput("volcanoplot"),
+                     plotly::plotlyOutput("volcanoplot"),
                      div(align = "right", style = "margin-right:15px; margin-bottom:10px",
                          downloadButton("download_plot_volcanoplot", "Download Plot"),
                          textInput("filename_plot_volcanoplot",label = "Save as...",value = "plot_volcanoplot.pdf"))
@@ -4014,7 +4014,9 @@ ideal_server <- shinyServer(function(input, output, session) {
     rownames(mydf) <- createLinkENS(rownames(mydf),species = annoSpecies_df$ensembl_db[match(input$speciesSelect,annoSpecies_df$species)]) ## TODO: check what are the species from ensembl and
     ## TODO: add a check to see if wanted?
     mydf$symbol <- createLinkGeneSymbol(mydf$symbol)
-    datatable(mydf, escape = FALSE)
+    datatable(mydf, extensions = 'Buttons', 
+              options = list(dom = 'Bfrtip', buttons = c('csv')),
+              escape = FALSE, filter = list(position = 'top', clear = FALSE))
   })
   
   # server resu diagnostics --------------------------------------------------------
@@ -4343,10 +4345,10 @@ ideal_server <- shinyServer(function(input, output, session) {
     selectedGene
   })
   
-  output$volcanoplot <- renderPlot({
+  output$volcanoplot <- renderPlotly({
     p <- plot_volcano(values$res_obj, FDR = input$FDR)
     exportPlots$plot_volcanoplot <- p
-    p
+    plotly::ggplotly(p)
   })
   
   # server genefinder --------------------------------------------------------

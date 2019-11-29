@@ -60,7 +60,8 @@ plot_volcano <- function(res_obj,
 
   mydf <- mydf[mydf$baseMean > 0,]
 
-  p <- ggplot(mydf, aes_string(x = "log2FoldChange", y = "-log10(pvalue)")) + geom_point(aes_string(color = "isDE"), alpha = 0.4)
+  p <- ggplot(mydf, aes_string(x = "log2FoldChange", y = "-log10(pvalue)", 
+                               text = "paste('gene:',symbol)")) + geom_point(aes_string(color = "isDE"), alpha = 0.4)
 
   if(!is.null(ylim_up))
     p <- p + coord_cartesian(ylim = c(0, ylim_up))
@@ -102,7 +103,8 @@ plot_volcano <- function(res_obj,
     }
 
   }
-
+#   save(file = "~/SCHNAPPsDebug/ideal.volcano.RData", list = ls())
+# load("~/SCHNAPPsDebug/ideal.volcano.RData")
   p
 }
 
