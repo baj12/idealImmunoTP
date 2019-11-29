@@ -22,7 +22,7 @@ Reproducibility is supported via state saving and automated report generation.
 if (!requireNamespace("BiocManager", quietly=TRUE))
     install.packages("BiocManager")
     
-BiocManager::install("GenomeInforDbData")
+BiocManager::install("GenomeInfoDbData")
 install.packages("devtools")
 devtools::install_github("baj12/idealImmunoTP", dependencies = T)
 
