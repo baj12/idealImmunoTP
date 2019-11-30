@@ -1140,6 +1140,21 @@ ideal_ui <- shinydashboard::dashboardPage(
 #nocov start
 ideal_server <- shinyServer(function(input, output, session) {
   
+  
+  read1stCol <- function (fileName){
+    guessed_sep <- sepguesser(fileName)
+    cm <- utils::read.delim(fileName, header = TRUE,
+                            as.is = TRUE, sep = guessed_sep, 
+                            # row.names = 1, # https://github.com/federicomarini/pcaExplorer/issues/1
+                            ## TODO: tell the user to use tsv, or use heuristics
+                            ## to check what is most frequently occurring separation character? -> see sepGuesser.R
+                            check.names = FALSE)
+    
+    if (ncol(cm) >1) {
+      cm = cm[,1]
+    }
+    return(cm)
+  }
   # server tours setup -----------------------------------------------------------
   
   # here will go the coded - i.e. not explicitly wrapped in introBox - steps
@@ -2179,7 +2194,7 @@ ideal_server <- shinyServer(function(input, output, session) {
       # User has not uploaded a file yet
       return(data.frame())
     } else {
-      gl1 <- readLines(input$gl1$datapath)
+      gl1 <- read1stCol(input$gl1$datapath)
       return(gl1)
     }
   })
@@ -2196,7 +2211,7 @@ ideal_server <- shinyServer(function(input, output, session) {
       # User has not uploaded a file yet
       return(data.frame())
     } else {
-      gl2 <- readLines(input$gl2$datapath)
+      gl2 <- read1stCol(input$gl2$datapath)
       return(gl2)
     }
   })
@@ -2213,7 +2228,7 @@ ideal_server <- shinyServer(function(input, output, session) {
       # User has not uploaded a file yet
       return(data.frame())
     } else {
-      gl_ma <- readLines(input$gl_ma$datapath)
+      gl_ma <- read1stCol(input$gl_ma$datapath)
       return(gl_ma)
     }
   })
