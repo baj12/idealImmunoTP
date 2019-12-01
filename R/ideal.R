@@ -4030,7 +4030,7 @@ ideal_server <- shinyServer(function(input, output, session) {
     ## TODO: add a check to see if wanted?
     mydf$symbol <- createLinkGeneSymbol(mydf$symbol)
     datatable(mydf, extensions = 'Buttons', 
-              options = list(dom = 'Bfrtip', buttons = c('csv')),
+              options = list(dom = 'lfrtipB', buttons = c('csv')),
               escape = FALSE, filter = list(position = 'top', clear = FALSE))
   })
   
