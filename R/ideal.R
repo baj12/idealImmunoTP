@@ -2001,7 +2001,7 @@ ideal_server <- shinyServer(function(input, output, session) {
            "dds object provided, but couldn't find results. you should first run DESeq() with the button up here"
       )
     )
-    summary(DESeq2::results(values$dds_obj), alpha = input$FDR)
+     summary(DESeq2::results(values$dds_obj), alpha = input$FDR)
   })
   
   # server counts overview --------------------------------------------------------
