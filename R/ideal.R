@@ -2510,7 +2510,7 @@ ideal_server <- shinyServer(function(input, output, session) {
                      de.genes.ids = de.genes.ids[!is.na(de.genes.ids)]
                      # library(goseq)
                      # library(GO.db)
-                     values$gse_up_goseq <- goseqTable(de.genes = de.genes.ids,
+                     values$gse_up_goseq <- tryCatch(goseqTable(de.genes = de.genes.ids,
                                                        assayed.genes = unique(assayed.genes.ids),
                                                        genome = annoSpecies_df[values$cur_species,]$goseq_short,
                                                        id = "ensGene",
@@ -2519,7 +2519,7 @@ ideal_server <- shinyServer(function(input, output, session) {
                                                        nTop = 200,
                                                        addGeneToTerms=TRUE,
                                                        orgDbPkg = annoSpecies_df[values$cur_species,]$pkg # ,
-                     )
+                     ),error =function(e){return(NULL)})
                      
                      incProgress(0.89)
                    }
@@ -2855,7 +2855,10 @@ ideal_server <- shinyServer(function(input, output, session) {
                    } else if (is.null(values$cur_species) | values$cur_species =="") {
                      showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                      return(NULL)
-                   } else {
+                   } else if(is.null(values$genelist1)) {
+                     showNotification("Please load list",type = "warning")
+                   } else{
+                     
                      de.genes <- values$genelist1$`Gene Symbol` # assumed to be in symbols
                      assayed.genes.ids <- rownames(values$dds_obj) # as IDs, but then to be converted back
                      assayed.genes <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
@@ -2895,6 +2898,8 @@ ideal_server <- shinyServer(function(input, output, session) {
                    } else if (is.null(values$cur_species) | values$cur_species =="") {
                      showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                      return(NULL)
+                   } else if(is.null(values$genelist1)) {
+                     showNotification("Please load list",type = "warning")
                    } else {
                      de_symbols <- values$genelist1$`Gene Symbol` # assumed to be in symbols
                      bg_ids <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj)) > 0]

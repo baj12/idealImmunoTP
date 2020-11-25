@@ -70,6 +70,7 @@ goseqTable <- function(de.genes,                  # Differentially expressed gen
 {
   #  library(goseq)
   #  library(GO.db)
+  goseq_out <- tryCatch({
   gene.vector <- as.integer(assayed.genes %in% de.genes)
   names(gene.vector) <- assayed.genes
   fdr <- FDR_GO_cutoff
@@ -132,8 +133,9 @@ goseqTable <- function(de.genes,                  # Differentially expressed gen
     # coerce to char
     goseq_out$genesymbols <- unlist(lapply(goseq_out$genesymbols,function(arg) paste(arg,collapse=",")))
     
-  }
-  
+    }
+  goseq_out
+   }, error =function(e){return(NULL)})
   return(goseq_out)
 }
 
