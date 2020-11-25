@@ -24,6 +24,7 @@ if (!requireNamespace("BiocManager", quietly=TRUE))
     
 BiocManager::install("GenomeInfoDbData")
 install.packages("devtools")
+devtools::install_github("rstudio/d3heatmap")
 devtools::install_github("baj12/idealImmunoTP", dependencies = T)
 
 library(ideal)
