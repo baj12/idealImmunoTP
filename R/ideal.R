@@ -810,16 +810,16 @@ ideal<- function(dds_obj = NULL,
                            fluidRow(column(width = 6,actionButton("button_enrUP", "Perform gene set enrichment analysis on the upregulated genes",class = "btn btn-primary"))),
                            fluidRow(column(width = 6,actionButton("button_enrUP_goseq", "Perform gene set enrichment analysis on the upregulated genes - goseq",class = "btn btn-primary"))),
                            fluidRow(column(width = 6,actionButton("button_enrUP_topgo", "Perform gene set enrichment analysis on the upregulated genes - topGO",class = "btn btn-primary"))),
-                           uiOutput("ui_DT_gse_up"),
-                           uiOutput("ui_DT_gse_up_goseq"),
+                           fluidRow(column(width = 12,(uiOutput("ui_DT_gse_up")))),
+                           fluidRow(column(width = 12,(uiOutput("ui_DT_gse_up_goseq")))),
                            # DT::dataTableOutput("DT_gse_up"),
                            # DT::dataTableOutput("DT_gse_up_goseq"),
+                           
+                           uiOutput("ui_DT_gse_up_topgo"),
+                           # DT::dataTableOutput("DT_gse_up_topgo"),
+                           downloadButton("downloadGOTbl_up","Download", class = "btn btn-success"),
                            fluidRow(
-                             column(width = 9, 
-                                    uiOutput("ui_DT_gse_up_topgo"),
-                                    # DT::dataTableOutput("DT_gse_up_topgo"),
-                                    downloadButton("downloadGOTbl_up","Download", class = "btn btn-success")),
-                             column(width = 3, shinyjqui::jqui_resizable(plotOutput("goterm_heatmap_up_topgo")))
+                             column(width = 12, shinyjqui::jqui_resizable(plotOutput("goterm_heatmap_up_topgo")))
                            )
                   ),
                   tabPanel("DOWNregu", icon = icon("arrow-circle-down"),
@@ -828,14 +828,15 @@ ideal<- function(dds_obj = NULL,
                            fluidRow(column(width = 6,actionButton("button_enrDOWN_topgo", "Perform gene set enrichment analysis on the downregulated genes - topGO",class = "btn btn-primary"))),
                            # DT::dataTableOutput("DT_gse_down"),
                            # DT::dataTableOutput("DT_gse_down_goseq"),
-                           uiOutput("ui_DT_gse_down"),
-                           uiOutput("ui_DT_gse_down_goseq"),
+                           fluidRow(column(width = 12,(uiOutput("ui_DT_gse_down")))),
+                           fluidRow(column(width = 12,(uiOutput("ui_DT_gse_down_goseq")))),
+                           
+                           # DT::dataTableOutput("DT_gse_down_topgo"),
+                           uiOutput("ui_DT_gse_down_topgo"),
+                           downloadButton("downloadGOTbl_down","Download", class = "btn btn-success"),
                            fluidRow(
-                             column(width = 9, 
-                                    # DT::dataTableOutput("DT_gse_down_topgo"),
-                                    uiOutput("ui_DT_gse_down_topgo"),
-                                    downloadButton("downloadGOTbl_down","Download", class = "btn btn-success")),
-                             column(width = 3, shinyjqui::jqui_resizable(plotOutput("goterm_heatmap_down_topgo")))
+                             column(width = 12, 
+                                    shinyjqui::jqui_resizable(plotOutput("goterm_heatmap_down_topgo")))
                            )
                   ),
                   tabPanel("UPDOWN", icon = icon("arrows-v"),
@@ -844,14 +845,13 @@ ideal<- function(dds_obj = NULL,
                            fluidRow(column(width = 6,actionButton("button_enrUPDOWN_topgo", "Perform gene set enrichment analysis on the up- and downregulated genes - topGO",class = "btn btn-primary"))),
                            # DT::dataTableOutput("DT_gse_updown"),
                            # DT::dataTableOutput("DT_gse_updown_goseq"),
-                           uiOutput("ui_DT_gse_updown"),
-                           uiOutput("ui_DT_gse_updown_goseq"),
-                           fluidRow(
-                             column(width = 12, 
-                                    uiOutput("ui_DT_gse_updown_topgo"),
-                                    downloadButton("downloadGOTbl_updown","Download", class = "btn btn-success"))
-                             
-                           ),fluidRow(column(width = 12, shinyjqui::jqui_resizable(plotOutput("goterm_heatmap_updown_topgo"))))
+                           fluidRow(column(width = 12,(uiOutput("ui_DT_gse_updown")))),
+                           fluidRow(column(width = 12,(uiOutput("ui_DT_gse_updown_goseq")))),
+                           
+                           uiOutput("ui_DT_gse_updown_topgo"),
+                           downloadButton("downloadGOTbl_updown","Download", class = "btn btn-success"),
+                           fluidRow(column(width = 12, 
+                                           shinyjqui::jqui_resizable(plotOutput("goterm_heatmap_updown_topgo"))))
                   ),
                   tabPanel("List1", icon = icon("list"),
                            fileInput(inputId = "gl1",
@@ -864,14 +864,13 @@ ideal<- function(dds_obj = NULL,
                            fluidRow(column(width = 6,actionButton("button_enrLIST1_topgo", "Perform gene set enrichment analysis on the list1 genes - topGO",class = "btn btn-primary"))),
                            # DT::dataTableOutput("DT_gse_list1"),
                            # DT::dataTableOutput("DT_gse_list1_goseq"),
-                           uiOutput("ui_DT_gse_list1"),
-                           uiOutput("ui_DT_gse_list1_goseq"),
+                           fluidRow(column(width = 12,(uiOutput("ui_DT_gse_list1")))),
+                           fluidRow(column(width = 12,(uiOutput("ui_DT_gse_list1_goseq")))),
+                           # DT::dataTableOutput("DT_gse_list1_topgo"),
+                           uiOutput("ui_DT_gse_list1_topgo"),
+                           downloadButton("downloadGOTbl_l1","Download", class = "btn btn-success"),
                            fluidRow(
-                             column(width = 9, 
-                                    # DT::dataTableOutput("DT_gse_list1_topgo"),
-                                    uiOutput("ui_DT_gse_list1_topgo"),
-                                    downloadButton("downloadGOTbl_l1","Download", class = "btn btn-success")),
-                             column(width = 3, shinyjqui::jqui_resizable(plotOutput("goterm_heatmap_l1_topgo")))
+                             column(width = 12, shinyjqui::jqui_resizable(plotOutput("goterm_heatmap_l1_topgo")))
                            )
                            
                   ),
@@ -886,15 +885,14 @@ ideal<- function(dds_obj = NULL,
                            fluidRow(column(width = 6,actionButton("button_enrLIST2_topgo", "Perform gene set enrichment analysis on the list2 genes - topGO",class = "btn btn-primary"))),
                            # DT::dataTableOutput("DT_gse_list2"),
                            # DT::dataTableOutput("DT_gse_list2_goseq"),
-                           uiOutput("ui_DT_gse_list2"),
-                           uiOutput("ui_DT_gse_list2_goseq"),
-                           fluidRow(
-                             column(width = 9, 
-                                    # DT::dataTableOutput("DT_gse_list2_topgo"),
-                                    uiOutput("ui_DT_gse_list2_topgo"),
-                                    downloadButton("downloadGOTbl_l2","Download", class = "btn btn-success")),
-                             column(width = 3, shinyjqui::jqui_resizable(plotOutput("goterm_heatmap_l2_topgo")))
-                           )
+                           fluidRow(column(width = 12,uiOutput("ui_DT_gse_list2"))),
+                           fluidRow(column(width = 12,uiOutput("ui_DT_gse_list2_goseq"))),
+                           
+                           # DT::dataTableOutput("DT_gse_list2_topgo"),
+                           uiOutput("ui_DT_gse_list2_topgo"),
+                           downloadButton("downloadGOTbl_l2","Download", class = "btn btn-success"),
+                           fluidRow(column(width = 3, shinyjqui::jqui_resizable(plotOutput("goterm_heatmap_l2_topgo"))
+                           ))
                   )
                 )
               ),
