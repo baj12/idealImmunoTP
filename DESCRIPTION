@@ -1,7 +1,7 @@
 Package: ideal
 Type: Package
 Title: Interactive Differential Expression AnaLysis
-Version: 1.9.3
+Version: 1.9.5
 Date: 2019-09-30
 Authors@R: c(person("Federico", "Marini", role = c("aut", "cre"), 
     email ="marinif@uni-mainz.de", 
@@ -13,7 +13,8 @@ Description: This package provides functions for an Interactive
     the whole package.
 License: MIT + file LICENSE
 LazyData: TRUE
-Depends: topGO
+Depends: topGO,
+    R (>= 3.6)
 Imports: 
     DESeq2, 
     SummarizedExperiment, 
