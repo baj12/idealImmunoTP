@@ -679,7 +679,7 @@ ideal<- function(dds_obj = NULL,
                            textInput("filename_plot_heatbrush",label = "Save as...",value = "plot_heatbrush.pdf"))
                 ),
                 column(6,
-                       shinyjqui::jqui_resizable(d3heatmapOutput("heatbrushD3")))
+                       shinyjqui::jqui_resizable(plotlyOutput("hpi_brush")))
               ),
               
               box(
@@ -4353,7 +4353,7 @@ ideal<- function(dds_obj = NULL,
     })
     
     
-    output$heatbrushD3 <- renderD3heatmap({
+    output$hpi_brush <- renderPlotly({
       if((is.null(input$ma_brush))|is.null(values$dds_obj)) return(NULL)
       brushedObject <- curData()
       selectedGenes <- as.character(brushedObject$ID)
@@ -4368,7 +4368,7 @@ ideal<- function(dds_obj = NULL,
         return((x - m)/s)
       }
       if(input$rowscale) toplot <- mat_rowscale(toplot)
-      d3heatmap(toplot,Colv = as.logical(input$heatmap_colv),colors = mycolss, cexCol = 1)
+      heatmaply(toplot,Colv = as.logical(input$heatmap_colv),colors = mycolss, cexCol = 1)
     })
     
     

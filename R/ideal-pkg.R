@@ -38,7 +38,8 @@
 #' @importFrom IHW ihw
 #' @importFrom rentrez entrez_summary
 #' @importFrom pheatmap pheatmap
-#' @import d3heatmap
+#' @import heatmaply
+#' @import plotly
 #' @importFrom limma goana topGO
 #' @import topGO
 #' @importFrom stringr str_count

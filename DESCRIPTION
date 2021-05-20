@@ -1,7 +1,7 @@
 Package: ideal
 Type: Package
 Title: Interactive Differential Expression AnaLysis
-Version: 1.9.10
+Version: 1.9.11
 Date: 2019-09-30
 Authors@R: c(person("Federico", "Marini", role = c("aut", "cre"), 
     email ="marinif@uni-mainz.de", 
@@ -22,8 +22,8 @@ Imports:
     IRanges,
     S4Vectors, 
     ggplot2 (>= 2.0.0), 
-    d3heatmap, 
     pheatmap,
+    plotly,
     pcaExplorer, 
     IHW, 
     gplots, 
