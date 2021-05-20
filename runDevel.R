@@ -78,7 +78,6 @@ source("R/genesignatures.R")
 source("R/goseqTable.R")
 source("R/ideal.R", local = T)
 source("R/iSEE_plug.R")
-library(plotly)
 dds_obj = dds_airway
 res_obj = res_airway
 annotation_obj = annotation_airway

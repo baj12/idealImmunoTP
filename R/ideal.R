@@ -4368,7 +4368,7 @@ ideal<- function(dds_obj = NULL,
         return((x - m)/s)
       }
       if(input$rowscale) toplot <- mat_rowscale(toplot)
-      heatmaply(toplot,Colv = as.logical(input$heatmap_colv),colors = mycolss, cexCol = 1)
+      heatmaply::heatmaply(toplot,Colv = as.logical(input$heatmap_colv),colors = mycolss, cexCol = 1)
     })
     
     

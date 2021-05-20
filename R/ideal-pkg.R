@@ -38,10 +38,9 @@
 #' @importFrom IHW ihw
 #' @importFrom rentrez entrez_summary
 #' @importFrom pheatmap pheatmap
-#' @import heatmaply
-#' @import plotly
 #' @importFrom limma goana topGO
 #' @import topGO
+#' @importFrom heatmaply heatmaply
 #' @importFrom stringr str_count
 #' @importFrom rintrojs introjs introjsUI
 #' @importFrom shinyBS bsTooltip bsCollapse bsCollapsePanel
