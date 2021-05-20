@@ -1,4 +1,4 @@
-% `ideal` - Interactive Differential Expression AnaLysis in RNA-seq data
+# `ideal` - Interactive Differential Expression AnaLysis in RNA-seq data
 
 
 ![](https://travis-ci.com/baj12/idealImmunoTP.svg?branch=master)
