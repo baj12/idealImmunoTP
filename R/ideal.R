@@ -3144,7 +3144,7 @@ ideal<- function(dds_obj = NULL,
       return(
         tagList(
           h4("topGO table - list2"),
-          DT::dataTableOutput("DT_gse_list2_topgo")
+          DT::dataTableOutput("DT_gse_list2_topgo",scrollX = T)
         )
       )
     })
@@ -3207,7 +3207,7 @@ ideal<- function(dds_obj = NULL,
         return(NULL)
       mytbl <- values$gse_up
       rownames(mytbl) <- createLinkGO(rownames(mytbl))
-      datatable(mytbl,escape=FALSE)
+      DT::datatable(mytbl,escape=FALSE, scrollX = T)
     })
     output$DT_gse_down <- DT::renderDataTable({
       # if not null...
@@ -3215,7 +3215,10 @@ ideal<- function(dds_obj = NULL,
         return(NULL)
       mytbl <- values$gse_down
       rownames(mytbl) <- createLinkGO(rownames(mytbl))
-      datatable(mytbl,escape=FALSE)
+      DT::datatable(mytbl,escape=FALSE, scrollX = T,options = list(
+        autoWidth = TRUE,
+        columnDefs = list(list(width = '20px', targets = c(8,9,10)))
+      ))
     })
     output$DT_gse_updown <- DT::renderDataTable({
       # if not null...
@@ -3223,7 +3226,7 @@ ideal<- function(dds_obj = NULL,
         return(NULL)
       mytbl <- values$gse_updown
       rownames(mytbl) <- createLinkGO(rownames(mytbl))
-      datatable(mytbl,escape=FALSE)
+      DT::datatable(mytbl,escape=FALSE, scrollX = T)
     })
     output$DT_gse_list1 <- DT::renderDataTable({
       # if not null...
@@ -3232,7 +3235,7 @@ ideal<- function(dds_obj = NULL,
       mytbl <- values$gse_list1
       # mytbl$GOid <- rownames(mytbl)
       rownames(mytbl) <- createLinkGO(rownames(mytbl))
-      datatable(mytbl,escape=FALSE)
+      DT::datatable(mytbl,escape=FALSE, scrollX = T)
     })
     output$DT_gse_list2 <- DT::renderDataTable({
       # if not null...
@@ -3240,7 +3243,7 @@ ideal<- function(dds_obj = NULL,
         return(NULL)
       mytbl <- values$gse_list2
       rownames(mytbl) <- createLinkGO(rownames(mytbl))
-      datatable(mytbl,escape=FALSE)
+      DT::datatable(mytbl,escape=FALSE, scrollX = T)
     })
     
     
@@ -3250,7 +3253,7 @@ ideal<- function(dds_obj = NULL,
         return(NULL)
       mytbl <- values$topgo_up
       mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
-      DT::datatable(mytbl,escape=FALSE, selection=list(mode="single"))
+      DT::datatable(mytbl,escape=FALSE, selection=list(mode="single"), scrollX = T)
     })
     output$DT_gse_down_topgo <- DT::renderDataTable({
       # if not null...
@@ -3258,7 +3261,7 @@ ideal<- function(dds_obj = NULL,
         return(NULL)
       mytbl <- values$topgo_down
       mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
-      DT::datatable(mytbl,escape=FALSE, selection=list(mode="single"))
+      DT::datatable(mytbl,escape=FALSE, selection=list(mode="single"), scrollX = T)
     })
     output$DT_gse_updown_topgo <- DT::renderDataTable({
       # if not null...
@@ -3266,7 +3269,7 @@ ideal<- function(dds_obj = NULL,
         return(NULL)
       mytbl <- values$topgo_updown
       mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
-      DT::datatable(mytbl,escape=FALSE, selection=list(mode="single"))
+      DT::datatable(mytbl,escape=FALSE, selection=list(mode="single"), scrollX = T)
     })
     output$DT_gse_list1_topgo <- DT::renderDataTable({
       # if not null...
@@ -3275,7 +3278,7 @@ ideal<- function(dds_obj = NULL,
       mytbl <- values$topgo_list1
       # mytbl$GOid <- rownames(mytbl)
       mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
-      DT::datatable(mytbl,escape=FALSE, selection=list(mode="single"))
+      DT::datatable(mytbl,escape=FALSE, selection=list(mode="single"), scrollX = T)
     })
     output$DT_gse_list2_topgo <- DT::renderDataTable({
       # if not null...
@@ -3284,7 +3287,7 @@ ideal<- function(dds_obj = NULL,
       mytbl <- values$topgo_list2
       # mytbl$GOid <- rownames(mytbl)
       mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
-      DT::datatable(mytbl,escape=FALSE, selection=list(mode="single"))
+      DT::datatable(mytbl,escape=FALSE, selection=list(mode="single"), scrollX = T)
     })
     
     
@@ -3294,7 +3297,7 @@ ideal<- function(dds_obj = NULL,
         return(NULL)
       mytbl <- values$gse_up_goseq
       mytbl$category <- createLinkGO(mytbl$category)
-      datatable(mytbl,escape=FALSE, rownames = FALSE)
+      DT::datatable(mytbl,escape=FALSE, rownames = FALSE, scrollX = T)
     })
     output$DT_gse_down_goseq <- DT::renderDataTable({
       # if not null...
@@ -3302,7 +3305,7 @@ ideal<- function(dds_obj = NULL,
         return(NULL)
       mytbl <- values$gse_down_goseq
       mytbl$category <- createLinkGO(mytbl$category)
-      datatable(mytbl,escape=FALSE, rownames = FALSE)
+      DT::datatable(mytbl,escape=FALSE, rownames = FALSE, scrollX = T)
     })
     output$DT_gse_updown_goseq <- DT::renderDataTable({
       # if not null...
@@ -3310,7 +3313,7 @@ ideal<- function(dds_obj = NULL,
         return(NULL)
       mytbl <- values$gse_updown_goseq
       mytbl$category <- createLinkGO(mytbl$category)
-      datatable(mytbl,escape=FALSE, rownames = FALSE)
+      DT::datatable(mytbl,escape=FALSE, rownames = FALSE, scrollX = T)
     })
     output$DT_gse_list1_goseq <- DT::renderDataTable({
       # if not null...
@@ -3319,7 +3322,7 @@ ideal<- function(dds_obj = NULL,
       mytbl <- values$gse_list1_goseq
       # mytbl$GOid <- rownames(mytbl)
       mytbl$category <- createLinkGO(mytbl$category)
-      datatable(mytbl,escape=FALSE, rownames = FALSE)
+      DT::datatable(mytbl,escape=FALSE, rownames = FALSE, scrollX = T)
     })
     output$DT_gse_list2_goseq <- DT::renderDataTable({
       # if not null...
@@ -3328,7 +3331,7 @@ ideal<- function(dds_obj = NULL,
       mytbl <- values$gse_list2_goseq
       # mytbl$GOid <- rownames(mytbl)
       mytbl$category <- createLinkGO(mytbl$category)
-      datatable(mytbl,escape=FALSE, rownames = FALSE)
+      DT::datatable(mytbl,escape=FALSE, rownames = FALSE, scrollX = T)
     })
     
     
