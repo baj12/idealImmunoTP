@@ -9,10 +9,11 @@
 #'    the position is chosen automatically based on the last coefficient to be plotted. 
 #'    
 #' @return returns nothing
+#' @export
 #' 
 #' @examples
-#' dds <-  dds <- makeExampleDESeqDataSet()
-#' dds = DESeq(dds)
+#' dds <- DESeq2::makeExampleDESeqDataSet()
+#' dds = DESeq2::DESeq(dds)
 #' plotCoefficients(dds, "gene930")
 #' 
 

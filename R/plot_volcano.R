@@ -60,8 +60,14 @@ plot_volcano <- function(res_obj,
 
   mydf <- mydf[mydf$baseMean > 0,]
 
+  if("symbol" %in% colnames(mydf)) {
+    pasteText <- "paste('gene:',symbol)"
+  } else {
+    mydf$symbol = rownames(mydf)
+    pasteText <- "paste('gene:',symbol)"
+  }
   p <- ggplot(mydf, aes_string(x = "log2FoldChange", y = "-log10(pvalue)", 
-                               text = "paste('gene:',symbol)")) + geom_point(aes_string(color = "isDE"), alpha = 0.4)
+                               text = pasteText)) + geom_point(aes_string(color = "isDE"), alpha = 0.4)
 
   if(!is.null(ylim_up))
     p <- p + coord_cartesian(ylim = c(0, ylim_up))

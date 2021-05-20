@@ -1,0 +1,11 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+_config.yml
+_pkgdown.yml
+appveyor.yml
+docs
+runDevel.R
+runTest.R
+testData.RData
+.travis.yml
+.circleci

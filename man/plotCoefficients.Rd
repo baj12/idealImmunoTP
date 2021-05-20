@@ -21,8 +21,8 @@ returns nothing
 \code{plotCoeficients} plot coefficients of a gene given a DESeqDataSet (DESeq2 > v1.16)
 }
 \examples{
-dds <-  dds <- makeExampleDESeqDataSet()
-dds = DESeq(dds)
+dds <- DESeq2::makeExampleDESeqDataSet()
+dds = DESeq2::DESeq(dds)
 plotCoefficients(dds, "gene930")
 
 }
