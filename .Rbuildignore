@@ -9,3 +9,5 @@ runTest.R
 testData.RData
 .travis.yml
 .circleci
+^docs$
+^\.github$
