@@ -37,7 +37,6 @@
 #' @importFrom gplots venn
 #' @importFrom IHW ihw
 #' @importFrom rentrez entrez_summary
-#' @importFrom pheatmap pheatmap
 #' @importFrom limma goana topGO
 #' @import topGO
 #' @importFrom heatmaply heatmaply

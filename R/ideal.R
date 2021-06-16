@@ -74,7 +74,7 @@ ideal<- function(dds_obj = NULL,
   
   ## upload max 300mb files - can be changed if necessary
   options(shiny.maxRequestSize=300*1024^2)
-  options(shiny.launch.browser = TRUE)
+  options(shiny.launch.browser = T)
   
   ## ------------------------------------------------------------------ ##
   ##                          Define UI                                 ##
@@ -449,30 +449,41 @@ ideal<- function(dds_obj = NULL,
               p("Compute sample to sample correlations on the normalized counts - warning, it can take a while to plot all points (depending mostly on the number of samples you provided)."),
               actionButton("compute_pairwisecorr", "Run", class = "btn btn-primary"),
               uiOutput("pairwise_plotUI"),
-              box(width = 12,
-                  title = "Correlation between samples", solidHeader = TRUE,
-                  shinyjqui::jqui_resizable(uiOutput("heatcorr_plotUI"))
-              ),
               br(),
-              box(width = 12, 
+              shinyjqui::jqui_resizable(uiOutput("heatcorr_plotUI")),
+              br(),
+              box(width = 12,
                   title = "PCA/Size Factors", solidHeader = TRUE,
                   fluidRow(
                     column(
                       width = 6,
-                      uiOutput("pca_plotUI")
+                      shinyjqui::jqui_resizable(uiOutput("pca_plotUI"))
                     ),
                     column(
                       width = 6,
-                      uiOutput("sizeFactors_plotUI")
+                      shinyjqui::jqui_resizable(uiOutput("sizeFactors_plotUI"))
                     )
                   )
               ),
+              br(),
+              # box(width = 12,
+              #     title = "Correlation between samples", solidHeader = TRUE,
+              #     fluidRow(
+              #       column(
+              #         width = 11,
+              #         # shinyjqui::jqui_resizable(
+              #       plotOutput("heatcorr")
+              #           
+              #       ))
+              #     
+              #     # )
+              # ),
               box(width = 12,
                   title = "Highest expressing genes", solidHeader = TRUE,
                   fluidRow({
                     column(
                       width = 12,
-                      shinyjqui::jqui_resizable(uiOutput("geneHeatmap_plotUI"))
+                      uiOutput("geneHeatmap_plotUI")
                     )
                   }
                   ))
@@ -577,11 +588,12 @@ ideal<- function(dds_obj = NULL,
                 ),
                 column(
                   width = 6,
-                  plotOutput("pvals_hist_strat"),
-                  div(align = "right", style = "margin-right:15px; margin-bottom:10px",
-                      downloadButton("download_plot_pvals_hist_strat", "Download Plot"),
-                      textInput("filename_plot_pvals_hist_strat",label = "Save as...",value = "plot_pvals_hist_strat.pdf"))
+                  plotOutput("pvals_hist_strat")
+                  # ,div(align = "right", style = "margin-right:15px; margin-bottom:10px",
+                      # downloadButton("download_plot_pvals_hist_strat", "Download Plot"),
+                      # textInput("filename_plot_pvals_hist_strat",label = "Save as...",value = "plot_pvals_hist_strat.pdf"))
                 ),
+                # "Schweder-Spjotvoll plot" 
                 # column(
                 #   width = 6,
                 #   plotOutput("pvals_ss"),
@@ -672,14 +684,20 @@ ideal<- function(dds_obj = NULL,
                        checkboxInput("pseudocounts","use log2(1+counts)",value = TRUE))
               ),
               fluidRow(
-                column(6,
-                       shinyjqui::jqui_resizable(plotOutput("heatbrush")) ,
-                       div(align = "right", style = "margin-right:15px; margin-bottom:10px",
-                           downloadButton("download_plot_heatbrush", "Download Plot"),
-                           textInput("filename_plot_heatbrush",label = "Save as...",value = "plot_heatbrush.pdf"))
-                ),
-                column(6,
-                       shinyjqui::jqui_resizable(plotlyOutput("hpi_brush")))
+                # column(6,
+                #        shinyjqui::jqui_resizable(
+                #          plotlyOutput("heatbrush")
+                #          )
+                #        ,
+                #        # div(align = "right", style = "margin-right:15px; margin-bottom:10px",
+                #            downloadButton("download_plot_heatbrush", "Download Plot"),
+                #            textInput("filename_plot_heatbrush",label = "Save as...",value = "plot_heatbrush.pdf")
+                #            # )
+                # ),
+                column(12,
+                       shinyjqui::jqui_resizable(
+                         plotlyOutput("hpi_brush"))
+                )
               ),
               
               box(
@@ -819,7 +837,11 @@ ideal<- function(dds_obj = NULL,
                            # DT::dataTableOutput("DT_gse_up_topgo"),
                            downloadButton("downloadGOTbl_up","Download", class = "btn btn-success"),
                            fluidRow(
-                             column(width = 12, shinyjqui::jqui_resizable(plotOutput("goterm_heatmap_up_topgo")))
+                             h3("Heatmap of selected TopGo entry")
+                           ),
+                
+                           fluidRow(
+                             column(width = 12, shinyjqui::jqui_resizable(plotlyOutput("goterm_heatmap_up_topgo")))
                            )
                   ),
                   tabPanel("DOWNregu", icon = icon("arrow-circle-down"),
@@ -835,8 +857,11 @@ ideal<- function(dds_obj = NULL,
                            uiOutput("ui_DT_gse_down_topgo"),
                            downloadButton("downloadGOTbl_down","Download", class = "btn btn-success"),
                            fluidRow(
+                             h3("Heatmap of selected TopGo entry")
+                           ),
+                           fluidRow(
                              column(width = 12, 
-                                    shinyjqui::jqui_resizable(plotOutput("goterm_heatmap_down_topgo")))
+                                    shinyjqui::jqui_resizable(plotlyOutput("goterm_heatmap_down_topgo")))
                            )
                   ),
                   tabPanel("UPDOWN", icon = icon("arrows-v"),
@@ -850,8 +875,11 @@ ideal<- function(dds_obj = NULL,
                            
                            uiOutput("ui_DT_gse_updown_topgo"),
                            downloadButton("downloadGOTbl_updown","Download", class = "btn btn-success"),
+                           fluidRow(
+                             h3("Heatmap of selected TopGo entry")
+                           ),
                            fluidRow(column(width = 12, 
-                                           shinyjqui::jqui_resizable(plotOutput("goterm_heatmap_updown_topgo"))))
+                                           shinyjqui::jqui_resizable(plotlyOutput("goterm_heatmap_updown_topgo"))))
                   ),
                   tabPanel("List1", icon = icon("list"),
                            fileInput(inputId = "gl1",
@@ -870,7 +898,7 @@ ideal<- function(dds_obj = NULL,
                            uiOutput("ui_DT_gse_list1_topgo"),
                            downloadButton("downloadGOTbl_l1","Download", class = "btn btn-success"),
                            fluidRow(
-                             column(width = 12, shinyjqui::jqui_resizable(plotOutput("goterm_heatmap_l1_topgo")))
+                             column(width = 12, shinyjqui::jqui_resizable(plotlyOutput("goterm_heatmap_l1_topgo")))
                            )
                            
                   ),
@@ -891,7 +919,7 @@ ideal<- function(dds_obj = NULL,
                            # DT::dataTableOutput("DT_gse_list2_topgo"),
                            uiOutput("ui_DT_gse_list2_topgo"),
                            downloadButton("downloadGOTbl_l2","Download", class = "btn btn-success"),
-                           fluidRow(column(width = 3, shinyjqui::jqui_resizable(plotOutput("goterm_heatmap_l2_topgo"))
+                           fluidRow(column(width = 3, shinyjqui::jqui_resizable(plotlyOutput("goterm_heatmap_l2_topgo"))
                            ))
                   )
                 )
@@ -899,7 +927,7 @@ ideal<- function(dds_obj = NULL,
               
               ## will put collapsible list elements? or multi tab panel? or something to select on the left, and operate output-wise on the right e.g. venn diagrams or table for gene set enrichment
               # h3("custom list 3 - handpicked") # use the select input from the left column?
-              # ,verbatimTextOutput("debuggls"),
+              verbatimTextOutput("debuggls"),
               
               # verbatimTextOutput("printUPgenes"),
               
@@ -1023,7 +1051,7 @@ ideal<- function(dds_obj = NULL,
               fluidRow(
                 column(
                   width = 8, offset = 2,
-                  shinyjqui::jqui_resizable(plotOutput("sig_heat"))
+                  shinyjqui::jqui_resizable(plotlyOutput("sig_heat"))
                 )
               )
             ),
@@ -1139,18 +1167,26 @@ ideal<- function(dds_obj = NULL,
   ideal_server <- shinyServer(function(input, output, session) {
     
     
-    read1stCol <- function (fileName){
+    read1stCol <- function (fileName,dds_obj){
       guessed_sep <- sepguesser(fileName)
-      cm <- utils::read.delim(fileName, header = TRUE,
+
+      cm <- tryCatch({utils::read.delim(fileName, header = TRUE,
                               as.is = TRUE, sep = guessed_sep, 
                               # row.names = 1, # https://github.com/federicomarini/pcaExplorer/issues/1
                               ## TODO: tell the user to use tsv, or use heuristics
                               ## to check what is most frequently occurring separation character? -> see sepGuesser.R
                               check.names = FALSE)
-      
-      if (ncol(cm) >1) {
-        cm = cm[,1]
+      }, error=function(e){
+        cat(file = stderr(), paste(e,"\n"))
+        return(NULL)
       }
+      )
+      if(is.null(cm)) return(NULL)
+      if (ncol(cm) >1) {
+        cm = cm[,1, drop = F]
+      }
+      cm = cm[cm[,1] %in% rownames(dds_obj),, drop = F]
+      if(nrow(cm)<1) return(NULL)
       return(cm)
     }
     # server tours setup -----------------------------------------------------------
@@ -1464,7 +1500,7 @@ ideal<- function(dds_obj = NULL,
       if(is.null(values$expdesign))
         return(NULL)
       poss_covars <- colnames(values$expdesign)
-      cat(file = stderr(), "selectINPUT dds_design\n")
+      # cat(file = stderr(), "selectINPUT dds_design\n")
       selectInput('dds_design', label = 'Select the design for your experiment: ',
                   choices = c(NULL, poss_covars), selected = values$dds_design, multiple = TRUE)
     })
@@ -1869,7 +1905,7 @@ ideal<- function(dds_obj = NULL,
     output$ui_selectoutliers <- renderUI({
       if(is.null(values$dds_obj))
         return(NULL)
-      cat(file = stderr(), "ui_selectoutliers UI\n")
+      # cat(file = stderr(), "ui_selectoutliers UI\n")
       md = colnames(values$dds_obj)
       cm = colnames(values$dds_obj)
       if (!is.null(readCountmatrix()))
@@ -2041,15 +2077,25 @@ ideal<- function(dds_obj = NULL,
           detail = "this can take a while..."
         )
     })
-    
-    output$heatcorr <- renderPlot({
-      if(input$compute_pairwisecorr){
-        shiny::validate(
-          need(!is.null(values$dds_obj),
-               "Provide or construct a dds object")
-        )
-        pheatmap(cor(current_countmat()))
-      }
+    # HEATCORR ======
+    output$heatcorr <- renderPlotly({
+      input$compute_pairwisecorr
+      input$avail_symbols
+      values$dds_obj
+      input$color_by
+      # if(input$compute_pairwisecorr){
+      # shiny::validate(
+      #   need(!is.null(values$dds_obj),
+      #        "Provide or construct a dds object")
+      # )
+      # cat(file = stderr(), paste("heatcorr: ", class(p),"\n"))
+      # browser()
+      heatmaply_cor(cor(current_countmat()))
+      # }
+      # rld <- rlog(values$dds_obj, blind = FALSE)
+      # # p = plotPCA(rld, intgroup = "STIMULUS", ntop = 1000)
+      # p = plotPCA(rld, intgroup = input$color_by, ntop = 1000)
+      # ggplotify::as.ggplot( p)
     })
     
     output$pcaPlot <- renderPlot({
@@ -2061,8 +2107,11 @@ ideal<- function(dds_obj = NULL,
         need(!is.null(input$color_by),
              "Provide group to color by")
       )
+      # browser()
       rld <- rlog(values$dds_obj, blind = FALSE)
-      plotPCA(rld, intgroup = input$color_by, ntop = 1000)
+      # browser()
+      p = plotPCA(rld, intgroup = input$color_by, ntop = 1000)
+      p
     })
     
     output$sizeFactorsPlot <- renderPlot({
@@ -2088,9 +2137,10 @@ ideal<- function(dds_obj = NULL,
     })
     
     output$heatcorr_plotUI <- renderUI({
-      if(!input$compute_pairwisecorr) return()
+      input$compute_pairwisecorr
+      # if(!input$compute_pairwisecorr) return()
       # TODO check that input$color_by is set and set message otherwise
-      plotOutput("heatcorr")
+      plotlyOutput("heatcorr")
     })
     output$pca_plotUI <- renderUI({
       if(!input$compute_pairwisecorr) return()
@@ -2101,10 +2151,12 @@ ideal<- function(dds_obj = NULL,
       plotOutput("sizeFactorsPlot")
     }) 
     output$geneHeatmap_plotUI <- renderUI({
-      if(!input$compute_pairwisecorr) return()
-      plotOutput("geneHeatmap")
+      cat(file =stderr(), paste("geneHeatmap: ",input$compute_pairwisecorr, "\n"))
+      if(input$compute_pairwisecorr<1) return()
+      plotlyOutput("geneHeatmap")
     })
-    output$geneHeatmap <- renderPlot({
+    output$geneHeatmap <- renderPlotly({
+      cat(file =stderr(), paste("geneHeatmap renderPlot: ", input$compute_pairwisecorr,"\n"))
       # We define how many genes we want to look at
       nGenesHeatmap <- 20
       
@@ -2130,9 +2182,16 @@ ideal<- function(dds_obj = NULL,
           match(rownames(heatmapcounts),
                 rownames(values$annotation_obj))]
       }
-      pheatmap(heatmapcounts, cluster_rows = T, show_rownames = TRUE, cluster_cols = T)
-      
+      heatmaply(heatmapcounts, cluster_rows = T, show_rownames = TRUE, cluster_cols = T)
+      # p = ggplotify::as.ggplot(p)
+      # p$theme = list()
+      # # browser()
+      # cat(file =stderr(), paste("geneHeatmap renderPlot: ", input$compute_pairwisecorr,"done.\n"))
+      # # ggsave(
+      # #   filename = paste0("test.",input$compute_pairwisecorr, ".png"), plot = p)
+      # p
     })
+    
     # overview on number of detected genes on different threshold types
     output$detected_genes <- renderPrint({
       t1 <- rowSums(counts(values$dds_obj))
@@ -2182,7 +2241,10 @@ ideal<- function(dds_obj = NULL,
     
     observeEvent(input$gl1,
                  {
-                   mydf <- as.data.frame(gl1(),stringsAsFactors=FALSE)
+                   gl = gl1()
+                   if(is.null(gl)) {values$genelist1 = data.frame(); return(NULL)}
+                   if(nrow(gl)<1) {values$genelist1 = data.frame(); return(NULL)}
+                   mydf <- as.data.frame(gl,stringsAsFactors=FALSE)
                    names(mydf) <- "Gene Symbol"
                    values$genelist1 <- mydf
                  })
@@ -2192,15 +2254,21 @@ ideal<- function(dds_obj = NULL,
         # User has not uploaded a file yet
         return(data.frame())
       } else {
-        gl1 <- read1stCol(input$gl1$datapath)
+        gl1 <- read1stCol(input$gl1$datapath, values$dds_obj)
+        # browser()
+        if(is.null(gl1)) return(NULL)
         return(gl1)
       }
     })
     
     observeEvent(input$gl2,
                  {
-                   mydf <- as.data.frame(gl2(),stringsAsFactors=FALSE)
+                   gl = gl2()
+                   if(is.null(gl)) {values$genelist2 = data.frame(); return(NULL)}
+                   if(nrow(gl)<1) {values$genelist2 = data.frame(); return(NULL)}
+                   mydf <- as.data.frame(gl,stringsAsFactors=FALSE)
                    names(mydf) <- "Gene Symbol"
+                   
                    values$genelist2 <- mydf
                  })
     
@@ -2209,14 +2277,18 @@ ideal<- function(dds_obj = NULL,
         # User has not uploaded a file yet
         return(data.frame())
       } else {
-        gl2 <- read1stCol(input$gl2$datapath)
+        gl2 <- read1stCol(input$gl2$datapath, values$dds_obj)
+        # browser()
         return(gl2)
       }
     })
     
     observeEvent(input$gl_ma,
                  {
-                   mydf <- as.data.frame(gl_ma(),stringsAsFactors=FALSE)
+                   gl = gl_ma()
+                   if(is.null(gl)) {values$genelist_ma = data.frame(); return(NULL)}
+                   if(nrow(gl)<1) {values$genelist_ma = data.frame(); return(NULL)}
+                   mydf <- as.data.frame(gl,stringsAsFactors=FALSE)
                    names(mydf) <- "Gene Symbol"
                    values$genelist_ma <- mydf
                  })
@@ -2226,7 +2298,8 @@ ideal<- function(dds_obj = NULL,
         # User has not uploaded a file yet
         return(data.frame())
       } else {
-        gl_ma <- read1stCol(input$gl_ma$datapath)
+        gl_ma <- read1stCol(input$gl_ma$datapath, values$dds_obj)
+        # browser()
         return(gl_ma)
       }
     })
@@ -2302,6 +2375,7 @@ ideal<- function(dds_obj = NULL,
     
     ## list of gene lists
     gll <- reactive({
+      # browser()
       mylist <- list(listUP = values$genelistUP(),
                      listDOWN = values$genelistDOWN(),
                      listUPDOWN = values$genelistUPDOWN(),
@@ -2827,6 +2901,7 @@ ideal<- function(dds_obj = NULL,
                        if (!require(annopkg,character.only=TRUE)) {
                          stop("The package",annopkg, "is not installed/available. Try installing it with BiocManager::install() ?")
                        }
+                       # browser()
                        listGenesEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = as.character(values$genelist1$`Gene Symbol`),
                                                                 column="ENTREZID", keytype=inputType)
                        listBackgroundEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
@@ -2859,8 +2934,12 @@ ideal<- function(dds_obj = NULL,
                        return(NULL)
                      } else if(is.null(values$genelist1)) {
                        showNotification("Please load list",type = "warning")
-                     } else{
+                     } else if(nrow(values$genelist1)<1){
+                       showNotification("gene list is not good",type = "warning")
+                     } 
+                     else{
                        tryCatch({
+                         # browser()
                          de.genes <- values$genelist1$`Gene Symbol` # assumed to be in symbols
                          assayed.genes.ids <- rownames(values$dds_obj) # as IDs, but then to be converted back
                          assayed.genes <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
@@ -2885,6 +2964,8 @@ ideal<- function(dds_obj = NULL,
                                                               addGeneToTerms=TRUE,
                                                               orgDbPkg = annoSpecies_df[values$cur_species,]$pkg # ,
                          )
+                       }, error = function(e){
+                         showNotification("something went wrong",type = "warning")
                        })
                        incProgress(0.89)
                      }
@@ -2904,6 +2985,7 @@ ideal<- function(dds_obj = NULL,
                        showNotification("Please load list",type = "warning")
                      } else {
                        tryCatch({
+                         # browser()
                          de_symbols <- values$genelist1$`Gene Symbol` # assumed to be in symbols
                          bg_ids <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj)) > 0]
                          bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
@@ -2914,11 +2996,19 @@ ideal<- function(dds_obj = NULL,
                          incProgress(0.1, detail = "IDs mapped")
                          # library(topGO)
                          # requireNamespace("topGO")
+                         # There is a bug in topGOtable that requrires some differences between de and bg
+                         if (length(unique(as.integer(bg_symbols %in% de_symbols))) == 1) {
+                           showNotification("all the same",type = "warning")
+                           return(NULL)
+                         }
                          values$topgo_list1 <- pcaExplorer::topGOtable(de_symbols, bg_symbols,
                                                                        ontology = input$go_cats[1],
                                                                        mapping = annoSpecies_df[values$cur_species,]$pkg,
                                                                        geneID = "symbol",addGeneToTerms = TRUE)
                          incProgress(0.89)
+                       }, error = function(e){
+                         showNotification("something went wrong",type = "warning")
+                         cat(file= stderr(), paste("error message:", e, "\n"))
                        })
                      }
                    })
@@ -2961,6 +3051,8 @@ ideal<- function(dds_obj = NULL,
                          DEgenes_list <- lapply(genes_list, function(arg) intersect(arg,degenes))
                          
                          values$gse_list2$genes <- unlist(lapply(DEgenes_list,function(arg) paste(arg,collapse=",")))
+                       }, error = function(e){
+                         showNotification("something went wrong",type = "warning")
                        })
                      }
                    })
@@ -3003,6 +3095,8 @@ ideal<- function(dds_obj = NULL,
                                                               addGeneToTerms=TRUE,
                                                               orgDbPkg = annoSpecies_df[values$cur_species,]$pkg # ,
                          )
+                       }, error = function(e){
+                         showNotification("something went wrong",type = "warning")
                        })
                        incProgress(0.89)
                      }
@@ -3037,6 +3131,8 @@ ideal<- function(dds_obj = NULL,
                                                                        mapping = annoSpecies_df[values$cur_species,]$pkg,
                                                                        geneID = "symbol",addGeneToTerms = TRUE)
                          incProgress(0.89)
+                       }, error = function(e){
+                         showNotification("something went wrong",type = "warning")
                        })
                      }
                    })
@@ -3144,7 +3240,7 @@ ideal<- function(dds_obj = NULL,
       return(
         tagList(
           h4("topGO table - list2"),
-          DT::dataTableOutput("DT_gse_list2_topgo",scrollX = T)
+          DT::dataTableOutput("DT_gse_list2_topgo")
         )
       )
     })
@@ -3207,27 +3303,29 @@ ideal<- function(dds_obj = NULL,
         return(NULL)
       mytbl <- values$gse_up
       rownames(mytbl) <- createLinkGO(rownames(mytbl))
-      DT::datatable(mytbl,escape=FALSE, scrollX = T)
-    })
+      mytbl
+    },escape=FALSE, options = list(scrollX = T))
     output$DT_gse_down <- DT::renderDataTable({
       # if not null...
       if(is.null(values$gse_down))
         return(NULL)
       mytbl <- values$gse_down
       rownames(mytbl) <- createLinkGO(rownames(mytbl))
-      DT::datatable(mytbl,escape=FALSE, scrollX = T,options = list(
-        autoWidth = TRUE,
-        columnDefs = list(list(width = '20px', targets = c(8,9,10)))
-      ))
-    })
+      mytbl
+    },escape=FALSE,options = list(
+      scrollX = T,
+      autoWidth = TRUE,
+      columnDefs = list(list(width = '20px', targets = c(8,9,10)))
+    ))
     output$DT_gse_updown <- DT::renderDataTable({
       # if not null...
       if(is.null(values$gse_updown))
         return(NULL)
       mytbl <- values$gse_updown
       rownames(mytbl) <- createLinkGO(rownames(mytbl))
-      DT::datatable(mytbl,escape=FALSE, scrollX = T)
-    })
+      mytbl
+    },escape=FALSE, options = list(scrollX = F))
+    
     output$DT_gse_list1 <- DT::renderDataTable({
       # if not null...
       if(is.null(values$gse_list1))
@@ -3235,16 +3333,16 @@ ideal<- function(dds_obj = NULL,
       mytbl <- values$gse_list1
       # mytbl$GOid <- rownames(mytbl)
       rownames(mytbl) <- createLinkGO(rownames(mytbl))
-      DT::datatable(mytbl,escape=FALSE, scrollX = T)
-    })
+      mytbl
+    },escape=FALSE, options = list(scrollX = F))
     output$DT_gse_list2 <- DT::renderDataTable({
       # if not null...
       if(is.null(values$gse_list2))
         return(NULL)
       mytbl <- values$gse_list2
       rownames(mytbl) <- createLinkGO(rownames(mytbl))
-      DT::datatable(mytbl,escape=FALSE, scrollX = T)
-    })
+      mytbl
+    },escape=FALSE, options = list(scrollX = F))
     
     
     output$DT_gse_up_topgo <- DT::renderDataTable({
@@ -3253,24 +3351,24 @@ ideal<- function(dds_obj = NULL,
         return(NULL)
       mytbl <- values$topgo_up
       mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
-      DT::datatable(mytbl,escape=FALSE, selection=list(mode="single"), scrollX = T)
-    })
+      mytbl
+    },escape=FALSE, selection=list(mode="single"), options = list(scrollX = F))
     output$DT_gse_down_topgo <- DT::renderDataTable({
       # if not null...
       if(is.null(values$topgo_down))
         return(NULL)
       mytbl <- values$topgo_down
       mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
-      DT::datatable(mytbl,escape=FALSE, selection=list(mode="single"), scrollX = T)
-    })
+      mytbl
+    },escape=FALSE, selection=list(mode="single"), options = list(scrollX = F))
     output$DT_gse_updown_topgo <- DT::renderDataTable({
       # if not null...
       if(is.null(values$topgo_updown))
         return(NULL)
       mytbl <- values$topgo_updown
       mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
-      DT::datatable(mytbl,escape=FALSE, selection=list(mode="single"), scrollX = T)
-    })
+      mytbl
+    },escape=FALSE, selection=list(mode="single"), options = list(scrollX = F))
     output$DT_gse_list1_topgo <- DT::renderDataTable({
       # if not null...
       if(is.null(values$topgo_list1))
@@ -3278,8 +3376,8 @@ ideal<- function(dds_obj = NULL,
       mytbl <- values$topgo_list1
       # mytbl$GOid <- rownames(mytbl)
       mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
-      DT::datatable(mytbl,escape=FALSE, selection=list(mode="single"), scrollX = T)
-    })
+      mytbl
+    },escape=FALSE, selection=list(mode="single"), options = list(scrollX = F))
     output$DT_gse_list2_topgo <- DT::renderDataTable({
       # if not null...
       if(is.null(values$topgo_list2))
@@ -3287,8 +3385,8 @@ ideal<- function(dds_obj = NULL,
       mytbl <- values$topgo_list2
       # mytbl$GOid <- rownames(mytbl)
       mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
-      DT::datatable(mytbl,escape=FALSE, selection=list(mode="single"), scrollX = T)
-    })
+      mytbl
+    },escape=FALSE, selection=list(mode="single"), options = list(scrollX = F))
     
     
     output$DT_gse_up_goseq <- DT::renderDataTable({
@@ -3297,24 +3395,24 @@ ideal<- function(dds_obj = NULL,
         return(NULL)
       mytbl <- values$gse_up_goseq
       mytbl$category <- createLinkGO(mytbl$category)
-      DT::datatable(mytbl,escape=FALSE, rownames = FALSE, scrollX = T)
-    })
+      mytbl
+    },escape=FALSE, rownames = FALSE, options = list(scrollX = F))
     output$DT_gse_down_goseq <- DT::renderDataTable({
       # if not null...
       if(is.null(values$gse_down_goseq))
         return(NULL)
       mytbl <- values$gse_down_goseq
       mytbl$category <- createLinkGO(mytbl$category)
-      DT::datatable(mytbl,escape=FALSE, rownames = FALSE, scrollX = T)
-    })
+      mytbl
+    },escape=FALSE, rownames = FALSE, options = list(scrollX = F))
     output$DT_gse_updown_goseq <- DT::renderDataTable({
       # if not null...
       if(is.null(values$gse_updown_goseq))
         return(NULL)
       mytbl <- values$gse_updown_goseq
       mytbl$category <- createLinkGO(mytbl$category)
-      DT::datatable(mytbl,escape=FALSE, rownames = FALSE, scrollX = T)
-    })
+      mytbl
+    },escape=FALSE, rownames = FALSE, options = list(scrollX = F))
     output$DT_gse_list1_goseq <- DT::renderDataTable({
       # if not null...
       if(is.null(values$gse_list1_goseq))
@@ -3322,8 +3420,8 @@ ideal<- function(dds_obj = NULL,
       mytbl <- values$gse_list1_goseq
       # mytbl$GOid <- rownames(mytbl)
       mytbl$category <- createLinkGO(mytbl$category)
-      DT::datatable(mytbl,escape=FALSE, rownames = FALSE, scrollX = T)
-    })
+      mytbl
+    },escape=FALSE, rownames = FALSE, options = list(scrollX = F))
     output$DT_gse_list2_goseq <- DT::renderDataTable({
       # if not null...
       if(is.null(values$gse_list2_goseq))
@@ -3331,12 +3429,13 @@ ideal<- function(dds_obj = NULL,
       mytbl <- values$gse_list2_goseq
       # mytbl$GOid <- rownames(mytbl)
       mytbl$category <- createLinkGO(mytbl$category)
-      DT::datatable(mytbl,escape=FALSE, rownames = FALSE, scrollX = T)
-    })
+      mytbl
+    },escape=FALSE, rownames = FALSE, options = list(scrollX = F))
     
     
     # server gse heatmaps --------------------------------------------------------
-    output$goterm_heatmap_up_topgo <- renderPlot({
+    output$goterm_heatmap_up_topgo <- renderPlotly({
+      # cat(file = stderr(), paste("goterm_heatmap_up_topgo\n"))
       
       s <- input$DT_gse_up_topgo_rows_selected
       idtype <- input$idtype
@@ -3344,6 +3443,7 @@ ideal<- function(dds_obj = NULL,
       dds_obj <- values$dds_obj
       if(length(s) == 0)
         return(NULL)
+      # cat(file = stderr(), paste("goterm_heatmap_up_topgo\n"))
       
       # allow only one selected line
       mygenes <- values$topgo_up[s,]$genes[1]
@@ -3366,15 +3466,17 @@ ideal<- function(dds_obj = NULL,
       }
       # save(file = "~/SCHNAPPsDebug/ideal.goterm_heatmap_up_topgo.RData", list = ls())
       # load("~/SCHNAPPsDebug/ideal.goterm_heatmap_up_topgo.RData")
-      pheatmap(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
+      heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
       
     })
     
-    output$goterm_heatmap_down_topgo <- renderPlot({
+    output$goterm_heatmap_down_topgo <- renderPlotly({
+      # cat(file = stderr(), paste("goterm_heatmap_down_topgo\n"))
       
       s <- input$DT_gse_down_topgo_rows_selected
       if(length(s) == 0)
         return(NULL)
+      # cat(file = stderr(), paste("goterm_heatmap_down_topgo\n"))
       
       # allow only one selected line
       mygenes <- values$topgo_down[input$DT_gse_down_topgo_rows_selected,]$genes[1]
@@ -3396,15 +3498,17 @@ ideal<- function(dds_obj = NULL,
         # rowlabs <- ifelse(, genevec, genevec_ids)
       }
       # save(file = "~/SCHNAPPsDebug/ideal.goterm_heatmap_down_topgo.RData", list = ls())
-      pheatmap(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
+      heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
       
     })
     
-    output$goterm_heatmap_updown_topgo <- renderPlot({
+    output$goterm_heatmap_updown_topgo <- renderPlotly({
+      # cat(file = stderr(), paste("goterm_heatmap_updown_topgo\n"))
       
       s <- input$DT_gse_updown_topgo_rows_selected
       if(length(s) == 0)
         return(NULL)
+      # cat(file = stderr(), paste("goterm_heatmap_updown_topgo\n"))
       
       values$topgo_updown[input$DT_gse_updown_topgo_rows_selected,]$genes
       
@@ -3428,15 +3532,17 @@ ideal<- function(dds_obj = NULL,
         # rowlabs <- ifelse(, genevec, genevec_ids)
       }
       # save(file = "~/SCHNAPPsDebug/ideal.goterm_heatmap_updown_topgo.RData", list = ls())
-      pheatmap(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
+      heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
       
     })
     
-    output$goterm_heatmap_l1_topgo <- renderPlot({
+    output$goterm_heatmap_l1_topgo <- renderPlotly({
+      # cat(file = stderr(), paste("goterm_heatmap_l1_topgo\n"))
       
       s <- input$DT_gse_list1_topgo_rows_selected
       if(length(s) == 0)
         return(NULL)
+      # cat(file = stderr(), paste("goterm_heatmap_l1_topgo\n"))
       
       # allow only one selected line
       mygenes <- values$topgo_list1[input$DT_gse_list1_topgo_rows_selected,]$genes[1]
@@ -3458,15 +3564,17 @@ ideal<- function(dds_obj = NULL,
         # rowlabs <- ifelse(, genevec, genevec_ids)
       }
       # save(file = "~/SCHNAPPsDebug/ideal.goterm_heatmap_l1_topgo.RData", list = ls())
-      pheatmap(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
+      heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
       
     })
     
-    output$goterm_heatmap_l2_topgo <- renderPlot({
+    output$goterm_heatmap_l2_topgo <- renderPlotly({
+      # cat(file = stderr(), paste("goterm_heatmap_l2_topgo\n"))
       
       s <- input$DT_gse_list2_topgo_rows_selected
       if(length(s) == 0)
         return(NULL)
+      # cat(file = stderr(), paste("goterm_heatmap_l2_topgo\n"))
       
       # allow only one selected line
       mygenes <- values$topgo_list2[input$DT_gse_list2_topgo_rows_selected,]$genes[1]
@@ -3488,7 +3596,7 @@ ideal<- function(dds_obj = NULL,
         # rowlabs <- ifelse(, genevec, genevec_ids)
       }
       # save(file = "~/SCHNAPPsDebug/ideal.goterm_heatmap_l2_topgo.RData", list = ls())
-      pheatmap(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
+      heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
       
     })
     
@@ -3564,7 +3672,7 @@ ideal<- function(dds_obj = NULL,
         need(!is.null(input$speciesSelect), message = "Please specify the species in the Data Setup panel")
       )
       
-      std_choices <- c("ENSEMBL","ENTREZID","REFSEQ","SYMBOL")
+      std_choices <- c("SYMBOL", "ENSEMBL","ENTREZID","REFSEQ")
       if (input$speciesSelect!=""){
         annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect]
         pkg_choices <- keytypes(get(annopkg))
@@ -3580,7 +3688,7 @@ ideal<- function(dds_obj = NULL,
         need(!is.null(input$speciesSelect), message = "Please specify the species in the Data Setup panel")
       )
       
-      std_choices <- c("ENSEMBL","ENTREZID","REFSEQ","SYMBOL")
+      std_choices <- c("SYMBOL", "ENSEMBL","ENTREZID","REFSEQ")
       if (input$speciesSelect!=""){
         annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect]
         pkg_choices <- keytypes(get(annopkg))
@@ -3629,7 +3737,7 @@ ideal<- function(dds_obj = NULL,
       head(values$anno_vec)
     })
     
-    output$sig_heat <- renderPlot({
+    output$sig_heat <- renderPlotly({
       validate(
         need(!is.null(values$gene_signatures), message = "Please provide some gene signatures in gmt format"),
         need(!is.null(values$vst_obj), message = "Compute the vst transformed data"),
@@ -4330,11 +4438,14 @@ ideal<- function(dds_obj = NULL,
     output$ma_brush_out <- DT::renderDataTable({
       if(nrow(curData())==0)
         return(NULL)
-      datatable(curData(),options=list(pageLength=100))
-    })
+      curData()
+    },options=list(pageLength=100))
     
-    output$heatbrush <- renderPlot({
-      if((is.null(input$ma_brush))|is.null(values$dds_obj)) return(NULL)
+    output$heatbrush <- renderPlotly({
+      if((is.null(input$ma_brush))|is.null(values$dds_obj)) {
+        return(NULL)
+      }
+      #
       
       brushedObject <- curData()
       selectedGenes <- as.character(brushedObject$ID)
@@ -4349,12 +4460,15 @@ ideal<- function(dds_obj = NULL,
         return((x - m)/s)
       }
       if(input$rowscale) toplot <- mat_rowscale(toplot)
-      pheatmap(toplot,cluster_cols = as.logical(input$heatmap_colv))
+      heatmaply::heatmaply(toplot,cluster_cols = as.logical(input$heatmap_colv))
     })
     
     
     output$hpi_brush <- renderPlotly({
-      if((is.null(input$ma_brush))|is.null(values$dds_obj)) return(NULL)
+      if((is.null(input$ma_brush))|is.null(values$dds_obj)) {
+        plot(100:1)
+      }
+      #return(NULL)
       brushedObject <- curData()
       selectedGenes <- as.character(brushedObject$ID)
       toplot <- assay(values$dds_obj)[selectedGenes,]
@@ -5061,7 +5175,7 @@ ideal<- function(dds_obj = NULL,
       
       if(input$rowscale) toplot <- mat_rowscale(toplot)
       
-      pheatmap(toplot,cluster_cols = as.logical(input$heatmap_colv))
+      heatmaply(toplot,cluster_cols = as.logical(input$heatmap_colv))
       dev.off()
     })
     
@@ -5125,6 +5239,7 @@ ideal<- function(dds_obj = NULL,
   }) # end of server function definition
   #nocov end
   
+  options(shiny.reactlog=TRUE)
   # launch the app!
   shinyApp(ui = ideal_ui, server = ideal_server)
 }

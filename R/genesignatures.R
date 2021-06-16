@@ -50,7 +50,7 @@ read_gmt <- function(gmtfile){
 #' @param scale_row Logical, whether to perform row-based standardization of the 
 #' expression values
 #'
-#' @return A plot based on the \code{pheatmap} function
+#' @return A plot based on the \code{heatmaply} function
 #' @export
 #'
 #' @examples
@@ -70,7 +70,7 @@ read_gmt <- function(gmtfile){
 #' mysignatures <- read_gmt(
 #'   "http://data.wikipathways.org/20190210/gmt/wikipathways-20190210-gmt-Homo_sapiens.gmt")
 #' mysignature_name <- "Lung fibrosis%WikiPathways_20190210%WP3624%Homo sapiens"
-#' library(pheatmap)
+#' library(heatmaply)
 #' sig_heatmap(vst_airway,
 #'             mysignatures[[mysignature_name]],
 #'             res_data = res_airway,
@@ -90,8 +90,8 @@ sig_heatmap <- function(vst_data, my_signature,
                         ) {
   
   mydata <- assay(vst_data)
-  # save(file = "~/SCHNAPPsDebug/ideal.RData", list = c(ls()))
-  # load("~/SCHNAPPsDebug/ideal.RData")
+  # save(file = "~/SCHNAPPsDebug/ideal.sig_heatmap.RData", list = c(ls()))
+  # load("~/SCHNAPPsDebug/ideal.sig_heatmap.RData")
   signature_original_ids <- names(annovec)[match(my_signature,annovec)]
   
   sig_to_keep <- (signature_original_ids %in% rownames(mydata))#
@@ -114,7 +114,7 @@ sig_heatmap <- function(vst_data, my_signature,
     mydata_sig <- mydata_sig[de_to_keep,]
   }
 
-  pheatmap(mydata_sig,
+  heatmaply(mydata_sig,
            # annotation_col = anno_colData,
            cluster_rows = cluster_rows, cluster_cols = cluster_cols,
            scale = ifelse(scale_row,"row","none"),main = title,

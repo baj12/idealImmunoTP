@@ -13,7 +13,6 @@ library(S4Vectors)
 library(ggplot2) 
 library(heatmaply) 
 library(plotly)
-library(pheatmap)
 library(pcaExplorer) 
 library(IHW) 
 library(gplots) 
@@ -71,7 +70,7 @@ source("R/table-enhancers.R")
 source("R/plot_ma.R")
 source("R/plot_volcano.R")
 source("R/ggplotCounts.R")
-# source("R/")
+# source("R/")  
 source("R/res2tbl.R")
 source("R/plotCoefficients.R")
 source("R/genesignatures.R")
@@ -92,4 +91,21 @@ countmatrix = NULL
   # runApp(app)
 # ideal(dds_obj = dds_airway, annotation_obj = annotation_airway, res_obj = res_airway)
 ideal()
+
+cp = load(file = "test.Rdata")
+dds_obj = ideal_env$ideal_values_20210526_152858$dds_obj 
+res_obj = ideal_env$ideal_values_20210526_152858$res_obj
+annotation_obj = ideal_env$ideal_values_20210526_152858$annotation_obj
+countmatrix = ideal_env$ideal_values_20210526_152858$countmatrix
+expdesign = ideal_env$ideal_values_20210526_152858$expdesign
+gene_signatures = ideal_env$ideal_values_20210526_152858$gene_signatures
+
+
+source("R/ideal.R", local = T);ideal(dds_obj = dds_obj, 
+      res_obj = res_obj, 
+      annotation_obj = annotation_obj,
+      countmatrix = countmatrix,
+      expdesign = expdesign, 
+      gene_signatures = gene_signatures
+    )
 
