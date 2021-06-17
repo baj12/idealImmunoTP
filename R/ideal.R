@@ -76,6 +76,8 @@ ideal<- function(dds_obj = NULL,
   options(shiny.maxRequestSize=300*1024^2)
   options(shiny.launch.browser = T)
   
+  # options(browser = "C:/Program Files/Google/Chrome/Application/chrome.exe")
+  
   ## ------------------------------------------------------------------ ##
   ##                          Define UI                                 ##
   ## ------------------------------------------------------------------ ##
@@ -483,7 +485,7 @@ ideal<- function(dds_obj = NULL,
                   fluidRow({
                     column(
                       width = 12,
-                      uiOutput("geneHeatmap_plotUI")
+                      uiOutput("geneHeatmap_plotUI") %>% shinyjqui::jqui_resizable()
                     )
                   }
                   ))
@@ -590,8 +592,8 @@ ideal<- function(dds_obj = NULL,
                   width = 6,
                   plotOutput("pvals_hist_strat")
                   # ,div(align = "right", style = "margin-right:15px; margin-bottom:10px",
-                      # downloadButton("download_plot_pvals_hist_strat", "Download Plot"),
-                      # textInput("filename_plot_pvals_hist_strat",label = "Save as...",value = "plot_pvals_hist_strat.pdf"))
+                  # downloadButton("download_plot_pvals_hist_strat", "Download Plot"),
+                  # textInput("filename_plot_pvals_hist_strat",label = "Save as...",value = "plot_pvals_hist_strat.pdf"))
                 ),
                 # "Schweder-Spjotvoll plot" 
                 # column(
@@ -839,7 +841,7 @@ ideal<- function(dds_obj = NULL,
                            fluidRow(
                              h3("Heatmap of selected TopGo entry")
                            ),
-                
+                           
                            fluidRow(
                              column(width = 12, shinyjqui::jqui_resizable(plotlyOutput("goterm_heatmap_up_topgo")))
                            )
@@ -1169,13 +1171,13 @@ ideal<- function(dds_obj = NULL,
     
     read1stCol <- function (fileName,dds_obj){
       guessed_sep <- sepguesser(fileName)
-
+      
       cm <- tryCatch({utils::read.delim(fileName, header = TRUE,
-                              as.is = TRUE, sep = guessed_sep, 
-                              # row.names = 1, # https://github.com/federicomarini/pcaExplorer/issues/1
-                              ## TODO: tell the user to use tsv, or use heuristics
-                              ## to check what is most frequently occurring separation character? -> see sepGuesser.R
-                              check.names = FALSE)
+                                        as.is = TRUE, sep = guessed_sep, 
+                                        # row.names = 1, # https://github.com/federicomarini/pcaExplorer/issues/1
+                                        ## TODO: tell the user to use tsv, or use heuristics
+                                        ## to check what is most frequently occurring separation character? -> see sepGuesser.R
+                                        check.names = FALSE)
       }, error=function(e){
         cat(file = stderr(), paste(e,"\n"))
         return(NULL)
@@ -1932,7 +1934,7 @@ ideal<- function(dds_obj = NULL,
     
     observeEvent(input$button_outliersout,{
       withProgress({
-        allsamples <- colnames(values$dds_obj)
+        allsamples <- colnames(values$countmatrix)
         outliersamples <- input$selectoutliers
         
         keptsamples <- setdiff(allsamples,outliersamples)
@@ -2305,7 +2307,7 @@ ideal<- function(dds_obj = NULL,
     })
     
     output$debuggls <- renderPrint({
-      values$genelist1
+      # values$genelist1
       # values$genelist2
     })
     
@@ -3701,8 +3703,12 @@ ideal<- function(dds_obj = NULL,
       grep(pattern = "^org.*db$",rownames(installed.packages()))]
     
     output$sig_ui_orgdbpkg <- renderUI({
+      
+      suggested_orgdb <- tryCatch(
+        annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect],
+        error = function(e){return("")})
       selectInput("sig_orgdbpkg", "Select the organism package for matching", 
-                  choices=c("",available_orgdb),selected = "")
+                  choices=c("",available_orgdb),selected = suggested_orgdb)
     })
     
     observeEvent(input$speciesSelect,
@@ -3785,18 +3791,33 @@ ideal<- function(dds_obj = NULL,
         server = TRUE)
     })
     
+    
+    # variables that should be accessible to all but not reactive
+    globalIdeal <<- list()
+    globalIdeal$avail_symbols <<- ""
+    # remember the value without being reactive
+    observe(label = "avail_symbolsOBS", {
+      globalIdeal$avail_symbols <<- input$avail_symbols
+    })
     observe({
+      oldSelected = globalIdeal$avail_symbols
+      avVals = values$annotation_obj$gene_name[match(rownames(values$dds_obj), values$annotation_obj$gene_id)]
+      oldSelected = oldSelected[oldSelected %in% avVals]
       updateSelectizeInput(
         session = session,
+        selected = oldSelected,
         inputId = 'avail_symbols',
-        choices = c(Choose = '', values$annotation_obj$gene_name[match(rownames(values$dds_obj), values$annotation_obj$gene_id)]),
+        choices = c(Choose = '', avVals),
         server = TRUE)
     })
     
     output$available_genes <- renderUI({
       if(!is.null(values$annotation_obj)) {
+        oldSelected = globalIdeal$avail_symbols
+        # avVals = values$annotation_obj$gene_name[match(rownames(values$dds_obj), values$annotation_obj$gene_id)]
+        # oldSelected = oldSelected[oldSelected %in% avVals]
         selectizeInput("avail_symbols", label = "Select the gene(s) of interest",
-                       choices = NULL, selected = NULL, multiple = TRUE)
+                       choices = oldSelected, selected = oldSelected, multiple = TRUE)
       } else { # else use the rownames as identifiers
         selectizeInput("avail_ids", label = "Select the gene(s) of interest - ids",
                        choices = NULL, selected = NULL, multiple = TRUE)
@@ -3805,6 +3826,7 @@ ideal<- function(dds_obj = NULL,
     
     design_factors <- reactive({
       # rev(attributes(terms.formula(design(values$dds_obj)))$term.labels)
+      cat(file = stderr(), "design_factors triggered\n")
       resultsNames(values$dds_obj)[-12]
       
     })
@@ -3818,9 +3840,9 @@ ideal<- function(dds_obj = NULL,
                   choices = c("",design_factors()), selected = "", multiple = TRUE)
     })
     
-    observe({
-      updateSelectizeInput(session = session, inputId = 'color_by', selected = input$choose_expfac)
-    })
+    # observe({
+    #   updateSelectizeInput(session = session, inputId = 'color_by', selected = input$choose_expfac)
+    # })
     
     
     # server DE results --------------------------------------------------------
@@ -4465,9 +4487,9 @@ ideal<- function(dds_obj = NULL,
     
     
     output$hpi_brush <- renderPlotly({
-      if((is.null(input$ma_brush))|is.null(values$dds_obj)) {
-        plot(100:1)
-      }
+      # if((is.null(input$ma_brush))|is.null(values$dds_obj)) {
+      #   # plot(100:1)
+      # }
       #return(NULL)
       brushedObject <- curData()
       selectedGenes <- as.character(brushedObject$ID)

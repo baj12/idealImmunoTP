@@ -92,20 +92,23 @@ countmatrix = NULL
 # ideal(dds_obj = dds_airway, annotation_obj = annotation_airway, res_obj = res_airway)
 ideal()
 
-cp = load(file = "test.Rdata")
-dds_obj = ideal_env$ideal_values_20210526_152858$dds_obj 
-res_obj = ideal_env$ideal_values_20210526_152858$res_obj
-annotation_obj = ideal_env$ideal_values_20210526_152858$annotation_obj
-countmatrix = ideal_env$ideal_values_20210526_152858$countmatrix
-expdesign = ideal_env$ideal_values_20210526_152858$expdesign
-gene_signatures = ideal_env$ideal_values_20210526_152858$gene_signatures
-
-
-source("R/ideal.R", local = T);ideal(dds_obj = dds_obj, 
-      res_obj = res_obj, 
-      annotation_obj = annotation_obj,
-      countmatrix = countmatrix,
-      expdesign = expdesign, 
-      gene_signatures = gene_signatures
-    )
-
+# cp = load(file = "test.Rdata")
+# dds_obj = ideal_env$ideal_values_20210526_152858$dds_obj 
+# res_obj = ideal_env$ideal_values_20210526_152858$res_obj
+# annotation_obj = ideal_env$ideal_values_20210526_152858$annotation_obj
+# countmatrix = ideal_env$ideal_values_20210526_152858$countmatrix
+# expdesign = ideal_env$ideal_values_20210526_152858$expdesign
+# gene_signatures = ideal_env$ideal_values_20210526_152858$gene_signatures
+# 
+# 
+# options(browser = "/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome")
+# 
+# source("R/ideal.R", local = T);
+# ideal(dds_obj = dds_obj, 
+#       res_obj = res_obj, 
+#       annotation_obj = annotation_obj,
+#       countmatrix = countmatrix,
+#       expdesign = expdesign, 
+#       gene_signatures = gene_signatures
+#     )
+# 

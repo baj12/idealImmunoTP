@@ -20,6 +20,8 @@
 
 plotCoefficients <- function(dds, geneName, legend=TRUE){
   
+    # save(file = "~/SCHNAPPsDebug/ideal.plotCoefficients.RData", list = ls())
+  # load("~/SCHNAPPsDebug/ideal.plotCoefficients.RData")
   
   if(!class(dds)=="DESeqDataSet"){
     warning("dds is not of class DESeqDataSet")
@@ -90,7 +92,7 @@ plotCoefficients <- function(dds, geneName, legend=TRUE){
   stripchart(formula(paste(countsName, paste(as.character(design(dds)), collapse = ""))), 
              data=gene1Counts, vertical=TRUE,las=2, method="jitter",
              cex.axis=0.7, main=paste(geneName), 
-             ylim=ylim)
+             ylim=ylim, ylab = "log2(count)")
   
   lgth <- .1 # length of the edges of the arrow head (in inches).
   abline(h=0) # reference line (intercept)
