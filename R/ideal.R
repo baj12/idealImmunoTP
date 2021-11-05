@@ -2096,7 +2096,7 @@ ideal<- function(dds_obj = NULL,
       # )
       # cat(file = stderr(), paste("heatcorr: ", class(p),"\n"))
       # browser()
-      heatmaply_cor(cor(current_countmat()))
+      heatmaply::heatmaply_cor(cor(current_countmat()))
       # }
       # rld <- rlog(values$dds_obj, blind = FALSE)
       # # p = plotPCA(rld, intgroup = "STIMULUS", ntop = 1000)
