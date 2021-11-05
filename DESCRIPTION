@@ -17,6 +17,7 @@ Depends: topGO,
     R (>= 3.6)
 Imports: 
     DESeq2, 
+    tidyr,
     SummarizedExperiment, 
     GenomicRanges, 
     IRanges,
