@@ -66,7 +66,11 @@ ideal<- function(dds_obj = NULL,
     stop("ideal requires 'shiny'. Please install it using
          install.packages('shiny')")
   }
-  
+  if ( !requireNamespace('tidyr',quietly = TRUE) ) {
+    stop("ideal requires 'tidyr'. Please install it using
+         install.packages('tidyr')")
+  }
+  require(tidyr)
   
   # create environment for storing inputs and values
   ## i need the assignment like this to export it up one level - i.e. "globally"
