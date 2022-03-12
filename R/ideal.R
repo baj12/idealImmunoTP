@@ -77,7 +77,7 @@ ideal<- function(dds_obj = NULL,
   ideal_env <<- new.env(parent = emptyenv())
   
   ## upload max 300mb files - can be changed if necessary
-  options(shiny.maxRequestSize=300*1024^2)
+  options(shiny.maxRequestSize=600*1024^2)
   options(shiny.launch.browser = T)
   
   # options(browser = "C:/Program Files/Google/Chrome/Application/chrome.exe")
@@ -1999,8 +1999,8 @@ ideal<- function(dds_obj = NULL,
                                   #   pa = FALSE
                                   #   bp = bpparam()
                                   # } else {
-                                  pa = TRUE
-                                  bp = MulticoreParam(workers = 2)
+                                  pa = FALSE
+                                  bp = MulticoreParam(workers = 8)
                                   # }
                                   # leave open option for computing in parallel?
                                   values$dds_obj <- tryCatch({
@@ -2114,7 +2114,8 @@ ideal<- function(dds_obj = NULL,
              "Provide group to color by")
       )
       # browser()
-      rld <- rlog(values$dds_obj, blind = FALSE)
+      # rld <- rlog(values$dds_obj, blind = FALSE)
+      rld <- vst(values$dds_obj, blind = FALSE,nsub=10)
       # browser()
       p = plotPCA(rld, intgroup = input$color_by, ntop = 1000)
       p
