@@ -1774,6 +1774,12 @@ ideal<- function(dds_obj = NULL,
       colData[, input$dds_design[1]] = relevel(colData[, input$dds_design[1]], ref = values$dds_intercept)
       dds <- tryCatch(
         {
+          # add 1 if all rows contain at least one 0
+          # needed for estimateSizeFactors
+          # one call also estimateSizeFactors(dds, type = "iterate"). but that takes too long
+          if (all(rowSums(counts==0)>0)) {
+            counts = counts + 1
+          }
           # reset if count data was supplied via GUI and not as parameter
           dds <- DESeqDataSetFromMatrix(
             countData = counts,
