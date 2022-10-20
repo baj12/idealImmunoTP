@@ -1,5 +1,5 @@
 # library(ideal)
-# BiocManager::install("apeglm")
+# BiocManager::install("DEFormats")
 # install.packages("ashr")
 
 # library(ashr)

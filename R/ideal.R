@@ -110,14 +110,14 @@ ideal<- function(dds_obj = NULL,
       
       # task menu for saving state to environment or binary data
       shinydashboard::dropdownMenu(
-        type = "tasks",icon = icon("cog"),
+        type = "tasks",icon = icon("cog", verify_fa = FALSE),
         badgeStatus = NULL, 
         headerText = "ideal Tasks menu",
         notificationItem(
           text = actionButton("task_exit_and_save","Exit ideal & save",
                               class = "btn_no_border",
                               onclick = "setTimeout(function(){window.close();}, 100); "),
-          icon = icon("sign-out"),status = "primary"),
+          icon = icon("right-from-bracket"),status = "primary"),
         menuItem(
           text = downloadButton("task_state_save","Save State as .RData"))
       )
@@ -129,7 +129,7 @@ ideal<- function(dds_obj = NULL,
       sidebarMenu(style = "position: fixed; overflow: visible;",
                   id = "sidebarMenu",
                   menuItem("App settings",
-                           icon = icon("cogs"),
+                           icon = icon("cogs", verify_fa = FALSE),
                            startExpanded = TRUE,
                            uiOutput("color_by"),
                            shinyBS::bsTooltip(
@@ -149,7 +149,7 @@ ideal<- function(dds_obj = NULL,
                            
                   ),
                   menuItem("Plot export settings", 
-                           icon = icon("paint-brush"),
+                           icon = icon("paint-brush", verify_fa = FALSE),
                            startExpanded = TRUE,
                            numericInput("export_width",label = "Width of exported figures (cm)",value = 16,min = 2),
                            shinyBS::bsTooltip(
@@ -161,7 +161,7 @@ ideal<- function(dds_obj = NULL,
                              "right", options = list(container = "body"))
                   ),
                   menuItem("Quick viewer", 
-                           icon = icon("flash"), 
+                           icon = icon("flash", verify_fa = FALSE), 
                            startExpanded = TRUE,
                            id = "qvmenu",
                            fluidRow(column(12,
@@ -174,7 +174,7 @@ ideal<- function(dds_obj = NULL,
                                            fluidRow(column(6,p("Results")), column(6,uiOutput("ok_resu")))
                            ))),
                   menuItem("First steps help", 
-                           icon = icon("question-circle"),
+                           icon = icon("question-circle", verify_fa = FALSE),
                            startExpanded = TRUE,
                            actionButton("btn", "Click me for a quick tour", icon("info"),
                                         style="color: #ffffff; background-color: #0092AC; border-color: #2e6da4")
@@ -224,7 +224,7 @@ ideal<- function(dds_obj = NULL,
           
           # ui panel welcome -----------------------------------------------------------
           tabPanel(
-            title = "Welcome!",  icon = icon("home"), value="tab-welcome",
+            title = "Welcome!",  icon = icon("house"), value="tab-welcome",
             
             fluidRow(
               column(
@@ -284,13 +284,13 @@ ideal<- function(dds_obj = NULL,
                   uiOutput("upload_metadata"),
                   br(),
                   "... or you can also ",
-                  actionButton("btn_loaddemo", "Load the demo airway data", icon = icon("play-circle"),
+                  actionButton("btn_loaddemo", "Load the demo airway data", icon = icon("play-circle", verify_fa = FALSE),
                                class = "btn btn-info"),br(), p()
                 ),
                 column(
                   width = 4,
                   br(),
-                  actionButton("help_format",label = "",icon = icon("question-circle"),
+                  actionButton("help_format",label = "",icon = icon("question-circle", verify_fa = FALSE),
                                style="color: #0092AC; background-color: #FFFFFF; border-color: #FFFFFF"),
                   shinyBS::bsTooltip(
                     "help_format", 
@@ -624,7 +624,7 @@ ideal<- function(dds_obj = NULL,
           ), # end of Extract Results panel
           # ui panel summary plots -----------------------------------------------------------
           tabPanel(
-            "Summary Plots", icon = icon("photo"),
+            "Summary Plots", icon = icon("photo", verify_fa = FALSE),
             conditionalPanel(
               condition="!output.checkresu",
               headerPanel("Interactive graphical exploration of the results"),
@@ -802,7 +802,7 @@ ideal<- function(dds_obj = NULL,
           ), # end of Gene Finder panel
           # ui panel functional analysis ----------------------------------------------------------
           tabPanel(
-            "Functional Analysis", icon = icon("list-alt"),
+            "Functional Analysis", icon = icon("rectangle-list"),
             conditionalPanel(
               condition="!output.checkresu",
               headerPanel("Find functions enriched in gene sets"),
@@ -830,7 +830,7 @@ ideal<- function(dds_obj = NULL,
                 tabBox(
                   width = NULL,
                   id="gse_tabbox",
-                  tabPanel("UPregu", icon = icon("arrow-circle-up"),
+                  tabPanel("UPregu", icon = icon("arrow-circle-up", verify_fa = FALSE),
                            fluidRow(column(width = 6,actionButton("button_enrUP", "Perform gene set enrichment analysis on the upregulated genes",class = "btn btn-primary"))),
                            fluidRow(column(width = 6,actionButton("button_enrUP_goseq", "Perform gene set enrichment analysis on the upregulated genes - goseq",class = "btn btn-primary"))),
                            fluidRow(column(width = 6,actionButton("button_enrUP_topgo", "Perform gene set enrichment analysis on the upregulated genes - topGO",class = "btn btn-primary"))),
@@ -850,7 +850,7 @@ ideal<- function(dds_obj = NULL,
                              column(width = 12, shinyjqui::jqui_resizable(plotlyOutput("goterm_heatmap_up_topgo")))
                            )
                   ),
-                  tabPanel("DOWNregu", icon = icon("arrow-circle-down"),
+                  tabPanel("DOWNregu", icon = icon("arrow-circle-down", verify_fa = FALSE),
                            fluidRow(column(width = 6,actionButton("button_enrDOWN", "Perform gene set enrichment analysis on the downregulated genes",class = "btn btn-primary"))),
                            fluidRow(column(width = 6,actionButton("button_enrDOWN_goseq", "Perform gene set enrichment analysis on the downregulated genes - goseq",class = "btn btn-primary"))),
                            fluidRow(column(width = 6,actionButton("button_enrDOWN_topgo", "Perform gene set enrichment analysis on the downregulated genes - topGO",class = "btn btn-primary"))),
@@ -870,7 +870,7 @@ ideal<- function(dds_obj = NULL,
                                     shinyjqui::jqui_resizable(plotlyOutput("goterm_heatmap_down_topgo")))
                            )
                   ),
-                  tabPanel("UPDOWN", icon = icon("arrows-v"),
+                  tabPanel("UPDOWN", icon = icon("up-down"),
                            fluidRow(column(width = 6,actionButton("button_enrUPDOWN", "Perform gene set enrichment analysis on the up- and downregulated genes",class = "btn btn-primary"))),
                            fluidRow(column(width = 6,actionButton("button_enrUPDOWN_goseq", "Perform gene set enrichment analysis on the up- and downregulated genes - goseq",class = "btn btn-primary"))),
                            fluidRow(column(width = 6,actionButton("button_enrUPDOWN_topgo", "Perform gene set enrichment analysis on the up- and downregulated genes - topGO",class = "btn btn-primary"))),
@@ -908,7 +908,7 @@ ideal<- function(dds_obj = NULL,
                            )
                            
                   ),
-                  tabPanel("List2", icon = icon("list-alt"),
+                  tabPanel("List2", icon = icon("rectangle-list"),
                            fileInput(inputId = "gl2",
                                      label = "Upload a gene list file",
                                      accept = c("text/csv", "text/comma-separated-values",
@@ -1133,12 +1133,12 @@ ideal<- function(dds_obj = NULL,
               width = NULL,
               id="report_tabbox",
               tabPanel("Report preview",
-                       icon = icon("file-text"),
+                       icon = icon("file-lines"),
                        htmlOutput("knitDoc")
               ),
               
               tabPanel("Edit report",
-                       icon = icon("pencil-square-o"),
+                       icon = icon("pen-to-square"),
                        aceEditor("acereport_rmd", mode="markdown",theme = "solarized_light",autoComplete = "live",
                                  value="_Initialization of the_ `ideal` _report generation..._",
                                  placeholder = "You can enter some code and text in R Markdown format",
@@ -1147,7 +1147,7 @@ ideal<- function(dds_obj = NULL,
           ), # end of Report Editor panel
           # ui panel about -----------------------------------------------------------
           tabPanel(
-            "About", icon = icon("institution"),
+            "About", icon = icon("institution", verify_fa = FALSE),
             
             # headerPanel("Information on ideal/session"),
             
@@ -1348,12 +1348,12 @@ ideal<- function(dds_obj = NULL,
         DEregu <- sum(values$res_obj$padj < input$FDR & values$res_obj$log2FoldChange != 0, na.rm = TRUE)
         return(valueBox("DE genes",
                         paste0(DEregu, " DE genes - out of ",nrow(values$res_obj),""),
-                        icon = icon("list-alt"),
+                        icon = icon("rectangle-list"),
                         color = "green",width = NULL))
       } else
         return(valueBox("DE genes",
                         "yet to create",
-                        icon = icon("list-alt"),
+                        icon = icon("rectangle-list"),
                         color = "red",width = NULL))
     })
     
@@ -1516,7 +1516,8 @@ ideal<- function(dds_obj = NULL,
         return(NULL)
       if(is.null(input$dds_design))
         return(NULL)
-      if(!input$dds_design %in% colnames(values$expdesign))
+      browser()
+      if(!all(input$dds_design %in% colnames(values$expdesign)))
         return(NULL)
       # browser()
       poss_covars <- levels(values$expdesign[,input$dds_design[1]])
