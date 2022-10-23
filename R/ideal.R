@@ -1516,7 +1516,7 @@ ideal<- function(dds_obj = NULL,
         return(NULL)
       if(is.null(input$dds_design))
         return(NULL)
-      browser()
+      # browser()
       if(!all(input$dds_design %in% colnames(values$expdesign)))
         return(NULL)
       # browser()
@@ -2111,7 +2111,7 @@ ideal<- function(dds_obj = NULL,
       # ggplotify::as.ggplot( p)
     })
     
-    output$pcaPlot <- renderPlot({
+    output$pcaPlot <- renderPlotly({
       shiny::validate(
         need(!is.null(values$dds_obj),
              "Provide or construct a dds object")
@@ -2125,7 +2125,8 @@ ideal<- function(dds_obj = NULL,
       rld <- vst(values$dds_obj, blind = FALSE,nsub=10)
       # browser()
       p = plotPCA(rld, intgroup = input$color_by, ntop = 1000)
-      p
+      p2 = p +aes(text=colnames(rld))
+      ggplotly(p2, tooltip = "text")
     })
     
     output$sizeFactorsPlot <- renderPlot({
@@ -2158,7 +2159,7 @@ ideal<- function(dds_obj = NULL,
     })
     output$pca_plotUI <- renderUI({
       if(!input$compute_pairwisecorr) return()
-      plotOutput("pcaPlot")
+      plotlyOutput("pcaPlot")
     })
     output$sizeFactors_plotUI    <- renderUI({
       if(!input$compute_pairwisecorr) return()
@@ -3732,13 +3733,18 @@ ideal<- function(dds_obj = NULL,
     
     observeEvent(input$sig_convert_setup,
                  {
-                   
+                   require(input$sig_orgdbpkg,character.only=TRUE)
                    withProgress(message="Matching the identifiers",
                                 detail = "Locating package", value = 0,{
-                                  require(input$sig_orgdbpkg,character.only=TRUE)
+                                  
                                   incProgress(0.1,detail = "Matching identifiers")
                                   
                                   x <- get(input$sig_orgdbpkg)
+                                  # browser()
+                                  if(any(is.null(input$sig_id_sigs), is.null(input$sig_id_data))){
+                                    cat(file = stderr(), paste("\n\ndid you specifvy the annotations?\n\n"))
+                                    return(NULL)
+                                    }
                                   if (input$sig_id_sigs == "SYMBOL" & input$sig_id_data == "SYMBOL") {
                                     anno_vec = rownames(values$dds_obj)
                                     names(anno_vec) = rownames(values$dds_obj)
@@ -4503,6 +4509,7 @@ ideal<- function(dds_obj = NULL,
       #   # plot(100:1)
       # }
       #return(NULL)
+      # browser()
       brushedObject <- curData()
       selectedGenes <- as.character(brushedObject$ID)
       toplot <- assay(values$dds_obj)[selectedGenes,]
@@ -4516,6 +4523,10 @@ ideal<- function(dds_obj = NULL,
         return((x - m)/s)
       }
       if(input$rowscale) toplot <- mat_rowscale(toplot)
+      if(nrow(toplot) <1){
+        cat(file = stderr(), "\ntoplot nrow <1\n")
+      return(NULL)
+      }
       heatmaply::heatmaply(toplot,Colv = as.logical(input$heatmap_colv),colors = mycolss, cexCol = 1)
     })
     

@@ -1,7 +1,7 @@
 # library(ideal)
 # BiocManager::install("DEFormats")
 # install.packages("ashr")
-
+# BiocManager::install(c('DESeq2', 'pcaExplorer', 'IHW', 'goseq', 'GOstats', 'GO.db', 'rentrez', 'rintrojs'))
 # library(ashr)
 library(airway)
 library(apeglm)
