@@ -4321,6 +4321,8 @@ ideal<- function(dds_obj = NULL,
     })
     
     output$nonZeroCountsPlot <- renderPlot({
+      # browser()
+      if(is.null(values$dds_obj)) return(NULL)
       counts <- assays(values$dds_obj)[["counts"]]
       # colSums sums over each column producing a vector of counts.
       countsNz <- colSums(counts)
@@ -4338,6 +4340,7 @@ ideal<- function(dds_obj = NULL,
       )
     })
     output$alignedSequencesPlot <- renderPlot({
+      if(is.null(values$dds_obj)) return(NULL)
       counts <- assays(values$dds_obj)[["counts"]]
       ylim <- c(0, 1.4 * max(colSums(counts)))
       op <- par(mar = c(4, 10, 4, 2) + 0.1)
