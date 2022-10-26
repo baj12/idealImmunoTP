@@ -1529,6 +1529,190 @@ ideal<- function(dds_obj = NULL,
       values$dds_intercept = input$dds_intercept
     })
     
+    # The following comes from ExploreModelMatrix package
+    ## ----------------------------------------------------------------------- ##
+    ## Create co-occurrence plot
+    ## ----------------------------------------------------------------------- ##
+    cooccurrenceplots <- reactive({
+      if(is.null(values$expdesign))
+        return(NULL)
+      if(is.null(input$dds_design))
+        return(NULL)
+      if(!all(input$dds_design %in% colnames(values$expdesign)))
+        return(NULL)
+      dsgn <- as.formula(paste0("~", paste(input$dds_design, collapse = " + ")))
+      terms <- all.vars(dsgn)
+      sampleData <- values$expdesign %>% dplyr::select(dplyr::all_of(terms))
+      mm <- stats::model.matrix(dsgn, data = values$expdesign)
+      ## ----------------------------------------------------------------------- ##
+      ## Calculate pseudoinverse of design matrix
+      ## ----------------------------------------------------------------------- ##
+      psinverse <- MASS::ginv(mm)
+      rownames(psinverse) <- colnames(mm)
+      colnames(psinverse) <- rownames(mm)
+      sampleData$value <- ""
+      for (i in seq_len(nrow(sampleData))) {
+        idxkeep <- which(mm[i, ] != 0)
+        nmtmp <- colnames(mm)[idxkeep]
+        mmtmp <- as.character(mm[i, idxkeep])
+        idxneg <- grep("^-", mmtmp)
+        mmtmp[idxneg] <- paste0("(", mmtmp[idxneg], ")")
+        mmtmp[mmtmp != "1"] <- paste0(mmtmp[mmtmp != "1"], "*")
+        mmtmp[mmtmp == "1"] <- ""
+        v <- paste0(mmtmp, nmtmp)
+        v <- paste(v, collapse = " + ")
+        sampleData$value[i] <- v
+      }
+      sampleData <- sampleData %>%
+        dplyr::group_by(dplyr::across(dplyr::everything())) %>%
+        dplyr::mutate(nSamples = length(value)) %>% dplyr::ungroup() %>%
+        dplyr::distinct() %>% as.data.frame()
+      ## ----------------------------------------------------------------------- ##
+      ## Define terms to include in the plot, and terms used for splitting plots
+      ## ----------------------------------------------------------------------- ##
+      if (length(terms) <= 1) {
+        plot_terms <- terms
+      } else {
+        plot_terms <- terms[seq(length(terms) - 1, length(terms))]
+      }
+      if (length(terms) > 2) {
+        split_terms <- terms[seq_len(length(terms) - 2)]
+      } else {
+        split_terms <- c()
+      }
+      # ## ----------------------------------------------------------------------- ##
+      # ## Add \n if the modeled value has too many characters
+      # ## ----------------------------------------------------------------------- ##
+      plot_data <- sampleData
+      # %>%
+      #   dplyr::mutate(value = vapply(value, function(i)
+      #     .AddNewLine(i, lineWidthFitted), ""))
+      
+      ## ----------------------------------------------------------------------- ##
+      ## Convert all columns to factors for plotting
+      ## ----------------------------------------------------------------------- ##
+      plot_data <- plot_data %>%
+        dplyr::mutate_at(dplyr::vars(-nSamples, -value), as.factor)
+      
+      ## ----------------------------------------------------------------------- ##
+      ## Add value of split terms (to use for plot titles)
+      ## ----------------------------------------------------------------------- ##
+      if (length(split_terms) > 0) {
+        for (st in split_terms) {
+          plot_data[[st]] <- paste0(st, " = ", plot_data[[st]])
+        }
+        plot_data <- plot_data %>%
+          tidyr::unite("groupby", dplyr::all_of(split_terms), sep = ", ")
+      } else {
+        plot_data$groupby <- ""
+      }
+      
+      ## ----------------------------------------------------------------------- ##
+      ## Split terms into individual rows
+      ## ----------------------------------------------------------------------- ##
+      plot_data <- plot_data %>%
+        tidyr::separate_rows(value, sep = "\\\n") %>%
+        dplyr::mutate(value = gsub("^ ", "", value)) %>%
+        dplyr::group_by_at(c(plot_terms, "groupby")) %>%
+        dplyr::mutate(vjust = 1.5 * (seq(0, dplyr::n() - 1, by = 1) -
+                                       (dplyr::n() - 1)/2) + 0.5) %>%
+        dplyr::ungroup()
+      
+      ## ----------------------------------------------------------------------- ##
+      ## Pre-define colors
+      ## ----------------------------------------------------------------------- ##
+      # if (addColorFitted) {
+      plot_data <- plot_data %>%
+        dplyr::mutate(colorby = gsub("[ ]*\\+[ ]*", "",
+                                     gsub("(\\(-)*[0-9]*\\)*[ ]*\\*[ ]*", "",
+                                          value)))
+      colorPaletteFitted = scales::hue_pal()
+      colors <- structure(colorPaletteFitted(length(unique(plot_data$colorby))),
+                          names = unique(plot_data$colorby))
+      # }
+      
+      
+      ## ----------------------------------------------------------------------- ##
+      ## Create plot(s)
+      ## ----------------------------------------------------------------------- ##
+      ## First, get the total number of "rows" in the final plot.
+      ## Will be used to determine the size of the panel.
+      flipCoordFitted = FALSE
+      if (flipCoordFitted & length(plot_terms) == 1) {
+        totnbrrows <- length(unique(plot_data$groupby))
+      } else if (flipCoordFitted) {
+        totnbrrows <- length(unique(plot_data$groupby)) *
+          length(unique(plot_data[[plot_terms[2]]]))
+      } else {
+        totnbrrows <- length(unique(plot_data$groupby)) *
+          length(unique(plot_data[[plot_terms[1]]]))
+      }
+      
+      textSizeCoocc = 5
+      textSizeLabsCoocc = 12
+      flipCoordCoocc = FALSE
+      keepcols <- setdiff(colnames(plot_data), c("value", "vjust", "colorby"))
+      maxN <- max(plot_data$nSamples)
+      ggcoocc <- lapply(split(
+        plot_data, f = plot_data$groupby),
+        function(w) {
+          w <- w %>% dplyr::select(dplyr::all_of(keepcols)) %>% dplyr::distinct()
+          gp <- ggplot2::ggplot(
+            w,
+            ggplot2::aes_string(
+              x = ifelse(length(plot_terms) == 1, 1, plot_terms[2]),
+              y = plot_terms[1],
+              fill = "nSamples",
+              label = "nSamples"
+            )) +
+            ggplot2::geom_tile(color = "black") +
+            ggplot2::scale_x_discrete(
+              expand = ggplot2::expansion(mult = 0, add = 0)
+            ) +
+            ggplot2::scale_y_discrete(
+              expand = ggplot2::expansion(mult = 0, add = 0)
+            ) +
+            ggplot2::theme_bw() +
+            ggplot2::geom_text(size = textSizeCoocc) +
+            ggplot2::theme(
+              panel.grid.major = ggplot2::element_blank(),
+              panel.grid.minor = ggplot2::element_blank(),
+              axis.text = ggplot2::element_text(size = textSizeLabsCoocc),
+              axis.title = ggplot2::element_text(size = textSizeLabsCoocc)
+            ) +
+            ggplot2::scale_fill_gradient(
+              low = "white", high = "deepskyblue3",
+              name = "Number of\nobservations",
+              limits = c(0, maxN)) +
+            ggplot2::ggtitle(w$groupby[1])
+          if (length(plot_terms) == 1) {
+            gp <- gp + theme(axis.text.x = element_blank(),
+                             axis.title.x = element_blank(),
+                             axis.ticks.x = element_blank())
+          }
+          if (flipCoordCoocc) {
+            gp <- gp + ggplot2::coord_flip()
+          }
+          gp
+        })
+    })
+    
+    # Plot cooccurrence matrix ----------------------------------------------
+    output$cooccurrence_matrix_plot <- shiny::renderPlot({
+      shiny::validate(
+        shiny::need(
+          input$dds_design != "" ,
+          paste0("Please provide a formula where all terms appear in ",
+                 "the sample data")
+        )
+      )
+      if (is.null(cooccurrenceplots())) {
+        NULL
+      } else {
+        cowplot::plot_grid(plotlist = cooccurrenceplots(),
+                           ncol = 1)
+      }
+    })
     # server ui steps -----------------------------------------------------------
     output$ui_step2 <- renderUI({
       if (is.null(values$expdesign) | is.null(values$countmatrix))
@@ -1548,6 +1732,11 @@ ideal<- function(dds_obj = NULL,
                 hr(),
                 # uiOutput("ok_dds"),
                 verbatimTextOutput("debugdiy")
+              ),
+              column(
+                width = 6,
+                plotOutput("cooccurrence_matrix_plot"),
+                
               )
             )
           ))
@@ -3744,7 +3933,7 @@ ideal<- function(dds_obj = NULL,
                                   if(any(is.null(input$sig_id_sigs), is.null(input$sig_id_data))){
                                     cat(file = stderr(), paste("\n\ndid you specifvy the annotations?\n\n"))
                                     return(NULL)
-                                    }
+                                  }
                                   if (input$sig_id_sigs == "SYMBOL" & input$sig_id_data == "SYMBOL") {
                                     anno_vec = rownames(values$dds_obj)
                                     names(anno_vec) = rownames(values$dds_obj)
@@ -4528,7 +4717,7 @@ ideal<- function(dds_obj = NULL,
       if(input$rowscale) toplot <- mat_rowscale(toplot)
       if(nrow(toplot) <1){
         cat(file = stderr(), "\ntoplot nrow <1\n")
-      return(NULL)
+        return(NULL)
       }
       heatmaply::heatmaply(toplot,Colv = as.logical(input$heatmap_colv),colors = mycolss, cexCol = 1)
     })
@@ -5291,3 +5480,40 @@ ideal<- function(dds_obj = NULL,
   # launch the app!
   shinyApp(ui = ideal_ui, server = ideal_server)
 }
+
+
+#' Split a string into multiple lines if it's longer than a certain length
+#'
+#' @param st A string
+#' @param lineWidth The maximum length of a line
+#'
+#' @return A string
+#'
+#' @keywords internal
+#'
+#' @rdname INTERNAL_.AddNewLine
+#'
+.AddNewLine <- function(st, lineWidth) {
+  if (nchar(st) > lineWidth) {
+    st0 <- strsplit(st, "\\+")[[1]]
+    nchs <- vapply(st0, nchar, 0)
+    cs <- cumsum(nchs)
+    grp <- rep(0, length(st0))
+    curtot <- 0
+    curgrp <- 0
+    for (i in seq_along(st0)) {
+      if (curtot + nchs[i] > lineWidth) {
+        curgrp <- curgrp + 1
+        curtot <- nchs[i]
+      } else {
+        curtot <- curtot + nchs[i]
+      }
+      grp[i] <- curgrp
+    }
+    st1 <- vapply(split(st0, grp),
+                  function(x) paste(x, collapse = "+"), "")
+    st <- paste(st1, collapse = "+\n")
+  }
+  st
+}
+
