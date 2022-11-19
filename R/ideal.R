@@ -788,26 +788,26 @@ ideal<- function(dds_obj = NULL,
                 column(6,checkboxInput("ylimZero_genefinder","Set y axis limit to 0",value=TRUE))),
               fluidRow(
                 column(6,
-                       plotOutput("bp1"),
+                       shinyjqui::jqui_resizable(plotOutput("bp1")),
                        div(align = "right", style = "margin-right:15px; margin-bottom:10px",
                            downloadButton("download_plotbp1", "Download Plot"),
                            textInput("filename_plotbp1",label = "Save as...",value = "plotbp1.pdf"))
                 ),
                 column(6,
-                       plotOutput("bp2"),
+                       shinyjqui::jqui_resizable(plotOutput("bp2")),
                        div(align = "right", style = "margin-right:15px; margin-bottom:10px",
                            downloadButton("download_plotbp2", "Download Plot"),
                            textInput("filename_plotbp2",label = "Save as...",value = "plotbp2.pdf")))
               ),
               fluidRow(
                 column(6,
-                       plotOutput("bp3"),
+                       shinyjqui::jqui_resizable(plotOutput("bp3")),
                        div(align = "right", style = "margin-right:15px; margin-bottom:10px",
                            downloadButton("download_plotbp3", "Download Plot"),
                            textInput("filename_plotbp3",label = "Save as...",value = "plotbp3.pdf"))
                 ),
                 column(6,
-                       plotOutput("bp4"),
+                       shinyjqui::jqui_resizable(plotOutput("bp4")),
                        div(align = "right", style = "margin-right:15px; margin-bottom:10px",
                            downloadButton("download_plotbp4", "Download Plot"),
                            textInput("filename_plotbp4",label = "Save as...",value = "plotbp4.pdf")))
@@ -815,7 +815,7 @@ ideal<- function(dds_obj = NULL,
               
               fluidRow(
                 column(6,
-                       plotOutput("plotCoefficients")
+                       shinyjqui::jqui_resizable(plotOutput("plotCoefficients"))
                 )
               ),
               fluidRow(
