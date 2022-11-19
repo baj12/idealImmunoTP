@@ -17,7 +17,6 @@
 #' plotCoefficients(dds, "gene930")
 #' 
 
-
 plotCoefficients <- function(dds, geneName, legend=TRUE){
   
     # save(file = "~/SCHNAPPsDebug/ideal.plotCoefficients.RData", list = ls())
@@ -87,6 +86,8 @@ plotCoefficients <- function(dds, geneName, legend=TRUE){
   ylim = plotParameters[[1]]
   arrowCount = plotParameters[[2]]
   legendPos = plotParameters[[3]]
+  oldPars = par()
+  par(mar=c(5.1, 4.1, 4.1, 12.1), xpd=TRUE)
   
   # base plot
   stripchart(formula(paste(countsName, paste(as.character(design(dds)), collapse = ""))), 
@@ -145,11 +146,16 @@ plotCoefficients <- function(dds, geneName, legend=TRUE){
     }
   }
   if(legend){
-    legend(legendPos, legend=names(coefs), 
-           text.col = cols, cex = 0.7,
+    # legend(legendPos, inset=c(-0.2,0),legend=names(coefs), 
+    #        text.col = cols, cex = 0.7,
+    #        merge = F)
+    legend("topright", inset=c(-.28,0),legend=names(coefs), 
+           text.col = cols, cex = 0.7, pch=c(1,3),
            merge = F)
   }
+  par(oldPars)
 }
+# plotCoefficients(dds, geneName = geneName )
 
 # find ylim and number of arrow to plot per slot
 # bp_names = names of the slots/columns
