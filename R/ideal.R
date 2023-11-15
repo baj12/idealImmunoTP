@@ -55,8 +55,38 @@
 #' idealImmunoTP(dds_airway, res_airway)
 #' }
 #'
+
+
+multiAxPCA = function (object, intgroup = "condition", ntop = 500, returnData = FALSE, pc1=1, pc2=2) 
+{
+  rv <- rowVars(assay(object))
+  select <- order(rv, decreasing = TRUE)[seq_len(min(ntop, 
+                                                     length(rv)))]
+  pca <- prcomp(t(assay(object)[select, ]))
+  percentVar <- pca$sdev^2/sum(pca$sdev^2)
+  if (!all(intgroup %in% names(colData(object)))) {
+    stop("the argument 'intgroup' should specify columns of colData(dds)")
+  }
+  intgroup.df <- as.data.frame(colData(object)[, intgroup, 
+                                               drop = FALSE])
+  group <- if (length(intgroup) > 1) {
+    factor(apply(intgroup.df, 1, paste, collapse = ":"))
+  }  else {
+    colData(object)[[intgroup]]
+  }
+  d <- data.frame(PC1 = pca$x[, pc1], PC2 = pca$x[, pc2], group = group, 
+                  intgroup.df, name = colnames(object))
+  if (returnData) {
+    return(percentVar)
+  }
+  ggplot(data = d, aes_string(x = "PC1", y = "PC2", color = "group")) + 
+    geom_point(size = 3) + xlab(paste0("PC",pc1,": ", round(percentVar[pc1] * 
+                                                        100), "% variance")) + ylab(paste0("PC",pc2,": ", round(percentVar[pc2] * 
+                                                                                                            100), "% variance")) + coord_fixed()
+}
+
 idealImmunoTP<- function(dds_obj = NULL,
-                 res_obj = NULL,
+                         res_obj = NULL,
                  annotation_obj = NULL,
                  countmatrix = NULL,
                  expdesign = NULL,
@@ -467,6 +497,23 @@ idealImmunoTP<- function(dds_obj = NULL,
                     ),
                     column(
                       width = 6,
+                      shinyjqui::jqui_resizable(uiOutput("pcaEV_plotUI"))
+                    )
+                  ),
+                  fluidRow(
+                    column(
+                      width = 6,
+                      shinyjqui::jqui_resizable(uiOutput("pca_plotUI34"))
+                    ),
+                    column(
+                      width = 6,
+                      shinyjqui::jqui_resizable(uiOutput("pca_plotUI56"))
+                    )
+                  ),
+                  fluidRow(
+                    
+                    column(
+                      width = 6,
                       shinyjqui::jqui_resizable(uiOutput("sizeFactors_plotUI"))
                     )
                   )
@@ -742,26 +789,26 @@ idealImmunoTP<- function(dds_obj = NULL,
                 column(6,checkboxInput("ylimZero_genefinder","Set y axis limit to 0",value=TRUE))),
               fluidRow(
                 column(6,
-                       plotOutput("bp1"),
+                       shinyjqui::jqui_resizable(plotOutput("bp1")),
                        div(align = "right", style = "margin-right:15px; margin-bottom:10px",
                            downloadButton("download_plotbp1", "Download Plot"),
                            textInput("filename_plotbp1",label = "Save as...",value = "plotbp1.pdf"))
                 ),
                 column(6,
-                       plotOutput("bp2"),
+                       shinyjqui::jqui_resizable(plotOutput("bp2")),
                        div(align = "right", style = "margin-right:15px; margin-bottom:10px",
                            downloadButton("download_plotbp2", "Download Plot"),
                            textInput("filename_plotbp2",label = "Save as...",value = "plotbp2.pdf")))
               ),
               fluidRow(
                 column(6,
-                       plotOutput("bp3"),
+                       shinyjqui::jqui_resizable(plotOutput("bp3")),
                        div(align = "right", style = "margin-right:15px; margin-bottom:10px",
                            downloadButton("download_plotbp3", "Download Plot"),
                            textInput("filename_plotbp3",label = "Save as...",value = "plotbp3.pdf"))
                 ),
                 column(6,
-                       plotOutput("bp4"),
+                       shinyjqui::jqui_resizable(plotOutput("bp4")),
                        div(align = "right", style = "margin-right:15px; margin-bottom:10px",
                            downloadButton("download_plotbp4", "Download Plot"),
                            textInput("filename_plotbp4",label = "Save as...",value = "plotbp4.pdf")))
@@ -769,7 +816,7 @@ idealImmunoTP<- function(dds_obj = NULL,
               
               fluidRow(
                 column(6,
-                       plotOutput("plotCoefficients")
+                       shinyjqui::jqui_resizable(plotOutput("plotCoefficients"))
                 )
               ),
               fluidRow(
@@ -2313,7 +2360,66 @@ idealImmunoTP<- function(dds_obj = NULL,
       # rld <- rlog(values$dds_obj, blind = FALSE)
       rld <- vst(values$dds_obj, blind = FALSE,nsub=10)
       # browser()
-      p = plotPCA(rld, intgroup = input$color_by, ntop = 1000)
+      # multiAxPCA = function (object, intgroup = "condition", ntop = 500, returnData = FALSE, pc1=1, pc2=2) 
+      p = multiAxPCA(rld, intgroup = input$color_by, ntop = 1000, pc1=1, pc2=2)
+      p2 = p +aes(text=colnames(rld))
+      ggplotly(p2, tooltip = "text")
+    })
+    
+    output$pcaEVPlot <- renderPlotly({
+      shiny::validate(
+        need(!is.null(values$dds_obj),
+             "Provide or construct a dds object")
+      )
+      shiny::validate(
+        need(!is.null(input$color_by),
+             "Provide group to color by")
+      )
+      # browser()
+      # rld <- rlog(values$dds_obj, blind = FALSE)
+      rld <- vst(values$dds_obj, blind = FALSE,nsub=10)
+      # browser()
+      # multiAxPCA = function (object, intgroup = "condition", ntop = 500, returnData = FALSE, pc1=1, pc2=2) 
+      pD = multiAxPCA(rld, intgroup = input$color_by, ntop = 1000, pc1=1, pc2=2, returnData = T)
+      df = data.frame(PC=seq(pD),EV=pD)
+      # browser()
+      p<-ggplot(data=df, aes(x=PC, y=EV)) +
+        geom_bar(stat="identity")
+      p
+    })
+    output$pcaPlot34 <- renderPlotly({
+      shiny::validate(
+        need(!is.null(values$dds_obj),
+             "Provide or construct a dds object")
+      )
+      shiny::validate(
+        need(!is.null(input$color_by),
+             "Provide group to color by")
+      )
+      # browser()
+      # rld <- rlog(values$dds_obj, blind = FALSE)
+      rld <- vst(values$dds_obj, blind = FALSE,nsub=10)
+      # browser()
+      # multiAxPCA = function (object, intgroup = "condition", ntop = 500, returnData = FALSE, pc1=1, pc2=2) 
+      p = multiAxPCA(rld, intgroup = input$color_by, ntop = 1000, pc1=3, pc2=4)
+      p2 = p +aes(text=colnames(rld))
+      ggplotly(p2, tooltip = "text")
+    })
+    output$pcaPlot56 <- renderPlotly({
+      shiny::validate(
+        need(!is.null(values$dds_obj),
+             "Provide or construct a dds object")
+      )
+      shiny::validate(
+        need(!is.null(input$color_by),
+             "Provide group to color by")
+      )
+      # browser()
+      # rld <- rlog(values$dds_obj, blind = FALSE)
+      rld <- vst(values$dds_obj, blind = FALSE,nsub=10)
+      # browser()
+      # multiAxPCA = function (object, intgroup = "condition", ntop = 500, returnData = FALSE, pc1=1, pc2=2) 
+      p = multiAxPCA(rld, intgroup = input$color_by, ntop = 1000, pc1=5, pc2=6)
       p2 = p +aes(text=colnames(rld))
       ggplotly(p2, tooltip = "text")
     })
@@ -2349,6 +2455,18 @@ idealImmunoTP<- function(dds_obj = NULL,
     output$pca_plotUI <- renderUI({
       if(!input$compute_pairwisecorr) return()
       plotlyOutput("pcaPlot")
+    })
+    output$pcaEV_plotUI <- renderUI({
+      if(!input$compute_pairwisecorr) return()
+      plotlyOutput("pcaEVPlot")
+    })
+    output$pca_plotUI34 <- renderUI({
+      if(!input$compute_pairwisecorr) return()
+      plotlyOutput("pcaPlot34")
+    })
+    output$pca_plotUI56 <- renderUI({
+      if(!input$compute_pairwisecorr) return()
+      plotlyOutput("pcaPlot56")
     })
     output$sizeFactors_plotUI    <- renderUI({
       if(!input$compute_pairwisecorr) return()
