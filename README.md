@@ -1,12 +1,12 @@
-# `ideal` - Interactive Differential Expression AnaLysis in RNA-seq data
+# `idealImmunoTP` - Interactive Differential Expression AnaLysis in RNA-seq data
 
 
 ![](https://travis-ci.com/baj12/idealImmunoTP.svg?branch=master)
 
-`ideal` is a Bioconductor package containing a Shiny application for analyzing RNA-Seq data in the context of differential expression. 
+`idealImmunoTP` is a Bioconductor package containing a Shiny application for analyzing RNA-Seq data in the context of differential expression. 
 This enables an interactive and at the same time reproducible analysis, keeping the functionality accessible, and yet providing a comprehensive selection of graphs and tables to mine the dataset at hand.
 
-`ideal` is an R package which fully leverages the infrastructure of the Bioconductor project in order to deliver an interactive yet reproducible analysis for the detection of differentially expressed genes in RNA-Seq datasets. 
+`idealImmunoTP` is an R package which fully leverages the infrastructure of the Bioconductor project in order to deliver an interactive yet reproducible analysis for the detection of differentially expressed genes in RNA-Seq datasets. 
 Graphs, tables, and interactive HTML reports can be readily exported and shared across collaborators. 
 The dynamic user interface displays a broad level of content and information, subdivided by thematic tasks. 
 All in all, it aims to enforce a proper analysis, by reaching out both life scientists and experienced bioinformaticians, and also fosters the communication between the two sides, offering robust statistical methods and high standard of accessible documentation.
@@ -29,9 +29,9 @@ install.packages("devtools")
 
 devtools::install_github("baj12/idealImmunoTP", dependencies = T)
 
-library(ideal)
+library(idealImmunoTP)
 
-ideal()
+idealImmunoTP()
 
 
 
@@ -47,13 +47,13 @@ devtools::install_github("federicomarini/ideal")
 
 ## Quick start
 
-This command loads the `ideal` package
+This command loads the `idealImmunoTP` package
 
 ```
-library("ideal")
+library("idealImmunoTP")
 ```
 
-The main parameters for `ideal` are
+The main parameters for `idealImmunoTP` are
 
 - `dds_obj` - a `DESeqDataSet` object. If not provided, then a `countmatrix` and a 
 `expdesign` need to be provided. If none of the above is provided, it is possible
@@ -71,26 +71,26 @@ the Shiny App
 of each sample. If not provided, it is possible to upload the data during the
 execution of the Shiny App
 
-The `ideal` app can be launched in different modes:
+The `idealImmunoTP` app can be launched in different modes:
 
-- `ideal(dds_obj = dds, res_obj = res, annotation_obj = anno)`, where the objects 
+- `idealImmunoTP(dds_obj = dds, res_obj = res, annotation_obj = anno)`, where the objects 
 are precomputed in the current session and provided as parameters
-- `ideal(dds_obj = dds)`, as in the command above, but where the result object is
+- `idealImmunoTP(dds_obj = dds)`, as in the command above, but where the result object is
 assembled at runtime 
-- `ideal(countmatrix = countmatrix, expdesign = expdesign)`, where instead of 
+- `idealImmunoTP(countmatrix = countmatrix, expdesign = expdesign)`, where instead of 
 passing the defined `DESeqDataSet` object, its components are given, namely the 
 count matrix (e.g. generated after a run of featureCounts or HTSeq-count) and a 
 data frame with the experimental covariates. The design formula can be constructed
 interactively at runtime
-- `ideal()`, where the count matrix and experimental design can simply be uploaded
+- `idealImmunoTP()`, where the count matrix and experimental design can simply be uploaded
 at runtime, where all the derived objects can be extracted and computed live. These 
 files have to be formatted as tabular text files, and a function in the package 
 tries to guess the separator, based on heuristics of occurrencies per line of 
 commonly used characters
 
-## Accessing the public instance of `ideal` 
+## Accessing the public instance of `idealImmunoTP` 
 
-To use `ideal` without installing any additional software, you can 
+To use `idealImmunoTP` without installing any additional software, you can 
 access the public instance of the Shiny Server made available at the Institute of 
 Medical Biostatistics, Epidemiology and Informatics (IMBEI) in Mainz.
 

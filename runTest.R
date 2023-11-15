@@ -1,4 +1,4 @@
-library(ideal)
+library(idealImmunoTP)
 library(airway)
 
 library(DESeq2) 
@@ -44,4 +44,4 @@ library(edgeR)
 
 load(file = "testData.RData")
 
-ideal(dds_obj = dds_airway, annotation_obj = annotation_airway, res_obj = res_airway)
+idealImmunoTP(dds_obj = dds_airway, annotation_obj = annotation_airway, res_obj = res_airway)

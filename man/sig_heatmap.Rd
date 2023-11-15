@@ -49,7 +49,7 @@ values. Defaults to TRUE, as it improves the general readability of the heatmap}
 expression values}
 }
 \value{
-A plot based on the \code{pheatmap} function
+A plot based on the \code{heatmaply} function
 }
 \description{
 Plot a heatmap for the selected gene signature on the provided data, with the 
@@ -72,7 +72,7 @@ annovec <- mapIds(org.Hs.eg.db, rownames(dds_airway),"ENTREZID","ENSEMBL")
 mysignatures <- read_gmt(
   "http://data.wikipathways.org/20190210/gmt/wikipathways-20190210-gmt-Homo_sapiens.gmt")
 mysignature_name <- "Lung fibrosis\%WikiPathways_20190210\%WP3624\%Homo sapiens"
-library(pheatmap)
+library(heatmaply)
 sig_heatmap(vst_airway,
             mysignatures[[mysignature_name]],
             res_data = res_airway,

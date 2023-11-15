@@ -67,8 +67,8 @@ install_github("baj12/idealImmunoTP")
 ```
 
 ```
-library(ideal)
-ideal()
+library(idealImmunoTP)
+idealImmunoTP()
 ```
 
 This will open a web-browser with the application. Please be a bit patient as it sometimes takes a few seconds to load everything. This holds true for most of the tabs. The only way to check if there is still something running is to check the process manager.
@@ -637,13 +637,13 @@ knitr::include_graphics('figures/tut36.png')
 
 
 The Functional Analysis tab takes the user from the simple lists of DE genes to insight on the affected biological pathways, with three approaches based on the Gene Ontology (GO) databases.
-This panel of ideal has a slim interface to the following methods for performing functional analysis:
+This panel of idealImmunoTP has a slim interface to the following methods for performing functional analysis:
 
 - `limma::goana` for the quick yet standard implementation
 - `topGO`, particularly valuable for pruning terms which are topologically less meaningful than their specific nodes
 - `goseq`, which accounts for the specific length bias intrinsic in RNA-Seq assays (longer genes have higher chances of being called DE).
 
-"ideal" allows the user to work simultaneously with more gene lists, two of which can be uploaded in a custom way (e.g. list of gene families, or extracted from other existing publications). 
+"idealImmunoTP" allows the user to work simultaneously with more gene lists, two of which can be uploaded in a custom way (e.g. list of gene families, or extracted from other existing publications). 
 
 The interaction among these lists can be visually represented in Venn diagrams, as well as with the appealing alternative from the UpSetR package, where all combination of sets are explicitly shown. 
 

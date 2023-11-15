@@ -1,10 +1,17 @@
-# library(ideal)
-# BiocManager::install("DEFormats")
-# install.packages("ashr")
-# BiocManager::install(c('DESeq2', 'pcaExplorer', 'IHW', 'goseq', 'GOstats', 'GO.db', 'rentrez', 'rintrojs'))
-# library(ashr)
-library(airway)
-library(apeglm)
+# library(idealImmunoTP)
+
+.libPaths()
+
+# .libPaths("c:/Rlibs/")
+
+BiocManager::install("DEFormats",ask = F, update = T)
+install.packages("ashr", dependencies = T )
+BiocManager::install(c('DESeq2', 'pcaExplorer', 'IHW', 'goseq', 'GOstats', 'GO.db', 'rentrez', 'rintrojs'))
+BiocManager::install(c('airway', 'apeglm', 'BiocStyle', 'org.Hs.eg.db','TxDb.Hsapiens.UCSC.hg38.knownGene'))
+library(ashr)
+ library(airway)
+ library(shinyjqui)
+ library(apeglm)
 library(DESeq2) 
 library(SummarizedExperiment) 
 library(GenomicRanges) 
@@ -39,10 +46,10 @@ library(grDevices)
 library(base64enc)
 library(methods)
 library(testthat) 
-library(BiocStyle) 
-library(airway) 
-library(org.Hs.eg.db)
-library(TxDb.Hsapiens.UCSC.hg38.knownGene) 
+ library(BiocStyle) 
+ library(airway) 
+ library(org.Hs.eg.db)
+ library(TxDb.Hsapiens.UCSC.hg38.knownGene) 
 library(DEFormats) 
 library(edgeR)
 
@@ -89,8 +96,8 @@ countmatrix = NULL
 
   # app <- shinyApp(ui = ideal_ui, server = ideal_server)
   # runApp(app)
-# ideal(dds_obj = dds_airway, annotation_obj = annotation_airway, res_obj = res_airway)
-ideal()
+# idealImmunoTP(dds_obj = dds_airway, annotation_obj = annotation_airway, res_obj = res_airway)
+idealImmunoTP()
 
 # cp = load(file = "test.Rdata")
 # dds_obj = ideal_env$ideal_values_20210526_152858$dds_obj 
@@ -104,7 +111,7 @@ ideal()
 # options(browser = "/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome")
 # 
 # source("R/ideal.R", local = T);
-# ideal(dds_obj = dds_obj, 
+# idealImmunoTP(dds_obj = dds_obj, 
 #       res_obj = res_obj, 
 #       annotation_obj = annotation_obj,
 #       countmatrix = countmatrix,

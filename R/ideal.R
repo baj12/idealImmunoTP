@@ -1,8 +1,8 @@
 # ideal.R
 
-#' ideal: Interactive Differential Expression Analysis
+#' idealImmunoTP: Interactive Differential Expression Analysis
 #'
-#' ideal makes differential expression analysis interactive, easy and reproducible.
+#' idealImmunoTP makes differential expression analysis interactive, easy and reproducible.
 #' This function launches the main application included in the package.
 #'
 #' @param dds_obj A \code{\link{DESeqDataSet}} object. If not provided, then a
@@ -28,7 +28,7 @@
 #' @return A Shiny App is launched for interactive data exploration and
 #' differential expression analysis
 #'
-#' @export
+#' @export idealImmunoTP
 #' 
 #' @examples
 #' # with simulated data...
@@ -46,16 +46,16 @@
 #'                                              design=~cell+dex)
 #' \dontrun{
 #'
-#' ideal()
-#' ideal(dds)
-#' ideal(dds_airway)
+#' idealImmunoTP()
+#' idealImmunoTP(dds)
+#' idealImmunoTP(dds_airway)
 #'
 #' dds_airway <- DESeq2::DESeq(dds_airway)
 #' res_airway <- DESeq2::results(dds_airway)
-#' ideal(dds_airway, res_airway)
+#' idealImmunoTP(dds_airway, res_airway)
 #' }
 #'
-ideal<- function(dds_obj = NULL,
+idealImmunoTP<- function(dds_obj = NULL,
                  res_obj = NULL,
                  annotation_obj = NULL,
                  countmatrix = NULL,
@@ -63,11 +63,11 @@ ideal<- function(dds_obj = NULL,
                  gene_signatures = NULL){
   
   if ( !requireNamespace('shiny',quietly = TRUE) ) {
-    stop("ideal requires 'shiny'. Please install it using
+    stop("idealImmunoTP requires 'shiny'. Please install it using
          install.packages('shiny')")
   }
   if ( !requireNamespace('tidyr',quietly = TRUE) ) {
-    stop("ideal requires 'tidyr'. Please install it using
+    stop("idealImmunoTP requires 'tidyr'. Please install it using
          install.packages('tidyr')")
   }
   require(tidyr)
@@ -87,17 +87,17 @@ ideal<- function(dds_obj = NULL,
   ## ------------------------------------------------------------------ ##
   
   #   # components defined in separated .R files
-  #   shinyApp(ui = ideal_ui, server = ideal_server)
+  #   shinyApp(ui = idealImmunoTP_ui, server = idealImmunoTP_server)
   
   # ui definition -----------------------------------------------------------
-  ideal_ui <- shinydashboard::dashboardPage(
-    title = "ideal - Interactive Differential Expression AnaLysis",
+  idealImmunoTP_ui <- shinydashboard::dashboardPage(
+    title = "idealImmunoTP - Interactive Differential Expression AnaLysis for immunology TP",
     # header definition -----------------------------------------------------------
     shinydashboard::dashboardHeader(
       title = tags$span(
         img(src = "ideal/ideal_logo_v2.png", height = "50px"),
-        paste0("ideal - Interactive Differential Expression AnaLysis ",
-               packageVersion("ideal"))),
+        paste0("idealImmunoTP - Interactive Differential Expression AnaLysis ",
+               packageVersion("idealImmunoTP"))),
       titleWidth = 600,
       
       # TODO:
@@ -114,7 +114,7 @@ ideal<- function(dds_obj = NULL,
         badgeStatus = NULL, 
         headerText = "ideal Tasks menu",
         notificationItem(
-          text = actionButton("task_exit_and_save","Exit ideal & save",
+          text = actionButton("task_exit_and_save","Exit idealImmunoTP & save",
                               class = "btn_no_border",
                               onclick = "setTimeout(function(){window.close();}, 100); "),
           icon = icon("right-from-bracket"),status = "primary"),
@@ -229,7 +229,7 @@ ideal<- function(dds_obj = NULL,
             fluidRow(
               column(
                 width = 8,
-                includeMarkdown(system.file("extdata", "welcome.md",package = "ideal")),
+                includeMarkdown(system.file("extdata", "welcome.md",package = "idealImmunoTP")),
                 br(),br(),
                 p("If you see a grey box like this one open below..."),
                 
@@ -237,7 +237,7 @@ ideal<- function(dds_obj = NULL,
                   id = "help_welcome",open = "Help", 
                   shinyBS::bsCollapsePanel(
                     "Help", 
-                    includeMarkdown(system.file("extdata", "help_welcome.md",package = "ideal"))
+                    includeMarkdown(system.file("extdata", "help_welcome.md",package = "idealImmunoTP"))
                   )
                 ),
                 
@@ -263,7 +263,7 @@ ideal<- function(dds_obj = NULL,
                   id = "help_datasetup",open = NULL, 
                   shinyBS::bsCollapsePanel(
                     "Help",
-                    includeMarkdown(system.file("extdata", "help_datasetup.md",package = "ideal"))
+                    includeMarkdown(system.file("extdata", "help_datasetup.md",package = "idealImmunoTP"))
                   )
                 )
               )
@@ -294,7 +294,7 @@ ideal<- function(dds_obj = NULL,
                                style="color: #0092AC; background-color: #FFFFFF; border-color: #FFFFFF"),
                   shinyBS::bsTooltip(
                     "help_format", 
-                    "How to provide your input data to ideal",
+                    "How to provide your input data to idealImmunoTP",
                     "bottom", options = list(container = "body")
                   )
                 )
@@ -400,7 +400,7 @@ ideal<- function(dds_obj = NULL,
                     id = "help_countsoverview",open = NULL, 
                     shinyBS::bsCollapsePanel(
                       "Help",
-                      includeMarkdown(system.file("extdata", "help_overview.md",package = "ideal")))
+                      includeMarkdown(system.file("extdata", "help_overview.md",package = "idealImmunoTP")))
                   )
                 )
               ),
@@ -513,7 +513,7 @@ ideal<- function(dds_obj = NULL,
                     id = "help_extractresults",open = NULL,
                     shinyBS::bsCollapsePanel(
                       "Help",
-                      includeMarkdown(system.file("extdata", "help_results.md",package = "ideal")))
+                      includeMarkdown(system.file("extdata", "help_results.md",package = "idealImmunoTP")))
                   )
                 )
               ),
@@ -635,7 +635,7 @@ ideal<- function(dds_obj = NULL,
                     id = "help_summaryplots",open = NULL, 
                     shinyBS::bsCollapsePanel(
                       "Help",
-                      includeMarkdown(system.file("extdata", "help_plots.md",package = "ideal")))
+                      includeMarkdown(system.file("extdata", "help_plots.md",package = "idealImmunoTP")))
                   )
                 )
               ),
@@ -731,7 +731,7 @@ ideal<- function(dds_obj = NULL,
                     id = "help_genefinder",open = NULL,
                     shinyBS::bsCollapsePanel(
                       "Help",
-                      includeMarkdown(system.file("extdata", "help_genefinder.md",package = "ideal")))
+                      includeMarkdown(system.file("extdata", "help_genefinder.md",package = "idealImmunoTP")))
                   )
                 )
               ),
@@ -813,7 +813,7 @@ ideal<- function(dds_obj = NULL,
                     id = "help_functionalanalysis",open = NULL,
                     shinyBS::bsCollapsePanel(
                       "Help",
-                      includeMarkdown(system.file("extdata", "help_funcanalysis.md",package = "ideal")))
+                      includeMarkdown(system.file("extdata", "help_funcanalysis.md",package = "idealImmunoTP")))
                   )
                 )
               ),
@@ -999,7 +999,7 @@ ideal<- function(dds_obj = NULL,
                     id = "help_signatureexplorer",open = NULL,
                     shinyBS::bsCollapsePanel(
                       "Help",
-                      includeMarkdown(system.file("extdata", "help_signatureexplorer.md",package = "ideal")))
+                      includeMarkdown(system.file("extdata", "help_signatureexplorer.md",package = "idealImmunoTP")))
                   )
                 )
               ),
@@ -1079,7 +1079,7 @@ ideal<- function(dds_obj = NULL,
                   id = "help_reporteditor",open = NULL, 
                   shinyBS::bsCollapsePanel(
                     "Help",
-                    includeMarkdown(system.file("extdata", "help_report.md",package = "ideal")))
+                    includeMarkdown(system.file("extdata", "help_report.md",package = "idealImmunoTP")))
                 )
               )
             ),
@@ -1140,7 +1140,7 @@ ideal<- function(dds_obj = NULL,
               tabPanel("Edit report",
                        icon = icon("pen-to-square"),
                        aceEditor("acereport_rmd", mode="markdown",theme = "solarized_light",autoComplete = "live",
-                                 value="_Initialization of the_ `ideal` _report generation..._",
+                                 value="_Initialization of the_ `idealImmunoTP` _report generation..._",
                                  placeholder = "You can enter some code and text in R Markdown format",
                                  height="800px"))
             )
@@ -1154,7 +1154,7 @@ ideal<- function(dds_obj = NULL,
             fluidRow(
               column(
                 width = 8,
-                includeMarkdown(system.file("extdata", "about.md",package = "ideal")),
+                includeMarkdown(system.file("extdata", "about.md",package = "idealImmunoTP")),
                 
                 verbatimTextOutput("sessioninfo")
               )
@@ -1170,7 +1170,7 @@ ideal<- function(dds_obj = NULL,
   
   # server definition -----------------------------------------------------------
   #nocov start
-  ideal_server <- shinyServer(function(input, output, session) {
+  idealImmunoTP_server <- shinyServer(function(input, output, session) {
     
     
     read1stCol <- function (fileName,dds_obj){
@@ -1198,15 +1198,15 @@ ideal<- function(dds_obj = NULL,
     # server tours setup -----------------------------------------------------------
     
     # here will go the coded - i.e. not explicitly wrapped in introBox - steps
-    intro_firsttour <- read.delim(system.file("extdata", "intro_firsttour.txt",package = "ideal"), sep=";", stringsAsFactors = FALSE)
-    intro_datasetup <- read.delim(system.file("extdata", "intro_datasetup.txt",package = "ideal"), sep=";", stringsAsFactors = FALSE)
-    intro_countsoverview <- read.delim(system.file("extdata", "intro_countsoverview.txt",package = "ideal"), sep=";", stringsAsFactors = FALSE)
-    intro_results <- read.delim(system.file("extdata", "intro_results.txt",package = "ideal"), sep=";", stringsAsFactors = FALSE)
-    intro_plots <- read.delim(system.file("extdata", "intro_plots.txt",package = "ideal"), sep=";", stringsAsFactors = FALSE)
-    intro_genefinder <- read.delim(system.file("extdata", "intro_genefinder.txt",package = "ideal"), sep=";", stringsAsFactors = FALSE)
-    intro_funcanalysis <- read.delim(system.file("extdata", "intro_funcanalysis.txt",package = "ideal"), sep=";", stringsAsFactors = FALSE)
-    intro_signatureexplorer <- read.delim(system.file("extdata", "intro_signatureexplorer.txt",package = "ideal"), sep=";", stringsAsFactors = FALSE)
-    intro_report <- read.delim(system.file("extdata", "intro_report.txt",package = "ideal"), sep=";", stringsAsFactors = FALSE)
+    intro_firsttour <- read.delim(system.file("extdata", "intro_firsttour.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
+    intro_datasetup <- read.delim(system.file("extdata", "intro_datasetup.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
+    intro_countsoverview <- read.delim(system.file("extdata", "intro_countsoverview.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
+    intro_results <- read.delim(system.file("extdata", "intro_results.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
+    intro_plots <- read.delim(system.file("extdata", "intro_plots.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
+    intro_genefinder <- read.delim(system.file("extdata", "intro_genefinder.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
+    intro_funcanalysis <- read.delim(system.file("extdata", "intro_funcanalysis.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
+    intro_signatureexplorer <- read.delim(system.file("extdata", "intro_signatureexplorer.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
+    intro_report <- read.delim(system.file("extdata", "intro_report.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
     
     observeEvent(input$btn, {
       introjs(session,
@@ -1310,7 +1310,7 @@ ideal<- function(dds_obj = NULL,
       box(width = 12, 
           title = "Instructions", status = "info", solidHeader = TRUE, 
           collapsible = TRUE, collapsed = TRUE,
-          includeMarkdown(system.file("extdata", "instructions.md",package = "ideal"))
+          includeMarkdown(system.file("extdata", "instructions.md",package = "idealImmunoTP"))
       )
     })
     
@@ -1482,15 +1482,15 @@ ideal<- function(dds_obj = NULL,
           showNotification("All components for generating the DESeqDataset object have been loaded, proceed to Step 2!",
                            type = "message")
         } else {
-          showNotification("The 'airway' package is currently not installed. Please do so by executing BiocManager::install('airway') before launching ideal()",type = "warning")
+          showNotification("The 'airway' package is currently not installed. Please do so by executing BiocManager::install('airway') before launching idealImmunoTP()",type = "warning")
         }
       })
     )
     
     observeEvent(input$help_format, {
       showModal(modalDialog(
-        title = "Format specifications for ideal",
-        includeMarkdown(system.file("extdata", "datainput.md",package = "ideal")),
+        title = "Format specifications for idealImmunoTP",
+        includeMarkdown(system.file("extdata", "datainput.md",package = "idealImmunoTP")),
         h4("Example:"),
         tags$img(
           src = base64enc::dataURI(file = system.file("www", "help_dataformats.png",package = "pcaExplorer"), mime = "image/png"),
@@ -1946,8 +1946,8 @@ ideal<- function(dds_obj = NULL,
       }
       locfunc <- stats::median
       counts <- values$countmatrix[, comSamples]
-      # save(file = "~/SCHNAPPsDebug/ideal.RData", list = ls())
-      # cp = load("~/SCHNAPPsDebug/ideal.RData")
+      # save(file = "~/SCHNAPPsDebug/idealImmunoTP.RData", list = ls())
+      # cp = load("~/SCHNAPPsDebug/idealImmunoTP.RData")
       if (nchar(filterExp)>0){
         counts <- counts[grep(filterExp, rownames(counts), invert = TRUE), ]
       }
@@ -1960,7 +1960,7 @@ ideal<- function(dds_obj = NULL,
       c1 = colnames(values$countmatrix)
       c2= rownames(values$expdesign)
       design = dsgn
-      # save(file = "~/SCHNAPPsDebug/idealDDS.RData", list = c('counts', "colData", "design", "comSamples", "c1", "c2", "md", "rc"))
+      # save(file = "~/SCHNAPPsDebug/idealImmunoTPDDS.RData", list = c('counts', "colData", "design", "comSamples", "c1", "c2", "md", "rc"))
       colData[, input$dds_design[1]] = relevel(colData[, input$dds_design[1]], ref = values$dds_intercept)
       dds <- tryCatch(
         {
@@ -1980,8 +1980,8 @@ ideal<- function(dds_obj = NULL,
         },
         error = function(e) {
           cat(file = stderr(), paste("error during creation of dds object:", e))
-          # save(file = "~/SCHNAPPsDebug/idealDDS.RData", list = c('counts', "colData", "design", "comSamples", "c1", "c2", "md", "rc"))
-          # cp =load("/Users/bernd/SCHNAPPsDebug/idealDDS.RData")
+          # save(file = "~/SCHNAPPsDebug/idealImmunoTPDDS.RData", list = c('counts', "colData", "design", "comSamples", "c1", "c2", "md", "rc"))
+          # cp =load("/Users/bernd/SCHNAPPsDebug/idealImmunoTPDDS.RData")
           showNotification(
             paste(
               "Error during creation of DDS object",
@@ -2374,8 +2374,8 @@ ideal<- function(dds_obj = NULL,
       
       # and extract the count data from the DESeq2 object.
       heatmapcounts <- assay(nt)[select, ]
-      # save(file = "~/scShinyHubDebug/ideal.RData", list = c(ls(), ls(envir = globalenv())))
-      # load(file="~/scShinyHubDebug/ideal.RData")
+      # save(file = "~/scShinyHubDebug/idealImmunoTP.RData", list = c(ls(), ls(envir = globalenv())))
+      # load(file="~/scShinyHubDebug/idealImmunoTP.RData")
       # if("symbol" %in% names(dds_obj)) {
       #   p <- plot_ma(values$res_obj,
       #                intgenes = values$genelist_ma$`Gene Symbol`,annotation_obj = values$annotation_obj,FDR = input$FDR)
@@ -2607,8 +2607,8 @@ ideal<- function(dds_obj = NULL,
       # lapply(gll(),length)
       gll <- gll()
       txt = ""
-      # save(file = "~/SCHNAPPsDebug/ideal.RData", list = ls())
-      # load("~/SCHNAPPsDebug/ideal.RData")
+      # save(file = "~/SCHNAPPsDebug/idealImmunoTP.RData", list = ls())
+      # load("~/SCHNAPPsDebug/idealImmunoTP.RData")
       for (li in 1:length(gll)) {
         tx = paste(gll[[li]], sep = " ",collapse = " ")
         txt = paste(c(txt, names(gll)[li],tx), collapse = "\n")
@@ -2619,8 +2619,8 @@ ideal<- function(dds_obj = NULL,
     output$debugTable <- DT::renderDataTable({
       gll <- gll()
       txt = ""
-      # save(file = "~/SCHNAPPsDebug/ideal.RData", list = ls())
-      # load("~/SCHNAPPsDebug/ideal.RData")
+      # save(file = "~/SCHNAPPsDebug/idealImmunoTP.RData", list = ls())
+      # load("~/SCHNAPPsDebug/idealImmunoTP.RData")
       upGll = UpSetR::fromList(gll)
       ugll = unique(unlist(gll))
       rownames(upGll) = ugll
@@ -3668,8 +3668,8 @@ ideal<- function(dds_obj = NULL,
         rowlabs <- genevec_ids
         # rowlabs <- ifelse(, genevec, genevec_ids)
       }
-      # save(file = "~/SCHNAPPsDebug/ideal.goterm_heatmap_up_topgo.RData", list = ls())
-      # load("~/SCHNAPPsDebug/ideal.goterm_heatmap_up_topgo.RData")
+      # save(file = "~/SCHNAPPsDebug/idealImmunoTP.goterm_heatmap_up_topgo.RData", list = ls())
+      # load("~/SCHNAPPsDebug/idealImmunoTP.goterm_heatmap_up_topgo.RData")
       heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
       
     })
@@ -3701,7 +3701,7 @@ ideal<- function(dds_obj = NULL,
         rowlabs <- genevec_ids
         # rowlabs <- ifelse(, genevec, genevec_ids)
       }
-      # save(file = "~/SCHNAPPsDebug/ideal.goterm_heatmap_down_topgo.RData", list = ls())
+      # save(file = "~/SCHNAPPsDebug/idealImmunoTP.goterm_heatmap_down_topgo.RData", list = ls())
       heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
       
     })
@@ -3735,7 +3735,7 @@ ideal<- function(dds_obj = NULL,
         rowlabs <- genevec_ids
         # rowlabs <- ifelse(, genevec, genevec_ids)
       }
-      # save(file = "~/SCHNAPPsDebug/ideal.goterm_heatmap_updown_topgo.RData", list = ls())
+      # save(file = "~/SCHNAPPsDebug/idealImmunoTP.goterm_heatmap_updown_topgo.RData", list = ls())
       heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
       
     })
@@ -3767,7 +3767,7 @@ ideal<- function(dds_obj = NULL,
         rowlabs <- genevec_ids
         # rowlabs <- ifelse(, genevec, genevec_ids)
       }
-      # save(file = "~/SCHNAPPsDebug/ideal.goterm_heatmap_l1_topgo.RData", list = ls())
+      # save(file = "~/SCHNAPPsDebug/idealImmunoTP.goterm_heatmap_l1_topgo.RData", list = ls())
       heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
       
     })
@@ -3799,7 +3799,7 @@ ideal<- function(dds_obj = NULL,
         rowlabs <- genevec_ids
         # rowlabs <- ifelse(, genevec, genevec_ids)
       }
-      # save(file = "~/SCHNAPPsDebug/ideal.goterm_heatmap_l2_topgo.RData", list = ls())
+      # save(file = "~/SCHNAPPsDebug/idealImmunoTP.goterm_heatmap_l2_topgo.RData", list = ls())
       heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
       
     })
@@ -4569,8 +4569,8 @@ ideal<- function(dds_obj = NULL,
     #   rownames(sampleDistMatrix) <- NULL
     #   colors <- colorRampPalette(rev(brewer.pal(9, "Blues")))(255)
     #   # add information about other meta data
-    #   save(file = "~/SCHNAPPsDebug/ideal.RData", list = c(ls()))
-    #   # load(file = "~/SCHNAPPsDebug/ideal.RData")
+    #   save(file = "~/SCHNAPPsDebug/idealImmunoTP.RData", list = c(ls()))
+    #   # load(file = "~/SCHNAPPsDebug/idealImmunoTP.RData")
     #   cat(file = stderr(), "\npheatmap\n\n")
     #   browser()
     #   class(pheatmap(sampleDistMatrix,
@@ -5006,8 +5006,8 @@ ideal<- function(dds_obj = NULL,
       dds = values$dds_obj
       ann =values$annotation_obj
       cb=input$color_by
-      # save(file = "~/SCHNAPPsDebug/ideal2.RData", list = ls())
-      # cp = load("~/SCHNAPPsDebug/ideal2.RData")
+      # save(file = "~/SCHNAPPsDebug/idealImmunoTP2.RData", list = ls())
+      # cp = load("~/SCHNAPPsDebug/idealImmunoTP2.RData")
       ggplotCounts(dds, myid, intgroup=cb, annotation_obj = ann)
       p
     })
@@ -5061,7 +5061,7 @@ ideal<- function(dds_obj = NULL,
     # update aceEditor module
     observe({
       # loading rmd report from disk
-      inFile <- system.file("extdata", "irt.Rmd",package = "ideal")
+      inFile <- system.file("extdata", "irt.Rmd",package = "idealImmunoTP")
       
       isolate({
         if(!is.null(inFile) && !is.na(inFile)) {
@@ -5229,7 +5229,7 @@ ideal<- function(dds_obj = NULL,
           # better practice rather than assigning to global env - notify users of this
           assign(paste0("ideal_inputs_", tstamp),cur_inputs, envir = ideal_env)
           assign(paste0("ideal_values_", tstamp),cur_values, envir = ideal_env)
-          stopApp("ideal closed, state successfully saved to global R environment.")
+          stopApp("idealImmunoTP closed, state successfully saved to global R environment.")
           
           # assign(paste0("ideal_inputs_",
           #               gsub(" ","_",gsub("-","",gsub(":","-",as.character(Sys.time()))))),
@@ -5240,7 +5240,7 @@ ideal<- function(dds_obj = NULL,
           # stopApp("ideal closed, state successfully saved to global R environment.")
         })
       } else {
-        stopApp("ideal closed")
+        stopApp("idealImmunoTP closed")
         q("no")
       }
     })
@@ -5478,7 +5478,7 @@ ideal<- function(dds_obj = NULL,
   
   options(shiny.reactlog=TRUE)
   # launch the app!
-  shinyApp(ui = ideal_ui, server = ideal_server)
+  shinyApp(ui = idealImmunoTP_ui, server = idealImmunoTP_server)
 }
 
 

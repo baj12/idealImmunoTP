@@ -1,5 +1,5 @@
 ---
-title: "ideal User's Guide"
+title: "idealImmunoTP User's Guide"
 author:
 - name: Federico Marini
   affiliation: 
@@ -9,11 +9,11 @@ author:
 - name: Harald Binder
   affiliation: *id
 date: "`r BiocStyle::doc_date()`"
-package: "`r BiocStyle::pkg_ver('ideal')`"
+package: "`r BiocStyle::pkg_ver('idealImmunoTP')`"
 abstract: >
   In the scope of differential expression analysis, we provide the R/Bioconductor 
-  package `r Biocpkg("ideal")`, which serves as a web application to allow 
-  simultaneously for interactive and reproducible analysis. `r Biocpkg("ideal")`
+  package `r Biocpkg("idealImmunoTP")`, which serves as a web application to allow 
+  simultaneously for interactive and reproducible analysis. `r Biocpkg("idealImmunoTP")`
   guides the user throughout the steps of Differential Expression analysis and
   produces a wealth of effective visualizations to facilitate data interpretation,
   in a comprehensive and accessible way for a wide range of scientists.
@@ -21,25 +21,25 @@ output:
   BiocStyle::html_document:
     toc_float: true
 vignette: >
-  %\VignetteIndexEntry{ideal User's Guide}
+  %\VignetteIndexEntry{idealImmunoTP User's Guide}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}  
-  %\VignettePackage{ideal}
+  %\VignettePackage{idealImmunoTP}
   %\VignetteKeywords{GeneExpression, DifferentialExpression, RNASeq, Sequencing, Visualization, QualityControl, GUI, GeneSetEnrichment, ReportWriting}
 ---
 
 
-<!-- **Package**: `r Rpackage("ideal")` -->
+<!-- **Package**: `r Rpackage("idealImmunoTP")` -->
 
-<!-- **Authors**: `r packageDescription("ideal")[["Author"]]` -->
+<!-- **Authors**: `r packageDescription("idealImmunoTP")[["Author"]]` -->
 
-<!-- **Version**: `r packageDescription("ideal")$Version` -->
+<!-- **Version**: `r packageDescription("idealImmunoTP")$Version` -->
 
 **Compiled date**: `r Sys.Date()`
 
 **Last edited**: 2019-02-06
 
-**License**: `r packageDescription("ideal")[["License"]]`
+**License**: `r packageDescription("idealImmunoTP")[["License"]]`
 
 
 ```{r setup, echo=FALSE, warning=FALSE}
@@ -57,7 +57,7 @@ set.seed(42)
 <img src="ideal_logo_v2.png"/>
 </p>
 
-`r Biocpkg("ideal")` is an R package distributed as part of the [Bioconductor](http://bioconductor.org) project. 
+`r Biocpkg("idealImmunoTP")` is an R package distributed as part of the [Bioconductor](http://bioconductor.org) project. 
 To install the package, start R and enter:
 
 ```{r installation, eval=FALSE}
@@ -69,10 +69,10 @@ BiocManager::install("ideal")
 The GitHub repository for `r Biocpkg("ideal")` is https://github.com/federicomarini/ideal. 
 This is the place to file an issue, report a bug, or provide a pull request.
 
-Once `r Rpackage("ideal")` is installed, it can be loaded by the following command.
+Once `r Rpackage("idealImmunoTP")` is installed, it can be loaded by the following command.
 
 ```{r loadlibrary, message=FALSE}
-library("ideal")
+library("idealImmunoTP")
 ```
 
 # Introduction
@@ -95,7 +95,7 @@ Reproducibility is supported via state saving and automated report generation.
 If you use `r Biocpkg("ideal")` for your analysis, please cite it as here below:
 
 ```{r citation}
-citation("ideal")
+citation("idealImmunoTP")
 ```
 
 # Using the application
@@ -107,10 +107,10 @@ There are different ways to use `r Biocpkg("ideal")` for interactive differentia
 First load the library:
 
 ```{r using}
-library("ideal")
+library("idealImmunoTP")
 ```
 
-and then launch the app with the `ideal` function. 
+and then launch the app with the `idealImmunoTP` function. 
 This takes the following essential parameters as input:
 
 - `dds_obj` - a `DESeqDataSet` object. If not provided, then a `countmatrix` and a `expdesign` need to be provided. If none of the above is provided, it is possible to upload the data during the execution of the Shiny App
@@ -122,11 +122,11 @@ symbols. If not provided, it can be constructed during the execution via the `or
 
 Different modalities are supported to launch the application:
 
-- `ideal(dds_obj = dds, res_obj = res, annotation_obj = anno)`, where the objects are precomputed in the current session and provided as parameters
-- `ideal(dds_obj = dds)`, as in the command above, but where the result object is assembled at runtime 
-- `ideal(countmatrix = countmatrix, expdesign = expdesign)`, where instead of passing the defined `DESeqDataSet` object, its components are given, namely the count matrix (e.g. generated after a run of featureCounts or HTSeq-count) and a data frame with the experimental covariates. 
+- `idealImmunoTP(dds_obj = dds, res_obj = res, annotation_obj = anno)`, where the objects are precomputed in the current session and provided as parameters
+- `idealImmunoTP(dds_obj = dds)`, as in the command above, but where the result object is assembled at runtime 
+- `idealImmunoTP(countmatrix = countmatrix, expdesign = expdesign)`, where instead of passing the defined `DESeqDataSet` object, its components are given, namely the count matrix (e.g. generated after a run of featureCounts or HTSeq-count) and a data frame with the experimental covariates. 
   The design formula can be constructed interactively at runtime
-- `ideal()`, where the count matrix and experimental design can simply be uploaded at runtime, where all the derived objects can be extracted and computed live. 
+- `idealImmunoTP()`, where the count matrix and experimental design can simply be uploaded at runtime, where all the derived objects can be extracted and computed live. 
   These files have to be formatted as tabular text files, and a function in the package tries to guess the separator, based on heuristics of occurrencies per line of commonly used characters
 
 ## Accessing the public instance of `r Biocpkg("ideal")` 
@@ -144,9 +144,9 @@ This repository contains also detailed instruction to setup the running instance
 
 Please note that you still need `r Biocpkg("ideal")` to be installed there once during the setup phase - for this operation, you might require root administrator permissions. 
 
-<!-- Following the structure of \texttt{pcaExplorer}, the deployment as a standalone web application is easily achieved also for \texttt{ideal}, with the only requirement of a running Shiny Server. Handling of sensitive human patient data can thus occur in a secured way, e.g. with restricted access to an internal instance of the application. This will also avoid the need of external software installation for the users, which could moreover seamlessly access higher performing computing infrastructures. -->
+<!-- Following the structure of \texttt{pcaExplorer}, the deployment as a standalone web application is easily achieved also for \texttt{idealImmunoTP}, with the only requirement of a running Shiny Server. Handling of sensitive human patient data can thus occur in a secured way, e.g. with restricted access to an internal instance of the application. This will also avoid the need of external software installation for the users, which could moreover seamlessly access higher performing computing infrastructures. -->
 
-<!-- This implementation of \texttt{ideal} is made available at github.com/federicomarini/ideal\_serveredition  -->
+<!-- This implementation of \texttt{idealImmunoTP} is made available at github.com/federicomarini/ideal\_serveredition  -->
 
 # Getting to know the user interface and the functionality
 
@@ -193,7 +193,7 @@ Dedicated step-by-step procedures are also available in each individual tab.
 
 The task menu, accessible by clicking on the cog icon in the upper right part of the application, provides two functionalities:
 
-- `Exit ideal & save` will close the application and store the content of the `input` and `values` reactive objects in a list of two elements in the `ideal_env` environment, respectively called `ideal_inputs_YYYYMMDD_HHMMSS` and `ideal_values_YYYYMMDD_HHMMSS`
+- `Exit idealImmunoTP & save` will close the application and store the content of the `input` and `values` reactive objects in a list of two elements in the `ideal_env` environment, respectively called `ideal_inputs_YYYYMMDD_HHMMSS` and `ideal_values_YYYYMMDD_HHMMSS`
 - `Save State as .RData` will similarly store `LiveInputs` and `r_data` in a binary file named `idealState_YYYYMMDD_HHMMSS.Rdata`, without closing the application 
            
 # The main app panels
@@ -272,7 +272,7 @@ To avoid repeating this manually, the user can also quickly upload a list of gen
 </p>
 
 The Functional Analysis tab takes the user from the simple lists of DE genes to insight on the affected biological pathways, with three approaches based on the Gene Ontology (GO) databases.
-This panel of ideal has a slim interface to the following methods for performing functional analysis:
+This panel of idealImmunoTP has a slim interface to the following methods for performing functional analysis:
 
 - `limma::goana` for the quick yet standard implementation
 - `topGO`, particularly valuable for pruning terms which are topologically less meaningful than their specific nodes
@@ -353,9 +353,9 @@ res_airway <- results(dds_airway, contrast = c("dex","trt","untrt"),alpha = 0.05
 Then launch the app itself.
 
 ```{r launchairway, eval=FALSE}
-ideal(dds_obj = dds_airway)
+idealImmunoTP(dds_obj = dds_airway)
 # or also providing the results object
-ideal(dds_obj = dds_airway,res_obj = res_airway)
+idealImmunoTP(dds_obj = dds_airway,res_obj = res_airway)
 ```
 
 The `annotation` for this dataset can be built manually by exploiting the `r Biocpkg("org.Hs.eg.db")` package.
@@ -375,7 +375,7 @@ or alternatively, can be handily created at runtime in the optional step.
 Then again, the app can be launched with: 
 
 ```{r launchairwayanno, eval=FALSE}
-ideal(dds_obj = dds_airway,
+idealImmunoTP(dds_obj = dds_airway,
       annotation_obj = annotation_airway)
 ```
 
@@ -456,9 +456,9 @@ limma_resu <- DESeqResults(DataFrame(tbllimma))
 After preparing the objects, you can launch the app with the following command:
 
 ```{r ideal-edgerlimma, eval=FALSE}
-ideal(redo_dds_airway,edger_resu)
+idealImmunoTP(redo_dds_airway,edger_resu)
 # or ...
-ideal(redo_dds_airway,limma_resu)
+idealImmunoTP(redo_dds_airway,limma_resu)
 ```
 
 Basically, you need a `data.frame` (e.g. `myresults_df`) with 3 columns to create the `DESeqResults` object to be passed to the app, with this names:
@@ -503,8 +503,8 @@ myde <- deseqresult2DEgenes(res_airway,FDR = 0.05)
 myde$symbol <- mapIds(org.Hs.eg.db,keys = as.character(myde$id),column = "SYMBOL",keytype="ENSEMBL")
 
 myde_enhanced <- myde
-myde_enhanced$id <- ideal:::createLinkENS(myde_enhanced$id,species = "Homo_sapiens")
-myde_enhanced$symbol <- ideal:::createLinkGeneSymbol(myde_enhanced$symbol)
+myde_enhanced$id <- idealImmunoTP:::createLinkENS(myde_enhanced$id,species = "Homo_sapiens")
+myde_enhanced$symbol <- idealImmunoTP:::createLinkGeneSymbol(myde_enhanced$symbol)
 DT::datatable(myde_enhanced[1:100,], escape = FALSE)
 ```
 
@@ -559,7 +559,7 @@ As for the results, this table can be enhanced by adding the links for each cate
 ```{r go-enhance, eval=FALSE}
 mygo_enhanced <- mygo
 # using the unexported function to link the GO term to the entry in the AmiGO db
-mygo_enhanced$category <- ideal:::createLinkGO(mygo_enhanced$category)
+mygo_enhanced$category <- idealImmunoTP:::createLinkGO(mygo_enhanced$category)
 DT::datatable(mygo_enhanced,escape=FALSE)
 ```
 
@@ -630,10 +630,10 @@ The separator list can be provided as a vector in `sep_list` (defaults to comma,
 The heuristics is based on the number of occurrencies of each separator in each line.
 
 ```{r sepguess}
-sepguesser(system.file("extdata/design_commas.txt",package = "ideal"))
-sepguesser(system.file("extdata/design_semicolons.txt",package = "ideal"))
-sepguesser(system.file("extdata/design_spaces.txt",package = "ideal"))
-anyfile <- system.file("extdata/design_tabs.txt",package = "ideal") # we know it is going to be TAB
+sepguesser(system.file("extdata/design_commas.txt",package = "idealImmunoTP"))
+sepguesser(system.file("extdata/design_semicolons.txt",package = "idealImmunoTP"))
+sepguesser(system.file("extdata/design_spaces.txt",package = "idealImmunoTP"))
+anyfile <- system.file("extdata/design_tabs.txt",package = "idealImmunoTP") # we know it is going to be TAB
 guessed_sep <- sepguesser(anyfile)
 guessed_sep
 # to be used for reading in the same file, without having to specify the sep
@@ -653,7 +653,7 @@ While running the app, the user can
 
 This functionality to retrieve and share the output is provided by action buttons that are placed close to each element of interest. 
 
-# Enhancing `ideal`
+# Enhancing `idealImmunoTP`
 
 The `annotation_obj` is a quick helper to make your data and results easier to read. For creating it, you can exploit the corresponding `org.XX.eg.db` packages, available in Bioconductor.
 

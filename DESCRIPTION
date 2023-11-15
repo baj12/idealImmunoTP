@@ -1,4 +1,4 @@
-Package: ideal
+Package: idealImmunoTP
 Type: Package
 Title: Interactive Differential Expression AnaLysis
 Version: 1.11.10
@@ -66,5 +66,5 @@ BugReports: https://github.com/federicomarini/ideal/issues
 biocViews: ImmunoOncology, GeneExpression, DifferentialExpression, RNASeq, Sequencing,
     Visualization, QualityControl, GUI, GeneSetEnrichment, ReportWriting
 VignetteBuilder: knitr
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.3
 Encoding: UTF-8
