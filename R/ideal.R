@@ -1172,6 +1172,12 @@ idealImmunoTP<- function(dds_obj = NULL,
                     width = 8, offset = 2,
                     shinyjqui::jqui_resizable(plotlyOutput("sig_heat"))
                   )
+                ),
+                fluidRow(
+                  column(
+                    width = 8, offset = 2,
+                    verbatimTextOutput("sig_heat_genes")
+                  )
                 )
               ),
               conditionalPanel(
@@ -4696,6 +4702,27 @@ idealImmunoTP<- function(dds_obj = NULL,
         
       })
       
+      output$sig_heat_genes <- renderPrint({
+        annovec = values$anno_vec
+        mydata <- assay(values$vst_obj)
+        my_signature = values$gene_signatures[[input$sig_selectsig]]
+        # save(file = "~/SCHNAPPsDebug/ideal.sig_heatmap.RData", list = c(ls()))
+        # load("~/SCHNAPPsDebug/ideal.sig_heatmap.RData")
+        signature_original_ids <- names(annovec)[match(my_signature,annovec)]
+        
+        sig_to_keep <- (signature_original_ids %in% rownames(mydata))#
+        my_signature <- my_signature[sig_to_keep]
+        signature_original_ids <- signature_original_ids[sig_to_keep]
+        
+        mydata_sig <- mydata[signature_original_ids,]
+        
+        # to avoid problems later, remove the ones non-expressed and with variance = 0
+        to_remove <- apply(mydata_sig, 1, var) == 0
+        mydata_sig <- mydata_sig[!to_remove,]
+        mydata_sig <- mydata[signature_original_ids,]
+
+        paste(rownames(mydata_sig), collapse = " ")
+      })
       
       # server ui update/observers --------------------------------------------------------
       output$color_by <- renderUI({
