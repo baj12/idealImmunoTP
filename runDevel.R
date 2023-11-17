@@ -98,7 +98,8 @@ countmatrix = NULL
   # runApp(app)
   cp = load("idealState_20231116_113912.RData")
 # idealImmunoTP(dds_obj = dds_airway, annotation_obj = annotation_airway, res_obj = res_airway)
-idealImmunoTP(dds_obj = r_data$dds_obj, res_obj = r_data$res_obj, annotation_obj = r_data$annotation_obj)
+  source("R/ideal.R", local = T); 
+  idealImmunoTP(dds_obj = r_data$dds_obj, res_obj = r_data$res_obj, annotation_obj = r_data$annotation_obj, expdesign = r_data$expdesign)
 
 # cp = load(file = "test.Rdata")
 # dds_obj = ideal_env$ideal_values_20210526_152858$dds_obj 
