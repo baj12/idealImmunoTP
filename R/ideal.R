@@ -4703,8 +4703,17 @@ idealImmunoTP<- function(dds_obj = NULL,
       })
       
       output$sig_heat_genes <- renderPrint({
+        validate(
+          need(!is.null(values$gene_signatures), message = "Please provide some gene signatures in gmt format"),
+          need(!is.null(values$vst_obj), message = "Compute the vst transformed data"),
+          need(!is.null(values$anno_vec), message = "Setup the conversion between data ids and signature ids"),
+          need((!is.null(values$res_obj) | !input$sig_useDEonly),
+               message = "Please compute the results first if you want to subset to DE genes only"),
+          need(input$sig_selectsig!="", message = "Select a signature")
+        )
         annovec = values$anno_vec
         mydata <- assay(values$vst_obj)
+        
         my_signature = values$gene_signatures[[input$sig_selectsig]]
         # save(file = "~/SCHNAPPsDebug/ideal.sig_heatmap.RData", list = c(ls()))
         # load("~/SCHNAPPsDebug/ideal.sig_heatmap.RData")
