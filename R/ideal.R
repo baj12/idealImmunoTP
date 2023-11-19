@@ -119,7 +119,8 @@ idealImmunoTP<- function(dds_obj = NULL,
   #   shinyApp(ui = idealImmunoTP_ui, server = idealImmunoTP_server)
   
   # ui definition -----------------------------------------------------------
-  idealImmunoTP_ui <- shinydashboard::dashboardPage(
+  idealImmunoTP_ui <- function(req) {
+    shinydashboard::dashboardPage(
     title = "idealImmunoTP - Interactive Differential Expression AnaLysis for immunology TP",
     # header definition -----------------------------------------------------------
     shinydashboard::dashboardHeader(
@@ -207,7 +208,8 @@ idealImmunoTP<- function(dds_obj = NULL,
                            startExpanded = TRUE,
                            actionButton("btn", "Click me for a quick tour", icon("info"),
                                         style="color: #ffffff; background-color: #0092AC; border-color: #2e6da4")
-                  )
+                  ),
+                  bookmarkButton()
       )
     ), # end of dashboardSidebar
     
@@ -1286,7 +1288,7 @@ idealImmunoTP<- function(dds_obj = NULL,
       skin="black"
     ) # end of dashboardPage
     
-    
+  }
     # server definition -----------------------------------------------------------
     #nocov start
     idealImmunoTP_server <- shinyServer(function(input, output, session) {
@@ -1390,7 +1392,40 @@ idealImmunoTP<- function(dds_obj = NULL,
         )
       })
       
+      values <- reactiveValues()
       
+      ### bookmarking --------------------------------------------------------------------------
+      ### 
+      onBookmark(function(state) {
+        # browser()
+        state$values$ValList = list()
+        valList = reactiveValuesToList(values)
+        for(na in names(valList)){
+          state$values$ValList[[na]]<- valList[[na]]
+        }
+      })
+      
+      onRestore(function(state) {
+        # browser()
+        vList = state$values$ValList
+        for(na in names(vList)){
+          values[[na]] = state$values$ValList[[na]]
+        }
+        values$restoreBookmark = TRUE
+        dds_obj <<- values$dds_obj
+        countmatrix <<- values$countmatrix 
+        expdesign <<- values$expdesign 
+        
+        res_obj <<- values$res_obj
+        annotation_obj <<- values$annotation_obj
+        gene_signatures <<- values$gene_signatures
+        
+      })
+      
+      onRestored(function(state){
+        # browser()
+        values$restoreBookmark = FALSE
+      })
       
       ## Update directory
       userdir <- tempfile()
@@ -1407,7 +1442,6 @@ idealImmunoTP<- function(dds_obj = NULL,
       # )
       
       # will store all the reactive values relevant to the app
-      values <- reactiveValues()
       
       values$countmatrix <- countmatrix
       values$expdesign <- expdesign
@@ -1595,6 +1629,7 @@ idealImmunoTP<- function(dds_obj = NULL,
             values$expdesign <- ed_airway
             incProgress(0.3, detail = "Experimental metadata loaded")
             # just to be sure, erase the annotation and the rest
+            # browser()
             values$dds_obj <- NULL
             values$annotation_obj <- NULL
             values$res_obj <- NULL
@@ -1916,7 +1951,7 @@ idealImmunoTP<- function(dds_obj = NULL,
         if (is.null(values$dds_obj) ) ### and not provided already with sep annotation?
           return(NULL)
         shiny::validate(
-          need(input$speciesSelect != "",
+          need(values$cur_species != "",
                "Select a species first in the panel")
         )
         actionButton("button_getanno","Retrieve the gene symbol annotation for the uploaded data", class = "btn btn-primary")
@@ -2033,7 +2068,12 @@ idealImmunoTP<- function(dds_obj = NULL,
         if (is.null(values$geneFilter)) {
           updateTextInput(session, inputId = "geneFilter", value = "^MT-|^RP")
         } 
+        if(input$geneFilter == values$geneFilter){
+          # nothing changed
+          return(NULL)
+        }
         values$geneFilter = input$geneFilter
+        # browser()
         values$dds_obj = NULL
       })
       # http://stackoverflow.com/questions/17024685/how-to-use-a-character-string-in-formula
@@ -2133,6 +2173,7 @@ idealImmunoTP<- function(dds_obj = NULL,
       # as in http://stackoverflow.com/questions/29716868/r-shiny-how-to-get-an-reactive-data-frame-updated-each-time-pressing-an-actionb
       observeEvent(input$uploadcmfile,
                    {
+                     # browser()
                      values$countmatrix <- readCountmatrix()
                      values$dds_obj <- NULL
                      values$res_obj <- NULL
@@ -2140,6 +2181,10 @@ idealImmunoTP<- function(dds_obj = NULL,
       
       observeEvent(input$uploadmetadatafile,
                    {
+                     if("restoreBookmark" %in% names(values) & values$restoreBookmark & !is.null(values$expdesign)){
+                       return()
+                     }
+                     # browser()
                      values$expdesign <- readMetadata()
                      values$dds_obj <- NULL
                      values$res_obj <- NULL
@@ -2205,11 +2250,11 @@ idealImmunoTP<- function(dds_obj = NULL,
         if (is.null(values$dds_obj)) #
           return(NULL)
         shiny::validate(
-          need(input$speciesSelect!="",
+          need(values$cur_species!="",
                "Select a species - requires the corresponding annotation package"
           )
         )
-        annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect]
+        annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
         shiny::validate(
           need(require(annopkg,character.only=TRUE),
                paste0("The package ",annopkg, " is not installed/available. Try installing it with BiocManager::install('",annopkg,"')"))
@@ -2341,6 +2386,7 @@ idealImmunoTP<- function(dds_obj = NULL,
       
       observeEvent(input$speciesSelect,
                    {
+                     values$cur_species <- input$speciesSelect
                      curr_idtype <- values$cur_type
                      updateSelectInput(session, inputId = "idtype", selected = curr_idtype)
                    }
@@ -2777,9 +2823,11 @@ idealImmunoTP<- function(dds_obj = NULL,
       
       
       # DE genes lists ----------------------------------------------------------
-      values$genelistUP <- reactive({
+      genelistUP <- reactive({
         listUP <- tryCatch({
+          # browser()
           res_tbl <- deseqresult2DEgenes(values$res_obj, FDR = input$FDR)
+          if(nrow(res_tbl)<1) return(NULL)
           res_tbl_UP <- res_tbl[res_tbl$log2FoldChange > 0 & !is.na(res_tbl$padj),]
           # res_tbl_DOWN <- res_tbl[res_tbl$log2FoldChange < 0 & !is.na(res_tbl$padj),]
           
@@ -2801,8 +2849,10 @@ idealImmunoTP<- function(dds_obj = NULL,
         return(listUP)
       })
       
-      values$genelistDOWN <- reactive({
+      genelistDOWN <- reactive({
+        # browser()
         res_tbl <- deseqresult2DEgenes(values$res_obj, FDR = input$FDR)
+        if(nrow(res_tbl)<1) return(NULL)
         # res_tbl_UP <- res_tbl[res_tbl$log2FoldChange > 0 & !is.na(res_tbl$padj),]
         res_tbl_DOWN <- res_tbl[res_tbl$log2FoldChange < 0 & !is.na(res_tbl$padj),]
         
@@ -2821,9 +2871,10 @@ idealImmunoTP<- function(dds_obj = NULL,
         return(listDOWN)
       })
       
-      values$genelistUPDOWN <- reactive({
+      genelistUPDOWN <- reactive({
+        # browser()
         res_tbl <- deseqresult2DEgenes(values$res_obj, FDR = input$FDR)
-        
+        if(nrow(res_tbl)<1) return(NULL)
         if("symbol" %in% colnames(values$res_obj)) { 
           if(!is.null(values$annotation_obj)) {
             res_tbl$symbol <- values$annotation_obj$gene_name[
@@ -2842,9 +2893,9 @@ idealImmunoTP<- function(dds_obj = NULL,
       ## list of gene lists
       gll <- reactive({
         # browser()
-        mylist <- list(listUP = values$genelistUP(),
-                       listDOWN = values$genelistDOWN(),
-                       listUPDOWN = values$genelistUPDOWN(),
+        mylist <- list(listUP = genelistUP(),
+                       listDOWN = genelistDOWN(),
+                       listUPDOWN = genelistUPDOWN(),
                        list1 = as.character(values$genelist1$`Gene Symbol`),
                        list2 = as.character(values$genelist2$`Gene Symbol`),
                        list3 = as.character(values$genelist3$`Gene Symbol`),
@@ -2956,20 +3007,20 @@ idealImmunoTP<- function(dds_obj = NULL,
       })
       
       output$printUPgenes <- renderPrint({
-        print(head(values$genelistUP()))
-        print(str(values$genelistUP()))
+        print(head(genelistUP()))
+        print(str(genelistUP()))
         
         organism <- annoSpecies_df[values$cur_species,]$species_short
         backgroundgenes <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj))>0]
         inputType <- "SYMBOL" # will be replaced by input$...
         # annopkg <- paste0("org.",organism,".eg.db")
         annopkg <- annoSpecies_df[values$cur_species,]$pkg
-        listGenesEntrez <- as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = values$genelistUP(),
+        listGenesEntrez <- as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = genelistUP(),
                                                               column="ENTREZID", keytype=inputType))
         listBackgroundEntrez <- as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
-                                                                   column="ENTREZID", keytype=input$idtype))
+                                                                   column="ENTREZID", keytype=values$cur_type))
         
-        # print(values$genelistUP())
+        # print(genelistUP())
         print(str(listGenesEntrez))
         print(class(listGenesEntrez))
         print(str(listBackgroundEntrez))
@@ -2986,11 +3037,12 @@ idealImmunoTP<- function(dds_obj = NULL,
       ### UP
       observeEvent(input$button_enrUP,
                    {
+                     # browser()
                      withProgress(message="Performing Gene Set Enrichment on upregulated genes...",value = 0,{
-                       if (is.null(input$speciesSelect)) {
+                       if (is.null(values$cur_species)) {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
-                       } else if (is.null(values$genelistUP())) {
+                       } else if (is.null(genelistUP())) {
                          showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
                          return(NULL)
                        } else if (is.null(values$cur_species) | values$cur_species =="") {
@@ -3005,10 +3057,10 @@ idealImmunoTP<- function(dds_obj = NULL,
                          if (!require(annopkg,character.only=TRUE)) {
                            stop("The package",annopkg, "is not installed/available. Try installing it with BiocManager::install() ?")
                          }
-                         listGenesEntrez <-  as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = values$genelistUP(),
+                         listGenesEntrez <-  as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = genelistUP(),
                                                                                 column="ENTREZID", keytype=inputType))
                          listBackgroundEntrez <-  as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
-                                                                                     column="ENTREZID", keytype=input$idtype))
+                                                                                     column="ENTREZID", keytype=values$cur_type))
                          incProgress(0.1, detail = "IDs mapped")
                          values$gse_up <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
                                                        ontology= input$go_cats[1],
@@ -3018,7 +3070,7 @@ idealImmunoTP<- function(dds_obj = NULL,
                          go_ids <- rownames(values$gse_up)
                          allegs_list <- lapply(go_ids, function(arg) AnnotationDbi::get(arg, get(paste0("org.",organism,".egGO2ALLEGS"))))
                          genes_list <- lapply(allegs_list, function(arg) unlist(AnnotationDbi::mget(arg,get(paste0("org.",organism,".egSYMBOL")))))
-                         degenes <- values$genelistUP()
+                         degenes <- genelistUP()
                          DEgenes_list <- lapply(genes_list, function(arg) intersect(arg,degenes))
                          
                          values$gse_up$genes <- unlist(lapply(DEgenes_list,function(arg) paste(arg,collapse=",")))
@@ -3030,23 +3082,23 @@ idealImmunoTP<- function(dds_obj = NULL,
                    {
                      # browser()
                      withProgress(message="GOSEQ - Performing Gene Set Enrichment on upregulated genes...",value = 0,{
-                       if (is.null(input$speciesSelect)) {
+                       if (is.null(values$cur_species)) {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
-                       } else if (is.null(values$genelistUP())) {
+                       } else if (is.null(genelistUP())) {
                          showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
                          return(NULL)
                        } else if (is.null(values$cur_species) | values$cur_species =="") {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
                        } else {
-                         de.genes <- values$genelistUP() # assumed to be in symbols
+                         de.genes <- genelistUP() # assumed to be in symbols
                          assayed.genes.ids <- rownames(values$dds_obj) # as IDs, but then to be converted back
-                         if (!input$idtype == "SYMBOL") {
+                         if (!values$cur_type == "SYMBOL") {
                            assayed.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                                        keys=assayed.genes.ids,
                                                        column="SYMBOL",
-                                                       keytype=input$idtype,
+                                                       keytype=values$cur_type,
                                                        multiVals="first")
                          } else {
                            assayed.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
@@ -3085,25 +3137,25 @@ idealImmunoTP<- function(dds_obj = NULL,
                    {
                      # browser()
                      withProgress(message="TOPGO - Performing Gene Set Enrichment on upregulated genes...",value = 0,{
-                       if (is.null(input$speciesSelect)) {
+                       if (is.null(values$cur_species)) {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
-                       } else if (is.null(values$genelistUP())) {
+                       } else if (is.null(genelistUP())) {
                          showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
                          return(NULL)
                        } else if (is.null(values$cur_species) | values$cur_species =="") {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
                        } else {
-                         de_symbols <- values$genelistUP() # assumed to be in symbols
+                         de_symbols <- genelistUP() # assumed to be in symbols
                          bg_ids <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj)) > 0]
-                         if (input$idtype == "SYMBOL") {
+                         if (values$cur_type == "SYMBOL") {
                            bg_symbols <- bg_ids
                          } else {
                            bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                                 keys=bg_ids,
                                                 column="SYMBOL",
-                                                keytype=input$idtype,
+                                                keytype=values$cur_type,
                                                 multiVals="first")
                          }
                          incProgress(0.1, detail = "IDs mapped")
@@ -3122,10 +3174,10 @@ idealImmunoTP<- function(dds_obj = NULL,
       observeEvent(input$button_enrDOWN,
                    {
                      withProgress(message="Performing Gene Set Enrichment on downregulated genes...",value = 0,{
-                       if (is.null(input$speciesSelect)) {
+                       if (is.null(values$cur_species)) {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
-                       } else if (is.null(values$genelistDOWN())) {
+                       } else if (is.null(genelistDOWN())) {
                          showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
                          return(NULL)
                        } else if (is.null(values$cur_species) | values$cur_species =="") {
@@ -3139,10 +3191,10 @@ idealImmunoTP<- function(dds_obj = NULL,
                          if (!require(annopkg,character.only=TRUE)) {
                            stop("The package",annopkg, "is not installed/available. Try installing it with BiocManager::install() ?")
                          }
-                         listGenesEntrez <-  as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = values$genelistDOWN(),
+                         listGenesEntrez <-  as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = genelistDOWN(),
                                                                                 column="ENTREZID", keytype=inputType))
                          listBackgroundEntrez <-  as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
-                                                                                     column="ENTREZID", keytype=input$idtype))
+                                                                                     column="ENTREZID", keytype=values$cur_type))
                          incProgress(0.1, detail = "IDs mapped")
                          values$gse_down <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
                                                          ontology=input$go_cats[1],
@@ -3153,7 +3205,7 @@ idealImmunoTP<- function(dds_obj = NULL,
                          go_ids <- rownames(values$gse_down)
                          allegs_list <- lapply(go_ids, function(arg) AnnotationDbi::get(arg, get(paste0("org.",organism,".egGO2ALLEGS"))))
                          genes_list <- lapply(allegs_list, function(arg) unlist(AnnotationDbi::mget(arg,get(paste0("org.",organism,".egSYMBOL")))))
-                         degenes <- values$genelistDOWN()
+                         degenes <- genelistDOWN()
                          DEgenes_list <- lapply(genes_list, function(arg) intersect(arg,degenes))
                          
                          values$gse_down$genes <- unlist(lapply(DEgenes_list,function(arg) paste(arg,collapse=",")))
@@ -3164,22 +3216,22 @@ idealImmunoTP<- function(dds_obj = NULL,
       observeEvent(input$button_enrDOWN_goseq,
                    {
                      withProgress(message="GOSEQ - Performing Gene Set Enrichment on downregulated genes...",value = 0,{
-                       if (is.null(input$speciesSelect)) {
+                       if (is.null(values$cur_species)) {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
-                       } else if (is.null(values$genelistDOWN())) {
+                       } else if (is.null(genelistDOWN())) {
                          showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
                          return(NULL)
                        } else if (is.null(values$cur_species) | values$cur_species =="") {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
                        } else {
-                         de.genes <- values$genelistDOWN() # assumed to be in symbols
+                         de.genes <- genelistDOWN() # assumed to be in symbols
                          assayed.genes.ids <- rownames(values$dds_obj) # as IDs, but then to be converted back
                          assayed.genes <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                                  keys=assayed.genes.ids,
                                                  column="SYMBOL",
-                                                 keytype=input$idtype,
+                                                 keytype=values$cur_type,
                                                  multiVals="first")
                          de.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                                 keys=de.genes,
@@ -3207,22 +3259,22 @@ idealImmunoTP<- function(dds_obj = NULL,
       observeEvent(input$button_enrDOWN_topgo,
                    {
                      withProgress(message="TOPGO - Performing Gene Set Enrichment on downregulated genes...",value = 0,{
-                       if (is.null(input$speciesSelect)) {
+                       if (is.null(values$cur_species)) {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
-                       } else if (is.null(values$genelistDOWN())) {
+                       } else if (is.null(genelistDOWN())) {
                          showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
                          return(NULL)
                        } else if (is.null(values$cur_species) | values$cur_species =="") {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
                        } else {
-                         de_symbols <- values$genelistDOWN() # assumed to be in symbols
+                         de_symbols <- genelistDOWN() # assumed to be in symbols
                          bg_ids <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj)) > 0]
                          bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                               keys=bg_ids,
                                               column="SYMBOL",
-                                              keytype=input$idtype,
+                                              keytype=values$cur_type,
                                               multiVals="first")
                          incProgress(0.1, detail = "IDs mapped")
                          # library(topGO)
@@ -3241,10 +3293,10 @@ idealImmunoTP<- function(dds_obj = NULL,
       observeEvent(input$button_enrUPDOWN,
                    {
                      withProgress(message="Performing Gene Set Enrichment on up- and downregulated genes...",value = 0,{
-                       if (is.null(input$speciesSelect)) {
+                       if (is.null(values$cur_species)) {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
-                       } else if (is.null(values$genelistUPDOWN())) {
+                       } else if (is.null(genelistUPDOWN())) {
                          showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
                          return(NULL)
                        } else if (is.null(values$cur_species) | values$cur_species =="") {
@@ -3259,10 +3311,10 @@ idealImmunoTP<- function(dds_obj = NULL,
                          if (!require(annopkg,character.only=TRUE)) {
                            stop("The package",annopkg, "is not installed/available. Try installing it with BiocManager::install() ?")
                          }
-                         listGenesEntrez <-  as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = values$genelistUPDOWN(),
+                         listGenesEntrez <-  as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = genelistUPDOWN(),
                                                                                 column="ENTREZID", keytype=inputType))
                          listBackgroundEntrez <-  as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
-                                                                                     column="ENTREZID", keytype=input$idtype))
+                                                                                     column="ENTREZID", keytype=values$cur_type))
                          incProgress(0.1, detail = "IDs mapped")
                          values$gse_updown <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
                                                            ontology=input$go_cats[1],
@@ -3272,7 +3324,7 @@ idealImmunoTP<- function(dds_obj = NULL,
                          go_ids <- rownames(values$gse_updown)
                          allegs_list <- lapply(go_ids, function(arg) AnnotationDbi::get(arg, get(paste0("org.",organism,".egGO2ALLEGS"))))
                          genes_list <- lapply(allegs_list, function(arg) unlist(AnnotationDbi::mget(arg,get(paste0("org.",organism,".egSYMBOL")))))
-                         degenes <- values$genelistDOWN()
+                         degenes <- genelistDOWN()
                          DEgenes_list <- lapply(genes_list, function(arg) intersect(arg,degenes))
                          
                          # values$gse_down$genes[1:20] <- DEgenes_list
@@ -3285,22 +3337,22 @@ idealImmunoTP<- function(dds_obj = NULL,
       observeEvent(input$button_enrUPDOWN_goseq,
                    {
                      withProgress(message="GOSEQ - Performing Gene Set Enrichment on up and downregulated genes...",value = 0,{
-                       if (is.null(input$speciesSelect)) {
+                       if (is.null(values$cur_species)) {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
-                       } else if (is.null(values$genelistUPDOWN())) {
+                       } else if (is.null(genelistUPDOWN())) {
                          showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
                          return(NULL)
                        } else if (is.null(values$cur_species) | values$cur_species =="") {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
                        } else {
-                         de.genes <- values$genelistUPDOWN() # assumed to be in symbols
+                         de.genes <- genelistUPDOWN() # assumed to be in symbols
                          assayed.genes.ids <- rownames(values$dds_obj) # as IDs, but then to be converted back
                          assayed.genes <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                                  keys=assayed.genes.ids,
                                                  column="SYMBOL",
-                                                 keytype=input$idtype,
+                                                 keytype=values$cur_type,
                                                  multiVals="first")
                          de.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                                 keys=de.genes,
@@ -3330,10 +3382,10 @@ idealImmunoTP<- function(dds_obj = NULL,
                    {
                      withProgress(message="TOPGO - Performing Gene Set Enrichment on up and downregulated genes...",value = 0,{
                        
-                       if (is.null(input$speciesSelect)) {
+                       if (is.null(values$cur_species)) {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
-                       } else if (is.null(values$genelistUPDOWN())) {
+                       } else if (is.null(genelistUPDOWN())) {
                          showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
                          return(NULL)
                        } else if (is.null(values$cur_species) | values$cur_species =="") {
@@ -3341,12 +3393,12 @@ idealImmunoTP<- function(dds_obj = NULL,
                          return(NULL)
                        } else {
                          
-                         de_symbols <- values$genelistUPDOWN() # assumed to be in symbols
+                         de_symbols <- genelistUPDOWN() # assumed to be in symbols
                          bg_ids <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj)) > 0]
                          bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                               keys=bg_ids,
                                               column="SYMBOL",
-                                              keytype=input$idtype,
+                                              keytype=values$cur_type,
                                               multiVals="first")
                          incProgress(0.1, detail = "IDs mapped")
                          # library(topGO)
@@ -3365,7 +3417,7 @@ idealImmunoTP<- function(dds_obj = NULL,
       observeEvent(input$button_enrLIST1,
                    {
                      withProgress(message="Performing Gene Set Enrichment on upregulated genes...",value = 0,{
-                       if (is.null(input$speciesSelect)) {
+                       if (is.null(values$cur_species)) {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
                        } else if (is.null(values$cur_species) | values$cur_species =="") {
@@ -3384,7 +3436,7 @@ idealImmunoTP<- function(dds_obj = NULL,
                          listGenesEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = as.character(values$genelist1$`Gene Symbol`),
                                                                   column="ENTREZID", keytype=inputType)
                          listBackgroundEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
-                                                                       column="ENTREZID", keytype=input$idtype)
+                                                                       column="ENTREZID", keytype=values$cur_type)
                          incProgress(0.1, detail = "IDs mapped")
                          values$gse_list1 <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
                                                           ontology=input$go_cats[1],
@@ -3394,7 +3446,7 @@ idealImmunoTP<- function(dds_obj = NULL,
                          go_ids <- rownames(values$gse_list1)
                          allegs_list <- lapply(go_ids, function(arg) AnnotationDbi::get(arg, get(paste0("org.",organism,".egGO2ALLEGS"))))
                          genes_list <- lapply(allegs_list, function(arg) unlist(AnnotationDbi::mget(arg,get(paste0("org.",organism,".egSYMBOL")))))
-                         degenes <- values$genelistDOWN()
+                         degenes <- genelistDOWN()
                          DEgenes_list <- lapply(genes_list, function(arg) intersect(arg,degenes))
                          
                          values$gse_list1$genes <- unlist(lapply(DEgenes_list,function(arg) paste(arg,collapse=",")))
@@ -3407,7 +3459,7 @@ idealImmunoTP<- function(dds_obj = NULL,
                      # browser()
                      
                      withProgress(message="GOSEQ - Performing Gene Set Enrichment on list 1 genes...",value = 0,{
-                       if (is.null(input$speciesSelect)) {
+                       if (is.null(values$cur_species)) {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
                        } else if (is.null(values$cur_species) | values$cur_species =="") {
@@ -3425,7 +3477,7 @@ idealImmunoTP<- function(dds_obj = NULL,
                            assayed.genes <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                                    keys=assayed.genes.ids,
                                                    column="ENSEMBL",
-                                                   keytype=input$idtype,
+                                                   keytype=values$cur_type,
                                                    multiVals="first")
                            de.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                                   keys=de.genes,
@@ -3461,7 +3513,7 @@ idealImmunoTP<- function(dds_obj = NULL,
       observeEvent(input$button_enrLIST1_topgo,
                    {
                      withProgress(message="TOPGO - Performing Gene Set Enrichment on list1 genes...",value = 0,{
-                       if (is.null(input$speciesSelect)) {
+                       if (is.null(values$cur_species)) {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
                        } else if (is.null(values$cur_species) | values$cur_species =="") {
@@ -3477,7 +3529,7 @@ idealImmunoTP<- function(dds_obj = NULL,
                            bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                                 keys=bg_ids,
                                                 column="SYMBOL",
-                                                keytype=input$idtype,
+                                                keytype=values$cur_type,
                                                 multiVals="first")
                            incProgress(0.1, detail = "IDs mapped")
                            # library(topGO)
@@ -3503,7 +3555,7 @@ idealImmunoTP<- function(dds_obj = NULL,
       observeEvent(input$button_enrLIST2,
                    {
                      withProgress(message="Performing Gene Set Enrichment on upregulated genes...",value = 0,{
-                       if (is.null(input$speciesSelect)) {
+                       if (is.null(values$cur_species)) {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
                        } else if (is.null(values$cur_species) | values$cur_species =="") {
@@ -3524,7 +3576,7 @@ idealImmunoTP<- function(dds_obj = NULL,
                            listGenesEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = as.character(values$genelist2$`Gene Symbol`),
                                                                     column="ENTREZID", keytype=inputType)
                            listBackgroundEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
-                                                                         column="ENTREZID", keytype=input$idtype)
+                                                                         column="ENTREZID", keytype=values$cur_type)
                            incProgress(0.1, detail = "IDs mapped")
                            values$gse_list2 <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
                                                             ontology=input$go_cats[1],
@@ -3533,7 +3585,7 @@ idealImmunoTP<- function(dds_obj = NULL,
                            go_ids <- rownames(values$gse_list2)
                            allegs_list <- lapply(go_ids, function(arg) AnnotationDbi::get(arg, get(paste0("org.",organism,".egGO2ALLEGS"))))
                            genes_list <- lapply(allegs_list, function(arg) unlist(AnnotationDbi::mget(arg,get(paste0("org.",organism,".egSYMBOL")))))
-                           degenes <- values$genelistDOWN()
+                           degenes <- genelistDOWN()
                            DEgenes_list <- lapply(genes_list, function(arg) intersect(arg,degenes))
                            
                            values$gse_list2$genes <- unlist(lapply(DEgenes_list,function(arg) paste(arg,collapse=",")))
@@ -3547,7 +3599,7 @@ idealImmunoTP<- function(dds_obj = NULL,
       observeEvent(input$button_enrLIST2_goseq,
                    {
                      withProgress(message="GOSEQ - Performing Gene Set Enrichment on list 2 genes...",value = 0,{
-                       if (is.null(input$speciesSelect)) {
+                       if (is.null(values$cur_species)) {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
                        } else if (is.null(values$cur_species) | values$cur_species =="") {
@@ -3562,7 +3614,7 @@ idealImmunoTP<- function(dds_obj = NULL,
                            assayed.genes <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                                    keys=assayed.genes.ids,
                                                    column="ENSEMBL",
-                                                   keytype=input$idtype,
+                                                   keytype=values$cur_type,
                                                    multiVals="first")
                            de.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                                   keys=de.genes,
@@ -3597,7 +3649,7 @@ idealImmunoTP<- function(dds_obj = NULL,
       observeEvent(input$button_enrLIST2_topgo,
                    {
                      withProgress(message="TOPGO - Performing Gene Set Enrichment on list2 genes...",value = 0,{
-                       if (is.null(input$speciesSelect)) {
+                       if (is.null(values$cur_species)) {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
                        } else if (is.null(values$cur_species) | values$cur_species =="") {
@@ -3612,7 +3664,7 @@ idealImmunoTP<- function(dds_obj = NULL,
                            bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                                 keys=bg_ids,
                                                 column="SYMBOL",
-                                                keytype=input$idtype,
+                                                keytype=values$cur_type,
                                                 multiVals="first")
                            incProgress(0.1, detail = "IDs mapped")
                            # library(topGO)
@@ -3634,7 +3686,7 @@ idealImmunoTP<- function(dds_obj = NULL,
       observeEvent(input$button_enrLIST3,
                    {
                      withProgress(message="Performing Gene Set Enrichment on upregulated genes...",value = 0,{
-                       if (is.null(input$speciesSelect)) {
+                       if (is.null(values$cur_species)) {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
                        } else if (is.null(values$cur_species) | values$cur_species =="") {
@@ -3655,7 +3707,7 @@ idealImmunoTP<- function(dds_obj = NULL,
                            listGenesEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = as.character(values$genelist3$`Gene Symbol`),
                                                                     column="ENTREZID", keytype=inputType)
                            listBackgroundEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
-                                                                         column="ENTREZID", keytype=input$idtype)
+                                                                         column="ENTREZID", keytype=values$cur_type)
                            incProgress(0.1, detail = "IDs mapped")
                            values$gse_list3 <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
                                                             ontology=input$go_cats[1],
@@ -3664,7 +3716,7 @@ idealImmunoTP<- function(dds_obj = NULL,
                            go_ids <- rownames(values$gse_list3)
                            allegs_list <- lapply(go_ids, function(arg) AnnotationDbi::get(arg, get(paste0("org.",organism,".egGO2ALLEGS"))))
                            genes_list <- lapply(allegs_list, function(arg) unlist(AnnotationDbi::mget(arg,get(paste0("org.",organism,".egSYMBOL")))))
-                           degenes <- values$genelistDOWN()
+                           degenes <- genelistDOWN()
                            DEgenes_list <- lapply(genes_list, function(arg) intersect(arg,degenes))
                            
                            values$gse_list3$genes <- unlist(lapply(DEgenes_list,function(arg) paste(arg,collapse=",")))
@@ -3678,7 +3730,7 @@ idealImmunoTP<- function(dds_obj = NULL,
       observeEvent(input$button_enrLIST3_goseq,
                    {
                      withProgress(message="GOSEQ - Performing Gene Set Enrichment on list 3 genes...",value = 0,{
-                       if (is.null(input$speciesSelect)) {
+                       if (is.null(values$cur_species)) {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
                        } else if (is.null(values$cur_species) | values$cur_species =="") {
@@ -3693,7 +3745,7 @@ idealImmunoTP<- function(dds_obj = NULL,
                            assayed.genes <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                                    keys=assayed.genes.ids,
                                                    column="ENSEMBL",
-                                                   keytype=input$idtype,
+                                                   keytype=values$cur_type,
                                                    multiVals="first")
                            de.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                                   keys=de.genes,
@@ -3728,7 +3780,7 @@ idealImmunoTP<- function(dds_obj = NULL,
       observeEvent(input$button_enrLIST3_topgo,
                    {
                      withProgress(message="TOPGO - Performing Gene Set Enrichment on list3 genes...",value = 0,{
-                       if (is.null(input$speciesSelect)) {
+                       if (is.null(values$cur_species)) {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
                        } else if (is.null(values$cur_species) | values$cur_species =="") {
@@ -3743,7 +3795,7 @@ idealImmunoTP<- function(dds_obj = NULL,
                            bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                                 keys=bg_ids,
                                                 column="SYMBOL",
-                                                keytype=input$idtype,
+                                                keytype=values$cur_type,
                                                 multiVals="first")
                            incProgress(0.1, detail = "IDs mapped")
                            # library(topGO)
@@ -3765,7 +3817,7 @@ idealImmunoTP<- function(dds_obj = NULL,
       observeEvent(input$button_enrLIST4,
                    {
                      withProgress(message="Performing Gene Set Enrichment on upregulated genes...",value = 0,{
-                       if (is.null(input$speciesSelect)) {
+                       if (is.null(values$cur_species)) {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
                        } else if (is.null(values$cur_species) | values$cur_species =="") {
@@ -3786,7 +3838,7 @@ idealImmunoTP<- function(dds_obj = NULL,
                            listGenesEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = as.character(values$genelist4$`Gene Symbol`),
                                                                     column="ENTREZID", keytype=inputType)
                            listBackgroundEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
-                                                                         column="ENTREZID", keytype=input$idtype)
+                                                                         column="ENTREZID", keytype=values$cur_type)
                            incProgress(0.1, detail = "IDs mapped")
                            values$gse_list4 <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
                                                             ontology=input$go_cats[1],
@@ -3795,7 +3847,7 @@ idealImmunoTP<- function(dds_obj = NULL,
                            go_ids <- rownames(values$gse_list4)
                            allegs_list <- lapply(go_ids, function(arg) AnnotationDbi::get(arg, get(paste0("org.",organism,".egGO2ALLEGS"))))
                            genes_list <- lapply(allegs_list, function(arg) unlist(AnnotationDbi::mget(arg,get(paste0("org.",organism,".egSYMBOL")))))
-                           degenes <- values$genelistDOWN()
+                           degenes <- genelistDOWN()
                            DEgenes_list <- lapply(genes_list, function(arg) intersect(arg,degenes))
                            
                            values$gse_list4$genes <- unlist(lapply(DEgenes_list,function(arg) paste(arg,collapse=",")))
@@ -3809,7 +3861,7 @@ idealImmunoTP<- function(dds_obj = NULL,
       observeEvent(input$button_enrLIST4_goseq,
                    {
                      withProgress(message="GOSEQ - Performing Gene Set Enrichment on list 4 genes...",value = 0,{
-                       if (is.null(input$speciesSelect)) {
+                       if (is.null(values$cur_species)) {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
                        } else if (is.null(values$cur_species) | values$cur_species =="") {
@@ -3824,7 +3876,7 @@ idealImmunoTP<- function(dds_obj = NULL,
                            assayed.genes <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                                    keys=assayed.genes.ids,
                                                    column="ENSEMBL",
-                                                   keytype=input$idtype,
+                                                   keytype=values$cur_type,
                                                    multiVals="first")
                            de.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                                   keys=de.genes,
@@ -3859,7 +3911,7 @@ idealImmunoTP<- function(dds_obj = NULL,
       observeEvent(input$button_enrLIST4_topgo,
                    {
                      withProgress(message="TOPGO - Performing Gene Set Enrichment on list4 genes...",value = 0,{
-                       if (is.null(input$speciesSelect)) {
+                       if (is.null(values$cur_species)) {
                          showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
                          return(NULL)
                        } else if (is.null(values$cur_species) | values$cur_species =="") {
@@ -3874,7 +3926,7 @@ idealImmunoTP<- function(dds_obj = NULL,
                            bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                                 keys=bg_ids,
                                                 column="SYMBOL",
-                                                keytype=input$idtype,
+                                                keytype=values$cur_type,
                                                 multiVals="first")
                            incProgress(0.1, detail = "IDs mapped")
                            # library(topGO)
@@ -4304,8 +4356,8 @@ idealImmunoTP<- function(dds_obj = NULL,
         # cat(file = stderr(), paste("goterm_heatmap_up_topgo\n"))
         
         s <- input$DT_gse_up_topgo_rows_selected
-        idtype <- input$idtype
-        speciesSelect <- input$speciesSelect
+        idtype <- values$cur_type
+        speciesSelect <- values$cur_species
         dds_obj <- values$dds_obj
         if(length(s) == 0)
           return(NULL)
@@ -4351,8 +4403,8 @@ idealImmunoTP<- function(dds_obj = NULL,
           values$topgo_down[input$DT_gse_down_topgo_rows_selected,]$Term)
         
         genevec <- unlist(strsplit(mygenes,split=","))
-        annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect]
-        genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,input$idtype,"SYMBOL",multiVals="first"))
+        annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
+        genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,values$cur_type,"SYMBOL",multiVals="first"))
         log2things <- assay(normTransform(values$dds_obj))
         selectedLogvalues <- log2things[genevec_ids,]
         
@@ -4385,8 +4437,8 @@ idealImmunoTP<- function(dds_obj = NULL,
           values$topgo_updown[input$DT_gse_updown_topgo_rows_selected,]$Term)
         
         genevec <- unlist(strsplit(mygenes,split=","))
-        annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect]
-        genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,input$idtype,"SYMBOL",multiVals="first"))
+        annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
+        genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,values$cur_type,"SYMBOL",multiVals="first"))
         log2things <- assay(normTransform(values$dds_obj))
         selectedLogvalues <- log2things[genevec_ids,]
         
@@ -4417,8 +4469,8 @@ idealImmunoTP<- function(dds_obj = NULL,
           values$topgo_list1[input$DT_gse_list1_topgo_rows_selected,]$Term)
         
         genevec <- unlist(strsplit(mygenes,split=","))
-        annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect]
-        genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,input$idtype,"SYMBOL",multiVals="first"))
+        annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
+        genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,values$cur_type,"SYMBOL",multiVals="first"))
         log2things <- assay(normTransform(values$dds_obj))
         selectedLogvalues <- log2things[genevec_ids,]
         
@@ -4449,8 +4501,8 @@ idealImmunoTP<- function(dds_obj = NULL,
           values$topgo_list2[input$DT_gse_list2_topgo_rows_selected,]$Term)
         
         genevec <- unlist(strsplit(mygenes,split=","))
-        annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect]
-        genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,input$idtype,"SYMBOL",multiVals="first"))
+        annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
+        genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,values$cur_type,"SYMBOL",multiVals="first"))
         log2things <- assay(normTransform(values$dds_obj))
         selectedLogvalues <- log2things[genevec_ids,]
         
@@ -4480,8 +4532,8 @@ idealImmunoTP<- function(dds_obj = NULL,
           values$topgo_list3[input$DT_gse_list3_topgo_rows_selected,]$Term)
         
         genevec <- unlist(strsplit(mygenes,split=","))
-        annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect]
-        genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,input$idtype,"SYMBOL",multiVals="first"))
+        annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
+        genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,values$cur_type,"SYMBOL",multiVals="first"))
         log2things <- assay(normTransform(values$dds_obj))
         selectedLogvalues <- log2things[genevec_ids,]
         
@@ -4511,8 +4563,8 @@ idealImmunoTP<- function(dds_obj = NULL,
           values$topgo_list4[input$DT_gse_list4_topgo_rows_selected,]$Term)
         
         genevec <- unlist(strsplit(mygenes,split=","))
-        annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect]
-        genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,input$idtype,"SYMBOL",multiVals="first"))
+        annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
+        genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,values$cur_type,"SYMBOL",multiVals="first"))
         log2things <- assay(normTransform(values$dds_obj))
         selectedLogvalues <- log2things[genevec_ids,]
         
@@ -4597,12 +4649,12 @@ idealImmunoTP<- function(dds_obj = NULL,
         if (is.null(values$dds_obj)) #
           return(NULL)
         validate(
-          need(!is.null(input$speciesSelect), message = "Please specify the species in the Data Setup panel")
+          need(!is.null(values$cur_species), message = "Please specify the species in the Data Setup panel")
         )
         
         std_choices <- c("SYMBOL", "ENSEMBL","ENTREZID","REFSEQ")
-        if (input$speciesSelect!=""){
-          annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect]
+        if (values$cur_species!=""){
+          annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
           pkg_choices <- keytypes(get(annopkg))
           std_choices <- union(std_choices, pkg_choices)
         }
@@ -4613,12 +4665,12 @@ idealImmunoTP<- function(dds_obj = NULL,
         if (is.null(values$gene_signatures)) #
           return(NULL)
         validate(
-          need(!is.null(input$speciesSelect), message = "Please specify the species in the Data Setup panel")
+          need(!is.null(values$cur_species), message = "Please specify the species in the Data Setup panel")
         )
         
         std_choices <- c("SYMBOL", "ENSEMBL","ENTREZID","REFSEQ")
-        if (input$speciesSelect!=""){
-          annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect]
+        if (values$cur_species!=""){
+          annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
           pkg_choices <- keytypes(get(annopkg))
           std_choices <- union(std_choices, pkg_choices)
         }
@@ -4631,15 +4683,15 @@ idealImmunoTP<- function(dds_obj = NULL,
       output$sig_ui_orgdbpkg <- renderUI({
         
         suggested_orgdb <- tryCatch(
-          annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect],
+          annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species],
           error = function(e){return("")})
         selectInput("sig_orgdbpkg", "Select the organism package for matching", 
                     choices=c("",available_orgdb),selected = suggested_orgdb)
       })
       
-      observeEvent(input$speciesSelect,
+      observeEvent(values$cur_species,
                    {
-                     suggested_orgdb <- annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect]
+                     suggested_orgdb <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
                      if(suggested_orgdb %in% available_orgdb)
                        updateSelectInput(session, inputId = "sig_orgdbpkg", selected = suggested_orgdb)
                    })
@@ -4735,6 +4787,7 @@ idealImmunoTP<- function(dds_obj = NULL,
       
       # server ui update/observers --------------------------------------------------------
       output$color_by <- renderUI({
+        # browser()
         if(is.null(values$dds_obj))
           return(NULL)
         poss_covars <- names(colData(values$dds_obj))
@@ -4754,31 +4807,34 @@ idealImmunoTP<- function(dds_obj = NULL,
       
       
       # variables that should be accessible to all but not reactive
-      globalIdeal <<- list()
-      globalIdeal$avail_symbols <<- ""
+      # globalIdeal <<- list()
+      # globalIdeal$avail_symbols <<- ""
       # remember the value without being reactive
-      observe(label = "avail_symbolsOBS", {
-        globalIdeal$avail_symbols <<- input$avail_symbols
-      })
+      # observe(label = "avail_symbolsOBS", {
+      #   globalIdeal$avail_symbols <<- input$avail_symbols
+      # })
       observe({
-        oldSelected = globalIdeal$avail_symbols
+        # oldSelected = globalIdeal$avail_symbols
         avVals = values$annotation_obj$gene_name[match(rownames(values$dds_obj), values$annotation_obj$gene_id)]
-        oldSelected = oldSelected[oldSelected %in% avVals]
+        # oldSelected = oldSelected[oldSelected %in% avVals]
         updateSelectizeInput(
           session = session,
-          selected = oldSelected,
+          # selected = oldSelected,
           inputId = 'avail_symbols',
           choices = c(Choose = '', avVals),
           server = TRUE)
       })
       
       output$available_genes <- renderUI({
+        # browser()
         if(!is.null(values$annotation_obj)) {
-          oldSelected = globalIdeal$avail_symbols
-          # avVals = values$annotation_obj$gene_name[match(rownames(values$dds_obj), values$annotation_obj$gene_id)]
+          # oldSelected = globalIdeal$avail_symbols
+          avVals = values$annotation_obj$gene_name[match(rownames(values$dds_obj), values$annotation_obj$gene_id)]
           # oldSelected = oldSelected[oldSelected %in% avVals]
           selectizeInput("avail_symbols", label = "Select the gene(s) of interest",
-                         choices = oldSelected, selected = oldSelected, multiple = TRUE)
+                         choices = avVals,
+                         # selected = oldSelected,
+                         multiple = TRUE)
         } else { # else use the rownames as identifiers
           selectizeInput("avail_ids", label = "Select the gene(s) of interest - ids",
                          choices = NULL, selected = NULL, multiple = TRUE)
@@ -4788,7 +4844,7 @@ idealImmunoTP<- function(dds_obj = NULL,
       design_factors <- reactive({
         # rev(attributes(terms.formula(design(values$dds_obj)))$term.labels)
         cat(file = stderr(), "design_factors triggered\n")
-        resultsNames(values$dds_obj)[-12]
+        resultsNames(values$dds_obj)
         
       })
       
@@ -5140,7 +5196,7 @@ idealImmunoTP<- function(dds_obj = NULL,
         if(is.null(values$res_obj))
           return(NULL)
         mydf <- as.data.frame(values$res_obj[order(values$res_obj$padj),])#[1:500,]
-        rownames(mydf) <- createLinkENS(rownames(mydf),species = annoSpecies_df$ensembl_db[match(input$speciesSelect,annoSpecies_df$species)]) ## TODO: check what are the species from ensembl and
+        rownames(mydf) <- createLinkENS(rownames(mydf),species = annoSpecies_df$ensembl_db[match(values$cur_species,annoSpecies_df$species)]) ## TODO: check what are the species from ensembl and
         ## TODO: add a check to see if wanted?
         mydf$symbol <- createLinkGeneSymbol(mydf$symbol)
         # browser()
@@ -5554,7 +5610,7 @@ idealImmunoTP<- function(dds_obj = NULL,
         # browser()
         selectedGene <- as.character(curDataClick()$ID)
         selgene_entrez <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                 selectedGene, "ENTREZID", input$idtype)
+                                 selectedGene, "ENTREZID", values$cur_type)
         fullinfo <- geneinfo(selgene_entrez)
         
         ## TODO: build up link manually to paste under the info!
