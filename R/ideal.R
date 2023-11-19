@@ -121,106 +121,106 @@ idealImmunoTP<- function(dds_obj = NULL,
   # ui definition -----------------------------------------------------------
   idealImmunoTP_ui <- function(req) {
     shinydashboard::dashboardPage(
-    title = "idealImmunoTP - Interactive Differential Expression AnaLysis for immunology TP",
-    # header definition -----------------------------------------------------------
-    shinydashboard::dashboardHeader(
-      title = tags$span(
-        img(src = "ideal/ideal_logo_v2.png", height = "50px"),
-        paste0("idealImmunoTP - Interactive Differential Expression AnaLysis ",
-               packageVersion("idealImmunoTP"))),
-      titleWidth = 600,
+      title = "idealImmunoTP - Interactive Differential Expression AnaLysis for immunology TP",
+      # header definition -----------------------------------------------------------
+      shinydashboard::dashboardHeader(
+        title = tags$span(
+          img(src = "ideal/ideal_logo_v2.png", height = "50px"),
+          paste0("idealImmunoTP - Interactive Differential Expression AnaLysis ",
+                 packageVersion("idealImmunoTP"))),
+        titleWidth = 600,
+        
+        # TODO:
+        # http://stackoverflow.com/questions/31440564/adding-a-company-logo-to-shinydashboard-header
+        # replace text with image
+        # ideal_header$children[[2]]$children <- tags$a(href='https://github.com/federicomarini/ideal',
+        # tags$img(src='ideal_logo_v2.png',height='50',width='200'))
+        # title = tags$a(href='https://github.com/federicomarini/ideal',
+        #                tags$img(src='ideal_logo_v2.png',height='50',width='200')),
+        
+        # task menu for saving state to environment or binary data
+        shinydashboard::dropdownMenu(
+          type = "tasks",icon = icon("cog", verify_fa = FALSE),
+          badgeStatus = NULL, 
+          headerText = "ideal Tasks menu",
+          notificationItem(
+            text = actionButton("task_exit_and_save","Exit idealImmunoTP & save",
+                                class = "btn_no_border",
+                                onclick = "setTimeout(function(){window.close();}, 100); "),
+            icon = icon("right-from-bracket"),status = "primary"),
+          menuItem(
+            text = downloadButton("task_state_save","Save State as .RData"))
+        )
+      ), # end of dashboardHeader
       
-      # TODO:
-      # http://stackoverflow.com/questions/31440564/adding-a-company-logo-to-shinydashboard-header
-      # replace text with image
-      # ideal_header$children[[2]]$children <- tags$a(href='https://github.com/federicomarini/ideal',
-      # tags$img(src='ideal_logo_v2.png',height='50',width='200'))
-      # title = tags$a(href='https://github.com/federicomarini/ideal',
-      #                tags$img(src='ideal_logo_v2.png',height='50',width='200')),
+      # sidebar definition -----------------------------------------------------------
+      dashboardSidebar(
+        width = 340,
+        sidebarMenu(style = "position: fixed; overflow: visible;",
+                    id = "sidebarMenu",
+                    menuItem("App settings",
+                             icon = icon("cogs", verify_fa = FALSE),
+                             startExpanded = TRUE,
+                             uiOutput("color_by"),
+                             shinyBS::bsTooltip(
+                               "color_by", 
+                               paste0("Select the group(s) of samples to stratify the analysis, and ideally match the contrast of interest. Can also assume multiple values, in this case the interaction of the factors is used."),
+                               "right", options = list(container = "body")),
+                             uiOutput("available_genes"),
+                             shinyBS::bsTooltip(
+                               "available_genes", 
+                               paste0("Select one or more features (genes) from the list to inspect. Autocompletion is provided, so you can easily find your genes of interest by started typing their names. Defaults to the row names if no annotation object is provided."),
+                               "right", options = list(container = "body")),
+                             numericInput("FDR","False Discovery Rate",value = 0.05, min = 0, max = 1, step = 0.01),
+                             shinyBS::bsTooltip(
+                               "FDR", 
+                               paste0("Select the alpha level at which you would like to control the FDR (False Discovery Rate) for the set of multiple tests in your dataset. The sensible choice of 0.05 is provided as default, 0.1 is more liberal, while 0.01 is more stringent - keep in mind this does not tell anything on the effect size for the expression change."),
+                               "right", options = list(container = "body"))
+                             
+                    ),
+                    menuItem("Plot export settings", 
+                             icon = icon("paint-brush", verify_fa = FALSE),
+                             startExpanded = TRUE,
+                             numericInput("export_width",label = "Width of exported figures (cm)",value = 16,min = 2),
+                             shinyBS::bsTooltip(
+                               "export_width", paste0("Width of the figures to export, expressed in cm"),
+                               "right", options = list(container = "body")),
+                             numericInput("export_height",label = "Height of exported figures (cm)",value = 10,min = 2),
+                             shinyBS::bsTooltip(
+                               "export_height", paste0("Height of the figures to export, expressed in cm"),
+                               "right", options = list(container = "body"))
+                    ),
+                    menuItem("Quick viewer", 
+                             icon = icon("flash", verify_fa = FALSE), 
+                             startExpanded = TRUE,
+                             id = "qvmenu",
+                             fluidRow(column(12,
+                                             fluidRow(column(6,p("Count matrix")), column(6,uiOutput("ok_cm"))),
+                                             fluidRow(column(6,p("Experimental design")), column(6,uiOutput("ok_ed"))),
+                                             fluidRow(column(6,p("Annotation")), column(6,uiOutput("ok_anno"))),
+                                             # Maybe we need this when having preoaded count matrix?
+                                             # fluidRow(column(6,p("DESeqDataset")), column(6,uiOutput("ok_dds"))),
+                                             fluidRow(column(6,p("DESeqRun")), column(6,uiOutput("ok_ddsRun"))),
+                                             fluidRow(column(6,p("Results")), column(6,uiOutput("ok_resu")))
+                             ))),
+                    menuItem("First steps help", 
+                             icon = icon("question-circle", verify_fa = FALSE),
+                             startExpanded = TRUE,
+                             actionButton("btn", "Click me for a quick tour", icon("info"),
+                                          style="color: #ffffff; background-color: #0092AC; border-color: #2e6da4")
+                    ),
+                    bookmarkButton()
+        )
+      ), # end of dashboardSidebar
       
-      # task menu for saving state to environment or binary data
-      shinydashboard::dropdownMenu(
-        type = "tasks",icon = icon("cog", verify_fa = FALSE),
-        badgeStatus = NULL, 
-        headerText = "ideal Tasks menu",
-        notificationItem(
-          text = actionButton("task_exit_and_save","Exit idealImmunoTP & save",
-                              class = "btn_no_border",
-                              onclick = "setTimeout(function(){window.close();}, 100); "),
-          icon = icon("right-from-bracket"),status = "primary"),
-        menuItem(
-          text = downloadButton("task_state_save","Save State as .RData"))
-      )
-    ), # end of dashboardHeader
-    
-    # sidebar definition -----------------------------------------------------------
-    dashboardSidebar(
-      width = 340,
-      sidebarMenu(style = "position: fixed; overflow: visible;",
-                  id = "sidebarMenu",
-                  menuItem("App settings",
-                           icon = icon("cogs", verify_fa = FALSE),
-                           startExpanded = TRUE,
-                           uiOutput("color_by"),
-                           shinyBS::bsTooltip(
-                             "color_by", 
-                             paste0("Select the group(s) of samples to stratify the analysis, and ideally match the contrast of interest. Can also assume multiple values, in this case the interaction of the factors is used."),
-                             "right", options = list(container = "body")),
-                           uiOutput("available_genes"),
-                           shinyBS::bsTooltip(
-                             "available_genes", 
-                             paste0("Select one or more features (genes) from the list to inspect. Autocompletion is provided, so you can easily find your genes of interest by started typing their names. Defaults to the row names if no annotation object is provided."),
-                             "right", options = list(container = "body")),
-                           numericInput("FDR","False Discovery Rate",value = 0.05, min = 0, max = 1, step = 0.01),
-                           shinyBS::bsTooltip(
-                             "FDR", 
-                             paste0("Select the alpha level at which you would like to control the FDR (False Discovery Rate) for the set of multiple tests in your dataset. The sensible choice of 0.05 is provided as default, 0.1 is more liberal, while 0.01 is more stringent - keep in mind this does not tell anything on the effect size for the expression change."),
-                             "right", options = list(container = "body"))
-                           
-                  ),
-                  menuItem("Plot export settings", 
-                           icon = icon("paint-brush", verify_fa = FALSE),
-                           startExpanded = TRUE,
-                           numericInput("export_width",label = "Width of exported figures (cm)",value = 16,min = 2),
-                           shinyBS::bsTooltip(
-                             "export_width", paste0("Width of the figures to export, expressed in cm"),
-                             "right", options = list(container = "body")),
-                           numericInput("export_height",label = "Height of exported figures (cm)",value = 10,min = 2),
-                           shinyBS::bsTooltip(
-                             "export_height", paste0("Height of the figures to export, expressed in cm"),
-                             "right", options = list(container = "body"))
-                  ),
-                  menuItem("Quick viewer", 
-                           icon = icon("flash", verify_fa = FALSE), 
-                           startExpanded = TRUE,
-                           id = "qvmenu",
-                           fluidRow(column(12,
-                                           fluidRow(column(6,p("Count matrix")), column(6,uiOutput("ok_cm"))),
-                                           fluidRow(column(6,p("Experimental design")), column(6,uiOutput("ok_ed"))),
-                                           fluidRow(column(6,p("Annotation")), column(6,uiOutput("ok_anno"))),
-                                           # Maybe we need this when having preoaded count matrix?
-                                           # fluidRow(column(6,p("DESeqDataset")), column(6,uiOutput("ok_dds"))),
-                                           fluidRow(column(6,p("DESeqRun")), column(6,uiOutput("ok_ddsRun"))),
-                                           fluidRow(column(6,p("Results")), column(6,uiOutput("ok_resu")))
-                           ))),
-                  menuItem("First steps help", 
-                           icon = icon("question-circle", verify_fa = FALSE),
-                           startExpanded = TRUE,
-                           actionButton("btn", "Click me for a quick tour", icon("info"),
-                                        style="color: #ffffff; background-color: #0092AC; border-color: #2e6da4")
-                  ),
-                  bookmarkButton()
-      )
-    ), # end of dashboardSidebar
-    
-    # body definition -----------------------------------------------------------
-    dashboardBody(
-      introjsUI(),
-      
-      ## Define output size and style of error messages, and also the style of the icons e.g. check
-      ## plus, define the myscrollbox div to prevent y overflow when page fills up
-      tags$head(
-        tags$style(HTML("
+      # body definition -----------------------------------------------------------
+      dashboardBody(
+        introjsUI(),
+        
+        ## Define output size and style of error messages, and also the style of the icons e.g. check
+        ## plus, define the myscrollbox div to prevent y overflow when page fills up
+        tags$head(
+          tags$style(HTML("
                         .shiny-output-error-validation {
                         font-size: 15px;
                         color: forestgreen;
@@ -238,332 +238,332 @@ idealImmunoTP<- function(dds_obj = NULL,
                         }
                         #myAnchorBox{}
                         "))
-      ),
-      
-      # value boxes to always have an overview on the available data
-      fluidRow(
-        valueBoxOutput("box_ddsobj"),
-        valueBoxOutput("box_annobj"),
-        valueBoxOutput("box_resobj")
-      ),
-      
-      ## main structure of the body for the dashboard
-      div(
-        id = "myScrollBox", # trick to have the y direction scrollable
-        tabBox(
-          width=12,
-          
-          # ui panel welcome -----------------------------------------------------------
-          tabPanel(
-            title = "Welcome!",  icon = icon("house"), value="tab-welcome",
+        ),
+        
+        # value boxes to always have an overview on the available data
+        fluidRow(
+          valueBoxOutput("box_ddsobj"),
+          valueBoxOutput("box_annobj"),
+          valueBoxOutput("box_resobj")
+        ),
+        
+        ## main structure of the body for the dashboard
+        div(
+          id = "myScrollBox", # trick to have the y direction scrollable
+          tabBox(
+            width=12,
             
-            fluidRow(
-              column(
-                width = 8,
-                includeMarkdown(system.file("extdata", "welcome.md",package = "idealImmunoTP")),
-                br(),br(),
-                p("If you see a grey box like this one open below..."),
-                
-                shinyBS::bsCollapse(
-                  id = "help_welcome",open = "Help", 
-                  shinyBS::bsCollapsePanel(
-                    "Help", 
-                    includeMarkdown(system.file("extdata", "help_welcome.md",package = "idealImmunoTP"))
-                  )
-                ),
-                
-                actionButton("introexample", "If you see a button like this...", icon("info"),
-                             style="color: #ffffff; background-color: #0092AC; border-color: #2e6da4"),
-                p("... you can click on that to start a tour based on introJS"),
-                br(),br(),
-                
-                uiOutput("ui_instructions")
-              )
-            )
-          ), # end of Welcome panel
-          
-          # ui panel data setup -----------------------------------------------------------
-          tabPanel(
-            "Data Setup",icon = icon("upload"), # value="tab-ds",
-            value = "tab-datasetup",
-            headerPanel("Setup your data for the analysis"),
-            fluidRow(
-              column(
-                width = 8,
-                shinyBS::bsCollapse(
-                  id = "help_datasetup",open = NULL, 
-                  shinyBS::bsCollapsePanel(
-                    "Help",
-                    includeMarkdown(system.file("extdata", "help_datasetup.md",package = "idealImmunoTP"))
-                  )
-                )
-              )
-            ),
-            
-            actionButton("tour_datasetup", "Click me for a quick tour of the section", icon("info"),
-                         style="color: #ffffff; background-color: #0092AC; border-color: #2e6da4"), br(),
-            
-            box(
-              width = 12, 
-              title = "Step 1", status = "danger", solidHeader = TRUE,
-              h2("Upload your count matrix and the info on the experimental design"),
+            # ui panel welcome -----------------------------------------------------------
+            tabPanel(
+              title = "Welcome!",  icon = icon("house"), value="tab-welcome",
               
               fluidRow(
                 column(
-                  width = 4,
-                  uiOutput("upload_count_matrix"),
-                  uiOutput("upload_metadata"),
-                  br(),
-                  "... or you can also ",
-                  actionButton("btn_loaddemo", "Load the demo airway data", icon = icon("play-circle", verify_fa = FALSE),
-                               class = "btn btn-info"),br(), p()
-                ),
-                column(
-                  width = 4,
-                  br(),
-                  actionButton("help_format",label = "",icon = icon("question-circle", verify_fa = FALSE),
-                               style="color: #0092AC; background-color: #FFFFFF; border-color: #FFFFFF"),
-                  shinyBS::bsTooltip(
-                    "help_format", 
-                    "How to provide your input data to idealImmunoTP",
-                    "bottom", options = list(container = "body")
-                  )
-                )
-              ),
-              
-              fluidRow(
-                column(
-                  width = 6,
-                  box(width = NULL, title = "Count matrix preview",status = "primary",
-                      solidHeader = TRUE,collapsible = TRUE, collapsed = TRUE,
-                      fluidRow(
-                        column(
-                          width = 12,
-                          offset = 0.5,
-                          DT::dataTableOutput("dt_cm"))
-                      )
-                  )
-                ),
-                column(
-                  width = 6,
-                  box(width = NULL, title = "Experimental design preview",status = "primary",
-                      solidHeader = TRUE,collapsible = TRUE, collapsed = TRUE,
-                      fluidRow(
-                        column(
-                          width = 12,
-                          offset = 0.5,
-                          DT::dataTableOutput("dt_ed"))
-                      )
-                  )
-                )
-              ),
-              fluidRow(
-                column(
-                  width =6,
-                  box(width = NULL, title = "Non zero genes per sample",status = "primary",
-                      solidHeader = TRUE,collapsible = TRUE, collapsed = TRUE,
-                      fluidRow(
-                        column(
-                          width = 12,
-                          offset = 0.5,
-                          shinyjqui::jqui_resizable(plotOutput("nonZeroCountsPlot")))
-                      )
-                      
-                  )
-                ),
-                
-                column(
-                  width =6,
-                  box(width = NULL, title = "Aligned sequences per sample",status = "primary",
-                      solidHeader = TRUE,collapsible = TRUE, collapsed = TRUE,
-                      fluidRow(
-                        column(
-                          width = 12,
-                          offset = 0.5,
-                          shinyjqui::jqui_resizable(plotOutput("alignedSequencesPlot")))
-                      )
-                      
-                  )
+                  width = 8,
+                  includeMarkdown(system.file("extdata", "welcome.md",package = "idealImmunoTP")),
+                  br(),br(),
+                  p("If you see a grey box like this one open below..."),
+                  
+                  shinyBS::bsCollapse(
+                    id = "help_welcome",open = "Help", 
+                    shinyBS::bsCollapsePanel(
+                      "Help", 
+                      includeMarkdown(system.file("extdata", "help_welcome.md",package = "idealImmunoTP"))
+                    )
+                  ),
+                  
+                  actionButton("introexample", "If you see a button like this...", icon("info"),
+                               style="color: #ffffff; background-color: #0092AC; border-color: #2e6da4"),
+                  p("... you can click on that to start a tour based on introJS"),
+                  br(),br(),
+                  
+                  uiOutput("ui_instructions")
                 )
               )
-              # ,
-              # fluidRow(
-              #   column(
-              #     width = 12,
-              #     box(width = NULL, title = "Correlation heatmap",status = "primary",
-              #         solidHeader = TRUE,collapsible = TRUE, collapsed = TRUE,
-              #         fluidRow(
-              #           column(
-              #             width = 11,
-              #             offset = 0.5,
-              #             plotOutput("correlationPlot"))
-              #         )
-              #         
-              #     )
-              #   ))
-              
-            ),
-            uiOutput("ui_step2"),
-            fluidRow(
-              column(
-                width = 6,
-                uiOutput("ui_stepanno")
-                ## this ideally populates also the list of genes of interest to choose among
-              ),
-              column(
-                width = 6,
-                uiOutput("ui_stepoutlier")
-              )
-            ),
-            uiOutput("ui_step3")
-          ), # end of Data Setup panel
-          # ui panel counts overview -----------------------------------------------------------
-          tabPanel(
-            "Counts Overview",
-            icon = icon("eye"),
-            conditionalPanel(
-              condition="!output.checkdds",
-              headerPanel("Get an overview on your data"),
+            ), # end of Welcome panel
+            
+            # ui panel data setup -----------------------------------------------------------
+            tabPanel(
+              "Data Setup",icon = icon("upload"), # value="tab-ds",
+              value = "tab-datasetup",
+              headerPanel("Setup your data for the analysis"),
               fluidRow(
                 column(
                   width = 8,
                   shinyBS::bsCollapse(
-                    id = "help_countsoverview",open = NULL, 
+                    id = "help_datasetup",open = NULL, 
                     shinyBS::bsCollapsePanel(
                       "Help",
-                      includeMarkdown(system.file("extdata", "help_overview.md",package = "idealImmunoTP")))
+                      includeMarkdown(system.file("extdata", "help_datasetup.md",package = "idealImmunoTP"))
+                    )
                   )
                 )
               ),
               
-              actionButton("tour_countsoverview", "Click me for a quick tour of the section", 
-                           icon("info"),
-                           style="color: #ffffff; background-color: #0092AC; border-color: #2e6da4"),
-              br(),
-              selectInput("countstable_unit", label = "Data scale in the table",
-                          choices = list("Counts (raw)" = "raw_counts",
-                                         "Counts (normalized)" = "normalized_counts",
-                                         "Regularized logarithm transformed" = "rlog_counts",
-                                         "Log10 (pseudocount of 1 added)" = "log10_counts",
-                                         "TPM (Transcripts Per Million)" = "tpm_counts")),
+              actionButton("tour_datasetup", "Click me for a quick tour of the section", icon("info"),
+                           style="color: #ffffff; background-color: #0092AC; border-color: #2e6da4"), br(),
               
-              DT::dataTableOutput("showcountmat"),
-              downloadButton("downloadData","Download", class = "btn btn-success"),
-              hr(),
+              box(
+                width = 12, 
+                title = "Step 1", status = "danger", solidHeader = TRUE,
+                h2("Upload your count matrix and the info on the experimental design"),
+                
+                fluidRow(
+                  column(
+                    width = 4,
+                    uiOutput("upload_count_matrix"),
+                    uiOutput("upload_metadata"),
+                    br(),
+                    "... or you can also ",
+                    actionButton("btn_loaddemo", "Load the demo airway data", icon = icon("play-circle", verify_fa = FALSE),
+                                 class = "btn btn-info"),br(), p()
+                  ),
+                  column(
+                    width = 4,
+                    br(),
+                    actionButton("help_format",label = "",icon = icon("question-circle", verify_fa = FALSE),
+                                 style="color: #0092AC; background-color: #FFFFFF; border-color: #FFFFFF"),
+                    shinyBS::bsTooltip(
+                      "help_format", 
+                      "How to provide your input data to idealImmunoTP",
+                      "bottom", options = list(container = "body")
+                    )
+                  )
+                ),
+                
+                fluidRow(
+                  column(
+                    width = 6,
+                    box(width = NULL, title = "Count matrix preview",status = "primary",
+                        solidHeader = TRUE,collapsible = TRUE, collapsed = TRUE,
+                        fluidRow(
+                          column(
+                            width = 12,
+                            offset = 0.5,
+                            DT::dataTableOutput("dt_cm"))
+                        )
+                    )
+                  ),
+                  column(
+                    width = 6,
+                    box(width = NULL, title = "Experimental design preview",status = "primary",
+                        solidHeader = TRUE,collapsible = TRUE, collapsed = TRUE,
+                        fluidRow(
+                          column(
+                            width = 12,
+                            offset = 0.5,
+                            DT::dataTableOutput("dt_ed"))
+                        )
+                    )
+                  )
+                ),
+                fluidRow(
+                  column(
+                    width =6,
+                    box(width = NULL, title = "Non zero genes per sample",status = "primary",
+                        solidHeader = TRUE,collapsible = TRUE, collapsed = TRUE,
+                        fluidRow(
+                          column(
+                            width = 12,
+                            offset = 0.5,
+                            shinyjqui::jqui_resizable(plotOutput("nonZeroCountsPlot")))
+                        )
+                        
+                    )
+                  ),
+                  
+                  column(
+                    width =6,
+                    box(width = NULL, title = "Aligned sequences per sample",status = "primary",
+                        solidHeader = TRUE,collapsible = TRUE, collapsed = TRUE,
+                        fluidRow(
+                          column(
+                            width = 12,
+                            offset = 0.5,
+                            shinyjqui::jqui_resizable(plotOutput("alignedSequencesPlot")))
+                        )
+                        
+                    )
+                  )
+                )
+                # ,
+                # fluidRow(
+                #   column(
+                #     width = 12,
+                #     box(width = NULL, title = "Correlation heatmap",status = "primary",
+                #         solidHeader = TRUE,collapsible = TRUE, collapsed = TRUE,
+                #         fluidRow(
+                #           column(
+                #             width = 11,
+                #             offset = 0.5,
+                #             plotOutput("correlationPlot"))
+                #         )
+                #         
+                #     )
+                #   ))
+                
+              ),
+              uiOutput("ui_step2"),
               fluidRow(
                 column(
-                  width = 8,
-                  h3("Basic summary for the counts"),
-                  p("Number of uniquely aligned reads assigned to each sample"),
-                  # verbatimTextOutput("reads_summary"),
-                  wellPanel(
+                  width = 6,
+                  uiOutput("ui_stepanno")
+                  ## this ideally populates also the list of genes of interest to choose among
+                ),
+                column(
+                  width = 6,
+                  uiOutput("ui_stepoutlier")
+                )
+              ),
+              uiOutput("ui_step3")
+            ), # end of Data Setup panel
+            # ui panel counts overview -----------------------------------------------------------
+            tabPanel(
+              "Counts Overview",
+              icon = icon("eye"),
+              conditionalPanel(
+                condition="!output.checkdds",
+                headerPanel("Get an overview on your data"),
+                fluidRow(
+                  column(
+                    width = 8,
+                    shinyBS::bsCollapse(
+                      id = "help_countsoverview",open = NULL, 
+                      shinyBS::bsCollapsePanel(
+                        "Help",
+                        includeMarkdown(system.file("extdata", "help_overview.md",package = "idealImmunoTP")))
+                    )
+                  )
+                ),
+                
+                actionButton("tour_countsoverview", "Click me for a quick tour of the section", 
+                             icon("info"),
+                             style="color: #ffffff; background-color: #0092AC; border-color: #2e6da4"),
+                br(),
+                selectInput("countstable_unit", label = "Data scale in the table",
+                            choices = list("Counts (raw)" = "raw_counts",
+                                           "Counts (normalized)" = "normalized_counts",
+                                           "Regularized logarithm transformed" = "rlog_counts",
+                                           "Log10 (pseudocount of 1 added)" = "log10_counts",
+                                           "TPM (Transcripts Per Million)" = "tpm_counts")),
+                
+                DT::dataTableOutput("showcountmat"),
+                downloadButton("downloadData","Download", class = "btn btn-success"),
+                hr(),
+                fluidRow(
+                  column(
+                    width = 8,
+                    h3("Basic summary for the counts"),
+                    p("Number of uniquely aligned reads assigned to each sample"),
+                    # verbatimTextOutput("reads_summary"),
+                    wellPanel(
+                      fluidRow(
+                        column(
+                          width = 6,
+                          numericInput("threshold_rowsums","Threshold on the row sums of the counts",value = 0, min = 0)),
+                        column(
+                          width = 6,
+                          numericInput("threshold_rowmeans","Threshold on the row means of the normalized counts",value = 0, min = 0))
+                      )),
+                    p("According to the selected filtering criteria, this is an overview on the provided count data"),
+                    verbatimTextOutput("detected_genes"),
+                    
+                    selectInput("filter_crit",label = "Choose the filtering criterium",
+                                choices = c("row means", "row sums"), selected = "row means"),
+                    
+                    actionButton("featfilt_dds", "Filter the DDS object",class = "btn btn-primary")
+                  )
+                ),
+                
+                h3("Sample to sample scatter plots"),
+                selectInput("corr_method","Correlation method",choices = list("pearson","spearman", "kendall")),
+                checkboxInput(inputId = "corr_uselogs",
+                              label = "Use log2 values for plot axes and values",
+                              value = TRUE),
+                checkboxInput(inputId = "corr_usesubset",
+                              label = "Use a subset of max 1000 genes (quicker to plot)",
+                              value = TRUE),
+                p("Compute sample to sample correlations on the normalized counts - warning, it can take a while to plot all points (depending mostly on the number of samples you provided)."),
+                actionButton("compute_pairwisecorr", "Run", class = "btn btn-primary"),
+                uiOutput("pairwise_plotUI"),
+                br(),
+                shinyjqui::jqui_resizable(uiOutput("heatcorr_plotUI")),
+                br(),
+                box(width = 12,
+                    title = "PCA/Size Factors", solidHeader = TRUE,
+                    fluidRow(
+                      column(
+                        width=3,
+                        uiOutput("pca_Dim1")
+                      ),
+                      column(
+                        width=3,
+                        uiOutput("pca_Dim2")
+                      )
+                    ),
                     fluidRow(
                       column(
                         width = 6,
-                        numericInput("threshold_rowsums","Threshold on the row sums of the counts",value = 0, min = 0)),
+                        shinyjqui::jqui_resizable(uiOutput("pca_plotUI"))
+                      ),
                       column(
                         width = 6,
-                        numericInput("threshold_rowmeans","Threshold on the row means of the normalized counts",value = 0, min = 0))
-                    )),
-                  p("According to the selected filtering criteria, this is an overview on the provided count data"),
-                  verbatimTextOutput("detected_genes"),
-                  
-                  selectInput("filter_crit",label = "Choose the filtering criterium",
-                              choices = c("row means", "row sums"), selected = "row means"),
-                  
-                  actionButton("featfilt_dds", "Filter the DDS object",class = "btn btn-primary")
-                )
-              ),
-              
-              h3("Sample to sample scatter plots"),
-              selectInput("corr_method","Correlation method",choices = list("pearson","spearman", "kendall")),
-              checkboxInput(inputId = "corr_uselogs",
-                            label = "Use log2 values for plot axes and values",
-                            value = TRUE),
-              checkboxInput(inputId = "corr_usesubset",
-                            label = "Use a subset of max 1000 genes (quicker to plot)",
-                            value = TRUE),
-              p("Compute sample to sample correlations on the normalized counts - warning, it can take a while to plot all points (depending mostly on the number of samples you provided)."),
-              actionButton("compute_pairwisecorr", "Run", class = "btn btn-primary"),
-              uiOutput("pairwise_plotUI"),
-              br(),
-              shinyjqui::jqui_resizable(uiOutput("heatcorr_plotUI")),
-              br(),
-              box(width = 12,
-                  title = "PCA/Size Factors", solidHeader = TRUE,
-                  fluidRow(
-                    column(
-                      width=3,
-                      uiOutput("pca_Dim1")
+                        shinyjqui::jqui_resizable(uiOutput("pcaEV_plotUI"))
+                      )
                     ),
-                    column(
-                      width=3,
-                      uiOutput("pca_Dim2")
-                    )
-                  ),
-                  fluidRow(
-                    column(
-                      width = 6,
-                      shinyjqui::jqui_resizable(uiOutput("pca_plotUI"))
+                    fluidRow(
+                      column(
+                        width = 6,
+                        shinyjqui::jqui_resizable(uiOutput("pca_plotUI34"))
+                      ),
+                      column(
+                        width = 6,
+                        shinyjqui::jqui_resizable(uiOutput("pca_plotUI56"))
+                      )
                     ),
-                    column(
-                      width = 6,
-                      shinyjqui::jqui_resizable(uiOutput("pcaEV_plotUI"))
+                    fluidRow(
+                      
+                      column(
+                        width = 6,
+                        shinyjqui::jqui_resizable(uiOutput("sizeFactors_plotUI"))
+                      )
                     )
-                  ),
-                  fluidRow(
-                    column(
-                      width = 6,
-                      shinyjqui::jqui_resizable(uiOutput("pca_plotUI34"))
+                ),
+                br(),
+                # box(width = 12,
+                #     title = "Correlation between samples", solidHeader = TRUE,
+                #     fluidRow(
+                #       column(
+                #         width = 11,
+                #         # shinyjqui::jqui_resizable(
+                #       plotOutput("heatcorr")
+                #           
+                #       ))
+                #     
+                #     # )
+                # ),
+                box(width = 12,
+                    title = "Highest expressing genes", solidHeader = TRUE,
+                    fluidRow(
+                      column(
+                        width = 12,
+                        uiOutput("geneHeatmap_plotUI") %>% shinyjqui::jqui_resizable()
+                      )
                     ),
-                    column(
-                      width = 6,
-                      shinyjqui::jqui_resizable(uiOutput("pca_plotUI56"))
+                    fluidRow(
+                      column(
+                        width = 12,
+                        uiOutput("geneHeatmap_genesUI") %>% shinyjqui::jqui_resizable()
+                      )
+                      
                     )
-                  ),
-                  fluidRow(
                     
-                    column(
-                      width = 6,
-                      shinyjqui::jqui_resizable(uiOutput("sizeFactors_plotUI"))
-                    )
-                  )
-              ),
-              br(),
-              # box(width = 12,
-              #     title = "Correlation between samples", solidHeader = TRUE,
-              #     fluidRow(
-              #       column(
-              #         width = 11,
-              #         # shinyjqui::jqui_resizable(
-              #       plotOutput("heatcorr")
-              #           
-              #       ))
-              #     
-              #     # )
-              # ),
-              box(width = 12,
-                  title = "Highest expressing genes", solidHeader = TRUE,
-                  fluidRow(
-                    column(
-                      width = 12,
-                      uiOutput("geneHeatmap_plotUI") %>% shinyjqui::jqui_resizable()
-                    )
-                  ),
-                  fluidRow(
-                    column(
-                      width = 12,
-                      uiOutput("geneHeatmap_genesUI") %>% shinyjqui::jqui_resizable()
-                    )
-                  
-                  )
-                  
-              ),
-              conditionalPanel(
-                condition="output.checkdds",
-                h2("You did not create the dds object yet. Please go the main tab and generate it")
+                ),
+                conditionalPanel(
+                  condition="output.checkdds",
+                  h2("You did not create the dds object yet. Please go the main tab and generate it")
+                )
               )
-            )
             ), # end of Counts Overview panel
             # ui panel extract results -----------------------------------------------------------
             tabPanel(
@@ -1289,1958 +1289,2100 @@ idealImmunoTP<- function(dds_obj = NULL,
     ) # end of dashboardPage
     
   }
-    # server definition -----------------------------------------------------------
-    #nocov start
-    idealImmunoTP_server <- shinyServer(function(input, output, session) {
+  # server definition -----------------------------------------------------------
+  #nocov start
+  idealImmunoTP_server <- shinyServer(function(input, output, session) {
+    
+    
+    read1stCol <- function (fileName,dds_obj){
+      guessed_sep <- sepguesser(fileName)
       
-      
-      read1stCol <- function (fileName,dds_obj){
-        guessed_sep <- sepguesser(fileName)
-        
-        cm <- tryCatch({utils::read.delim(fileName, header = TRUE,
-                                          as.is = TRUE, sep = guessed_sep, 
-                                          # row.names = 1, # https://github.com/federicomarini/pcaExplorer/issues/1
-                                          ## TODO: tell the user to use tsv, or use heuristics
-                                          ## to check what is most frequently occurring separation character? -> see sepGuesser.R
-                                          check.names = FALSE)
-        }, error=function(e){
-          cat(file = stderr(), paste(e,"\n"))
-          return(NULL)
-        }
-        )
-        if(is.null(cm)) return(NULL)
-        if (ncol(cm) >1) {
-          cm = cm[,1, drop = F]
-        }
-        cm = cm[cm[,1] %in% rownames(dds_obj),, drop = F]
-        if(nrow(cm)<1) return(NULL)
-        return(cm)
+      cm <- tryCatch({utils::read.delim(fileName, header = TRUE,
+                                        as.is = TRUE, sep = guessed_sep, 
+                                        # row.names = 1, # https://github.com/federicomarini/pcaExplorer/issues/1
+                                        ## TODO: tell the user to use tsv, or use heuristics
+                                        ## to check what is most frequently occurring separation character? -> see sepGuesser.R
+                                        check.names = FALSE)
+      }, error=function(e){
+        cat(file = stderr(), paste(e,"\n"))
+        return(NULL)
       }
-      # server tours setup -----------------------------------------------------------
-      
-      # here will go the coded - i.e. not explicitly wrapped in introBox - steps
-      intro_firsttour <- read.delim(system.file("extdata", "intro_firsttour.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
-      intro_datasetup <- read.delim(system.file("extdata", "intro_datasetup.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
-      intro_countsoverview <- read.delim(system.file("extdata", "intro_countsoverview.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
-      intro_results <- read.delim(system.file("extdata", "intro_results.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
-      intro_plots <- read.delim(system.file("extdata", "intro_plots.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
-      intro_genefinder <- read.delim(system.file("extdata", "intro_genefinder.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
-      intro_funcanalysis <- read.delim(system.file("extdata", "intro_funcanalysis.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
-      intro_signatureexplorer <- read.delim(system.file("extdata", "intro_signatureexplorer.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
-      intro_report <- read.delim(system.file("extdata", "intro_report.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
-      
-      observeEvent(input$btn, {
-        introjs(session,
-                options = list(steps = intro_firsttour)
-        )
-      })
-      
-      observeEvent(input$introexample, {
-        intro_example <- data.frame(element=c("#introexample","#introexample"),
-                                    intro=c("Tour elements can be anchored to elements of the UI that are intended to be highlighted. You can proceed to the next step by using the button, or also pushing the right arrow key.",
-                                            "Well done. This is how a tour can look like. Click outside of this window to close the tour, or on the corresponding button."))
-        introjs(session,
-                options = list(steps = intro_example)
-        )
-      })
-      
-      observeEvent(input$tour_datasetup, {
-        introjs(session,
-                options = list(steps = intro_datasetup)
-        )
-      })
-      
-      observeEvent(input$tour_countsoverview, {
-        introjs(session,
-                options = list(steps = intro_countsoverview)
-        )
-      })
-      
-      observeEvent(input$tour_results, {
-        introjs(session,
-                options = list(steps = intro_results)
-        )
-      })
-      
-      observeEvent(input$tour_plots, {
-        introjs(session,
-                options = list(steps = intro_plots)
-        )
-      })
-      
-      observeEvent(input$tour_genefinder, {
-        introjs(session,
-                options = list(steps = intro_genefinder)
-        )
-      })
-      
-      observeEvent(input$tour_funcanalysis, {
-        introjs(session,
-                options = list(steps = intro_funcanalysis)
-        )
-      })
-      
-      observeEvent(input$tour_signatureexplorer, {
-        introjs(session,
-                options = list(steps = intro_signatureexplorer)
-        )
-      })
-      
-      observeEvent(input$tour_report, {
-        introjs(session,
-                options = list(steps = intro_report)
-        )
-      })
-      
-      values <- reactiveValues()
-      
-      ### bookmarking --------------------------------------------------------------------------
-      ### 
-      onBookmark(function(state) {
-        # browser()
-        state$values$ValList = list()
-        valList = reactiveValuesToList(values)
-        for(na in names(valList)){
-          state$values$ValList[[na]]<- valList[[na]]
-        }
-      })
-      
-      onRestore(function(state) {
-        # browser()
-        vList = state$values$ValList
-        for(na in names(vList)){
-          values[[na]] = state$values$ValList[[na]]
-        }
-        values$restoreBookmark = TRUE
-        dds_obj <<- values$dds_obj
-        countmatrix <<- values$countmatrix 
-        expdesign <<- values$expdesign 
-        
-        res_obj <<- values$res_obj
-        annotation_obj <<- values$annotation_obj
-        gene_signatures <<- values$gene_signatures
-        
-      })
-      
-      onRestored(function(state){
-        # browser()
-        values$restoreBookmark = FALSE
-      })
-      
-      ## Update directory
-      userdir <- tempfile()
-      dir.create(userdir, recursive = TRUE)
-      # sapply(file.path(newuserdir, dir(newuserdir)[grep("code_", dir(newuserdir))]), file.remove)
-      # file.copy(file.path(userdir, "code_All.R"), newuserdir)
-      # userdir <- newuserdir
-      # dir.create(file.path(userdir, "data"))
-      
-      # server setup reactivevalues -----------------------------------------------------------
-      ## placeholder for the figures to export
-      exportPlots <- reactiveValues()
-      # expfig_fig1 <- NULL
-      # )
-      
-      # will store all the reactive values relevant to the app
-      
-      values$countmatrix <- countmatrix
-      values$expdesign <- expdesign
-      
-      values$dds_obj <- dds_obj
-      values$res_obj <- res_obj
-      values$annotation_obj <- annotation_obj
-      values$gene_signatures <- gene_signatures
-      
-      
-      # this part sets the "matching" objects if something is provided that is depending on these
-      if(!is.null(dds_obj)){
-        values$countmatrix <- counts(dds_obj, normalized = FALSE)
-        values$expdesign <- as.data.frame(colData(dds_obj))
-      }
-      
-      # server welcome home ---------------------------------------------------------
-      output$ui_instructions <- renderUI({
-        box(width = 12, 
-            title = "Instructions", status = "info", solidHeader = TRUE, 
-            collapsible = TRUE, collapsed = TRUE,
-            includeMarkdown(system.file("extdata", "instructions.md",package = "idealImmunoTP"))
-        )
-      })
-      
-      
-      # server info boxes -----------------------------------------------------------
-      output$box_ddsobj <- renderUI({
-        if(!is.null(values$dds_obj))
-          return(valueBox("dds object",
-                          paste0(nrow(values$dds_obj), " genes - ",ncol(values$dds_obj)," samples"),
-                          icon = icon("list"),
-                          color = "green",width = NULL))
-        else
-          return(valueBox("dds object",
-                          "yet to create",
-                          icon = icon("list"),
-                          color = "red",width = NULL))
-        
-      })
-      
-      output$box_annobj <- renderUI({
-        if(!is.null(values$annotation_obj))
-          return(valueBox("Annotation",
-                          paste0(nrow(values$annotation_obj), " genes - ",ncol(values$annotation_obj)," ID types"),
-                          icon = icon("book"),
-                          color = "green",width = NULL))
-        else
-          return(valueBox("Annotation",
-                          "yet to create",
-                          icon = icon("book"),
-                          color = "red",width = NULL))
-      })
-      
-      output$box_resobj <- renderUI({
-        if(!is.null(values$res_obj)){
-          DEregu <- sum(values$res_obj$padj < input$FDR & values$res_obj$log2FoldChange != 0, na.rm = TRUE)
-          return(valueBox("DE genes",
-                          paste0(DEregu, " DE genes - out of ",nrow(values$res_obj),""),
-                          icon = icon("rectangle-list"),
-                          color = "green",width = NULL))
-        } else
-          return(valueBox("DE genes",
-                          "yet to create",
-                          icon = icon("rectangle-list"),
-                          color = "red",width = NULL))
-      })
-      
-      
-      # if i want to focus a little more on the ihw object
-      values$ihwres <- NULL
-      
-      # server uploading data -----------------------------------------------------------
-      ## count matrix
-      output$upload_count_matrix <- renderUI({
-        if (!is.null(dds_obj) | !is.null(countmatrix)) {
-          return(fluidRow(column(
-            width = 12,
-            tags$li("You already provided a count matrix or a DESeqDataSet object as input. You can check your input data in the collapsible box here below."), offset = 2)))
-        } else {
-          return(fileInput(inputId = "uploadcmfile",
-                           label = "Upload one or more count matrix file(s)",
-                           accept = c("text/csv", "text/comma-separated-values",
-                                      "text/tab-separated-values", "text/plain",
-                                      ".csv", ".tsv", ".xls"), multiple = TRUE))
-        }
-      })
-      
-      readCountmatrix <- reactive({
-        if (is.null(input$uploadcmfile))
-          return(NULL)
-        on.exit({
-          if (!is.null(getDefaultReactiveDomain())) {
-            removeNotification(id = "readCountmatrix")
-          }
-        })
-        if (!is.null(getDefaultReactiveDomain())) {
-          showNotification("readCountmatrix",
-                           id = "readCountmatrix",
-                           duration = NULL
-          )
-        }
-        
-        guessed_sep <- sepguesser(input$uploadcmfile$datapath[1])
-        cm <- utils::read.delim(input$uploadcmfile$datapath[1], header = TRUE,
-                                as.is = TRUE, sep = guessed_sep, quote = "",
-                                row.names = 1, # https://github.com/federicomarini/pcaExplorer/issues/1
-                                ## TODO: tell the user to use tsv, or use heuristics
-                                ## to check what is most frequently occurring separation character? -> see sepGuesser.R
-                                check.names = FALSE)
-        if (nrow(input$uploadcmfile) > 1){
-          for (r in 2:nrow(input$uploadcmfile)) {
-            cmt <- utils::read.delim(input$uploadcmfile$datapath[r], header = TRUE,
-                                     as.is = TRUE, sep = guessed_sep, quote = "",
-                                     row.names = 1, # https://github.com/federicomarini/pcaExplorer/issues/1
-                                     ## TODO: tell the user to use tsv, or use heuristics
-                                     ## to check what is most frequently occurring separation character? -> see sepGuesser.R
-                                     check.names = FALSE)
-            cm2 = base::merge(cm, cmt, by = 0,  all=T)
-            rownames(cm2) = cm2$Row.names
-            cm2$Row.names = NULL
-            cm = cm2
-          }
-        }
-        cm[is.na(cm)] <- 0
-        cat(file = stderr(), paste("read count data: rows:", nrow(cm), "ncol:", ncol(cm), "\n", "sample names:", colnames(cm), "\n"))
-        return(cm)
-      })
-      
-      ## exp design
-      output$upload_metadata <- renderUI({
-        if (!is.null(dds_obj) | !is.null(expdesign)) {
-          return(fluidRow(column(
-            width = 12,
-            tags$li("You already provided a matrix/data.frame with the experimental covariates or a DESeqDataSet object as input. You can check your input data in the collapsible box here below."), offset = 2)))
-          
-        } else {
-          return(fileInput(inputId = "uploadmetadatafile",
-                           label = "Upload a sample metadata matrix file",
-                           accept = c("text/csv", "text/comma-separated-values",
-                                      "text/tab-separated-values", "text/plain",
-                                      ".csv", ".tsv"), multiple = FALSE))
-        }
-      })
-      
-      readMetadata <- reactive({
-        if (is.null(input$uploadmetadatafile))
-          return(NULL)
-        # browser()
-        
-        guessed_sep <- sepguesser(input$uploadmetadatafile$datapath)
-        expdesign <- utils::read.delim(input$uploadmetadatafile$datapath, header = TRUE,
-                                       sep = guessed_sep, quote = "",
-                                       check.names = FALSE, stringsAsFactors = TRUE)
-        if (colnames(expdesign)[1] == "") {
-          tryCatch({
-            rownames(expdesign) <- expdesign[,1]},
-            error = function(e) {
-              showNotification(paste("Error while load meta data:\n", e),
-                               type = "error")
-              return(NULL)
-            }
-          )
-          expdesign <- expdesign[,-1]
-        }
-        cat(file = stderr(), paste("read metadata: rows:", nrow(expdesign), "colnames:", colnames(expdesign), "\n"))
-        return(expdesign)
-      })
-      
-      # load the demo data
-      observeEvent(input$btn_loaddemo,withProgress(
-        message = "Loading demo data",
-        detail = "Loading airway count and metadata information", value = 0,
-        {
-          aw <- requireNamespace("airway",quietly = TRUE)
-          incProgress(0.2,detail = "`airway` package loaded")
-          if(aw) {
-            data(airway,package="airway",envir = environment())
-            
-            cm_airway <- assay(airway)
-            incProgress(0.7, detail = "Count matrix loaded")
-            ed_airway <- as.data.frame(colData(airway))
-            
-            values$countmatrix <- cm_airway
-            values$expdesign <- ed_airway
-            incProgress(0.3, detail = "Experimental metadata loaded")
-            # just to be sure, erase the annotation and the rest
-            # browser()
-            values$dds_obj <- NULL
-            values$annotation_obj <- NULL
-            values$res_obj <- NULL
-            showNotification("All components for generating the DESeqDataset object have been loaded, proceed to Step 2!",
-                             type = "message")
-          } else {
-            showNotification("The 'airway' package is currently not installed. Please do so by executing BiocManager::install('airway') before launching idealImmunoTP()",type = "warning")
-          }
-        })
       )
+      if(is.null(cm)) return(NULL)
+      if (ncol(cm) >1) {
+        cm = cm[,1, drop = F]
+      }
+      cm = cm[cm[,1] %in% rownames(dds_obj),, drop = F]
+      if(nrow(cm)<1) return(NULL)
+      return(cm)
+    }
+    # server tours setup -----------------------------------------------------------
+    
+    # here will go the coded - i.e. not explicitly wrapped in introBox - steps
+    intro_firsttour <- read.delim(system.file("extdata", "intro_firsttour.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
+    intro_datasetup <- read.delim(system.file("extdata", "intro_datasetup.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
+    intro_countsoverview <- read.delim(system.file("extdata", "intro_countsoverview.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
+    intro_results <- read.delim(system.file("extdata", "intro_results.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
+    intro_plots <- read.delim(system.file("extdata", "intro_plots.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
+    intro_genefinder <- read.delim(system.file("extdata", "intro_genefinder.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
+    intro_funcanalysis <- read.delim(system.file("extdata", "intro_funcanalysis.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
+    intro_signatureexplorer <- read.delim(system.file("extdata", "intro_signatureexplorer.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
+    intro_report <- read.delim(system.file("extdata", "intro_report.txt",package = "idealImmunoTP"), sep=";", stringsAsFactors = FALSE)
+    
+    observeEvent(input$btn, {
+      introjs(session,
+              options = list(steps = intro_firsttour)
+      )
+    })
+    
+    observeEvent(input$introexample, {
+      intro_example <- data.frame(element=c("#introexample","#introexample"),
+                                  intro=c("Tour elements can be anchored to elements of the UI that are intended to be highlighted. You can proceed to the next step by using the button, or also pushing the right arrow key.",
+                                          "Well done. This is how a tour can look like. Click outside of this window to close the tour, or on the corresponding button."))
+      introjs(session,
+              options = list(steps = intro_example)
+      )
+    })
+    
+    observeEvent(input$tour_datasetup, {
+      introjs(session,
+              options = list(steps = intro_datasetup)
+      )
+    })
+    
+    observeEvent(input$tour_countsoverview, {
+      introjs(session,
+              options = list(steps = intro_countsoverview)
+      )
+    })
+    
+    observeEvent(input$tour_results, {
+      introjs(session,
+              options = list(steps = intro_results)
+      )
+    })
+    
+    observeEvent(input$tour_plots, {
+      introjs(session,
+              options = list(steps = intro_plots)
+      )
+    })
+    
+    observeEvent(input$tour_genefinder, {
+      introjs(session,
+              options = list(steps = intro_genefinder)
+      )
+    })
+    
+    observeEvent(input$tour_funcanalysis, {
+      introjs(session,
+              options = list(steps = intro_funcanalysis)
+      )
+    })
+    
+    observeEvent(input$tour_signatureexplorer, {
+      introjs(session,
+              options = list(steps = intro_signatureexplorer)
+      )
+    })
+    
+    observeEvent(input$tour_report, {
+      introjs(session,
+              options = list(steps = intro_report)
+      )
+    })
+    
+    values <- reactiveValues()
+    
+    ### bookmarking --------------------------------------------------------------------------
+    ### 
+    onBookmark(function(state) {
+      # browser()
+      state$values$ValList = list()
+      valList = reactiveValuesToList(values)
+      for(na in names(valList)){
+        state$values$ValList[[na]]<- valList[[na]]
+      }
+    })
+    
+    onRestore(function(state) {
+      # browser()
+      vList = state$values$ValList
+      for(na in names(vList)){
+        values[[na]] = state$values$ValList[[na]]
+      }
+      values$restoreBookmark = TRUE
+      dds_obj <<- values$dds_obj
+      countmatrix <<- values$countmatrix 
+      expdesign <<- values$expdesign 
       
-      observeEvent(input$help_format, {
-        showModal(modalDialog(
-          title = "Format specifications for idealImmunoTP",
-          includeMarkdown(system.file("extdata", "datainput.md",package = "idealImmunoTP")),
-          h4("Example:"),
-          tags$img(
-            src = base64enc::dataURI(file = system.file("www", "help_dataformats.png",package = "pcaExplorer"), mime = "image/png"),
-            width = 750
-          ),
-          easyClose = TRUE,
-          footer = NULL,
-          size = "l"
-        ))
-      })
+      res_obj <<- values$res_obj
+      annotation_obj <<- values$annotation_obj
+      gene_signatures <<- values$gene_signatures
       
-      output$ddsdesign <- renderUI({
-        if(is.null(values$expdesign))
-          return(NULL)
-        poss_covars <- colnames(values$expdesign)
-        # cat(file = stderr(), "selectINPUT dds_design\n")
-        selectInput('dds_design', label = 'Select the design for your experiment: ',
-                    choices = c(NULL, poss_covars), selected = values$dds_design, multiple = TRUE)
-      })
+    })
+    
+    onRestored(function(state){
+      # browser()
+      values$restoreBookmark = FALSE
+    })
+    
+    ## Update directory
+    userdir <- tempfile()
+    dir.create(userdir, recursive = TRUE)
+    # sapply(file.path(newuserdir, dir(newuserdir)[grep("code_", dir(newuserdir))]), file.remove)
+    # file.copy(file.path(userdir, "code_All.R"), newuserdir)
+    # userdir <- newuserdir
+    # dir.create(file.path(userdir, "data"))
+    
+    # server setup reactivevalues -----------------------------------------------------------
+    ## placeholder for the figures to export
+    exportPlots <- reactiveValues()
+    # expfig_fig1 <- NULL
+    # )
+    
+    # will store all the reactive values relevant to the app
+    
+    values$countmatrix <- countmatrix
+    values$expdesign <- expdesign
+    
+    values$dds_obj <- dds_obj
+    values$res_obj <- res_obj
+    values$annotation_obj <- annotation_obj
+    values$gene_signatures <- gene_signatures
+    
+    
+    # this part sets the "matching" objects if something is provided that is depending on these
+    if(!is.null(dds_obj)){
+      values$countmatrix <- counts(dds_obj, normalized = FALSE)
+      values$expdesign <- as.data.frame(colData(dds_obj))
+    }
+    
+    # server welcome home ---------------------------------------------------------
+    output$ui_instructions <- renderUI({
+      box(width = 12, 
+          title = "Instructions", status = "info", solidHeader = TRUE, 
+          collapsible = TRUE, collapsed = TRUE,
+          includeMarkdown(system.file("extdata", "instructions.md",package = "idealImmunoTP"))
+      )
+    })
+    
+    
+    # server info boxes -----------------------------------------------------------
+    output$box_ddsobj <- renderUI({
+      if(!is.null(values$dds_obj))
+        return(valueBox("dds object",
+                        paste0(nrow(values$dds_obj), " genes - ",ncol(values$dds_obj)," samples"),
+                        icon = icon("list"),
+                        color = "green",width = NULL))
+      else
+        return(valueBox("dds object",
+                        "yet to create",
+                        icon = icon("list"),
+                        color = "red",width = NULL))
       
-      output$ddsintercept <- renderUI({
-        if(is.null(values$expdesign))
-          return(NULL)
-        if(is.null(input$dds_design))
-          return(NULL)
-        # browser()
-        if(!all(input$dds_design %in% colnames(values$expdesign)))
-          return(NULL)
-        # browser()
-        poss_covars <- levels(values$expdesign[,input$dds_design[1]])
-        selectInput('dds_intercept', label = 'Select the intercept for your experiment: ',
-                    choices = c(NULL, poss_covars), selected = values$dds_intercept, multiple = FALSE)
-      })
-      
-      observeEvent(input$dds_intercept, {
-        values$dds_intercept = input$dds_intercept
-      })
-      
-      # The following comes from ExploreModelMatrix package
-      ## ----------------------------------------------------------------------- ##
-      ## Create co-occurrence plot
-      ## ----------------------------------------------------------------------- ##
-      cooccurrenceplots <- reactive({
-        if(is.null(values$expdesign))
-          return(NULL)
-        if(is.null(input$dds_design))
-          return(NULL)
-        if(!all(input$dds_design %in% colnames(values$expdesign)))
-          return(NULL)
-        dsgn <- as.formula(paste0("~", paste(input$dds_design, collapse = " + ")))
-        terms <- all.vars(dsgn)
-        sampleData <- values$expdesign %>% dplyr::select(dplyr::all_of(terms))
-        mm <- stats::model.matrix(dsgn, data = values$expdesign)
-        ## ----------------------------------------------------------------------- ##
-        ## Calculate pseudoinverse of design matrix
-        ## ----------------------------------------------------------------------- ##
-        psinverse <- MASS::ginv(mm)
-        rownames(psinverse) <- colnames(mm)
-        colnames(psinverse) <- rownames(mm)
-        sampleData$value <- ""
-        for (i in seq_len(nrow(sampleData))) {
-          idxkeep <- which(mm[i, ] != 0)
-          nmtmp <- colnames(mm)[idxkeep]
-          mmtmp <- as.character(mm[i, idxkeep])
-          idxneg <- grep("^-", mmtmp)
-          mmtmp[idxneg] <- paste0("(", mmtmp[idxneg], ")")
-          mmtmp[mmtmp != "1"] <- paste0(mmtmp[mmtmp != "1"], "*")
-          mmtmp[mmtmp == "1"] <- ""
-          v <- paste0(mmtmp, nmtmp)
-          v <- paste(v, collapse = " + ")
-          sampleData$value[i] <- v
+    })
+    
+    output$box_annobj <- renderUI({
+      if(!is.null(values$annotation_obj))
+        return(valueBox("Annotation",
+                        paste0(nrow(values$annotation_obj), " genes - ",ncol(values$annotation_obj)," ID types"),
+                        icon = icon("book"),
+                        color = "green",width = NULL))
+      else
+        return(valueBox("Annotation",
+                        "yet to create",
+                        icon = icon("book"),
+                        color = "red",width = NULL))
+    })
+    
+    output$box_resobj <- renderUI({
+      if(!is.null(values$res_obj)){
+        DEregu <- sum(values$res_obj$padj < input$FDR & values$res_obj$log2FoldChange != 0, na.rm = TRUE)
+        return(valueBox("DE genes",
+                        paste0(DEregu, " DE genes - out of ",nrow(values$res_obj),""),
+                        icon = icon("rectangle-list"),
+                        color = "green",width = NULL))
+      } else
+        return(valueBox("DE genes",
+                        "yet to create",
+                        icon = icon("rectangle-list"),
+                        color = "red",width = NULL))
+    })
+    
+    
+    # if i want to focus a little more on the ihw object
+    values$ihwres <- NULL
+    
+    # server uploading data -----------------------------------------------------------
+    ## count matrix
+    output$upload_count_matrix <- renderUI({
+      if (!is.null(dds_obj) | !is.null(countmatrix)) {
+        return(fluidRow(column(
+          width = 12,
+          tags$li("You already provided a count matrix or a DESeqDataSet object as input. You can check your input data in the collapsible box here below."), offset = 2)))
+      } else {
+        return(fileInput(inputId = "uploadcmfile",
+                         label = "Upload one or more count matrix file(s)",
+                         accept = c("text/csv", "text/comma-separated-values",
+                                    "text/tab-separated-values", "text/plain",
+                                    ".csv", ".tsv", ".xls"), multiple = TRUE))
+      }
+    })
+    
+    readCountmatrix <- reactive({
+      if (is.null(input$uploadcmfile))
+        return(NULL)
+      on.exit({
+        if (!is.null(getDefaultReactiveDomain())) {
+          removeNotification(id = "readCountmatrix")
         }
-        sampleData <- sampleData %>%
-          dplyr::group_by(dplyr::across(dplyr::everything())) %>%
-          dplyr::mutate(nSamples = length(value)) %>% dplyr::ungroup() %>%
-          dplyr::distinct() %>% as.data.frame()
-        ## ----------------------------------------------------------------------- ##
-        ## Define terms to include in the plot, and terms used for splitting plots
-        ## ----------------------------------------------------------------------- ##
-        if (length(terms) <= 1) {
-          plot_terms <- terms
-        } else {
-          plot_terms <- terms[seq(length(terms) - 1, length(terms))]
+      })
+      if (!is.null(getDefaultReactiveDomain())) {
+        showNotification("readCountmatrix",
+                         id = "readCountmatrix",
+                         duration = NULL
+        )
+      }
+      
+      guessed_sep <- sepguesser(input$uploadcmfile$datapath[1])
+      cm <- utils::read.delim(input$uploadcmfile$datapath[1], header = TRUE,
+                              as.is = TRUE, sep = guessed_sep, quote = "",
+                              row.names = 1, # https://github.com/federicomarini/pcaExplorer/issues/1
+                              ## TODO: tell the user to use tsv, or use heuristics
+                              ## to check what is most frequently occurring separation character? -> see sepGuesser.R
+                              check.names = FALSE)
+      if (nrow(input$uploadcmfile) > 1){
+        for (r in 2:nrow(input$uploadcmfile)) {
+          cmt <- utils::read.delim(input$uploadcmfile$datapath[r], header = TRUE,
+                                   as.is = TRUE, sep = guessed_sep, quote = "",
+                                   row.names = 1, # https://github.com/federicomarini/pcaExplorer/issues/1
+                                   ## TODO: tell the user to use tsv, or use heuristics
+                                   ## to check what is most frequently occurring separation character? -> see sepGuesser.R
+                                   check.names = FALSE)
+          cm2 = base::merge(cm, cmt, by = 0,  all=T)
+          rownames(cm2) = cm2$Row.names
+          cm2$Row.names = NULL
+          cm = cm2
         }
-        if (length(terms) > 2) {
-          split_terms <- terms[seq_len(length(terms) - 2)]
-        } else {
-          split_terms <- c()
-        }
-        # ## ----------------------------------------------------------------------- ##
-        # ## Add \n if the modeled value has too many characters
-        # ## ----------------------------------------------------------------------- ##
-        plot_data <- sampleData
-        # %>%
-        #   dplyr::mutate(value = vapply(value, function(i)
-        #     .AddNewLine(i, lineWidthFitted), ""))
+      }
+      cm[is.na(cm)] <- 0
+      cat(file = stderr(), paste("read count data: rows:", nrow(cm), "ncol:", ncol(cm), "\n", "sample names:", colnames(cm), "\n"))
+      return(cm)
+    })
+    
+    ## exp design
+    output$upload_metadata <- renderUI({
+      if (!is.null(dds_obj) | !is.null(expdesign)) {
+        return(fluidRow(column(
+          width = 12,
+          tags$li("You already provided a matrix/data.frame with the experimental covariates or a DESeqDataSet object as input. You can check your input data in the collapsible box here below."), offset = 2)))
         
-        ## ----------------------------------------------------------------------- ##
-        ## Convert all columns to factors for plotting
-        ## ----------------------------------------------------------------------- ##
-        plot_data <- plot_data %>%
-          dplyr::mutate_at(dplyr::vars(-nSamples, -value), as.factor)
-        
-        ## ----------------------------------------------------------------------- ##
-        ## Add value of split terms (to use for plot titles)
-        ## ----------------------------------------------------------------------- ##
-        if (length(split_terms) > 0) {
-          for (st in split_terms) {
-            plot_data[[st]] <- paste0(st, " = ", plot_data[[st]])
+      } else {
+        return(fileInput(inputId = "uploadmetadatafile",
+                         label = "Upload a sample metadata matrix file",
+                         accept = c("text/csv", "text/comma-separated-values",
+                                    "text/tab-separated-values", "text/plain",
+                                    ".csv", ".tsv"), multiple = FALSE))
+      }
+    })
+    
+    readMetadata <- reactive({
+      if (is.null(input$uploadmetadatafile))
+        return(NULL)
+      # browser()
+      
+      guessed_sep <- sepguesser(input$uploadmetadatafile$datapath)
+      expdesign <- utils::read.delim(input$uploadmetadatafile$datapath, header = TRUE,
+                                     sep = guessed_sep, quote = "",
+                                     check.names = FALSE, stringsAsFactors = TRUE)
+      if (colnames(expdesign)[1] == "") {
+        tryCatch({
+          rownames(expdesign) <- expdesign[,1]},
+          error = function(e) {
+            showNotification(paste("Error while load meta data:\n", e),
+                             type = "error")
+            return(NULL)
           }
-          plot_data <- plot_data %>%
-            tidyr::unite("groupby", dplyr::all_of(split_terms), sep = ", ")
-        } else {
-          plot_data$groupby <- ""
-        }
-        
-        ## ----------------------------------------------------------------------- ##
-        ## Split terms into individual rows
-        ## ----------------------------------------------------------------------- ##
-        plot_data <- plot_data %>%
-          tidyr::separate_rows(value, sep = "\\\n") %>%
-          dplyr::mutate(value = gsub("^ ", "", value)) %>%
-          dplyr::group_by_at(c(plot_terms, "groupby")) %>%
-          dplyr::mutate(vjust = 1.5 * (seq(0, dplyr::n() - 1, by = 1) -
-                                         (dplyr::n() - 1)/2) + 0.5) %>%
-          dplyr::ungroup()
-        
-        ## ----------------------------------------------------------------------- ##
-        ## Pre-define colors
-        ## ----------------------------------------------------------------------- ##
-        # if (addColorFitted) {
-        plot_data <- plot_data %>%
-          dplyr::mutate(colorby = gsub("[ ]*\\+[ ]*", "",
-                                       gsub("(\\(-)*[0-9]*\\)*[ ]*\\*[ ]*", "",
-                                            value)))
-        colorPaletteFitted = scales::hue_pal()
-        colors <- structure(colorPaletteFitted(length(unique(plot_data$colorby))),
-                            names = unique(plot_data$colorby))
-        # }
-        
-        
-        ## ----------------------------------------------------------------------- ##
-        ## Create plot(s)
-        ## ----------------------------------------------------------------------- ##
-        ## First, get the total number of "rows" in the final plot.
-        ## Will be used to determine the size of the panel.
-        flipCoordFitted = FALSE
-        if (flipCoordFitted & length(plot_terms) == 1) {
-          totnbrrows <- length(unique(plot_data$groupby))
-        } else if (flipCoordFitted) {
-          totnbrrows <- length(unique(plot_data$groupby)) *
-            length(unique(plot_data[[plot_terms[2]]]))
-        } else {
-          totnbrrows <- length(unique(plot_data$groupby)) *
-            length(unique(plot_data[[plot_terms[1]]]))
-        }
-        
-        textSizeCoocc = 5
-        textSizeLabsCoocc = 12
-        flipCoordCoocc = FALSE
-        keepcols <- setdiff(colnames(plot_data), c("value", "vjust", "colorby"))
-        maxN <- max(plot_data$nSamples)
-        ggcoocc <- lapply(split(
-          plot_data, f = plot_data$groupby),
-          function(w) {
-            w <- w %>% dplyr::select(dplyr::all_of(keepcols)) %>% dplyr::distinct()
-            gp <- ggplot2::ggplot(
-              w,
-              ggplot2::aes_string(
-                x = ifelse(length(plot_terms) == 1, 1, plot_terms[2]),
-                y = plot_terms[1],
-                fill = "nSamples",
-                label = "nSamples"
-              )) +
-              ggplot2::geom_tile(color = "black") +
-              ggplot2::scale_x_discrete(
-                expand = ggplot2::expansion(mult = 0, add = 0)
-              ) +
-              ggplot2::scale_y_discrete(
-                expand = ggplot2::expansion(mult = 0, add = 0)
-              ) +
-              ggplot2::theme_bw() +
-              ggplot2::geom_text(size = textSizeCoocc) +
-              ggplot2::theme(
-                panel.grid.major = ggplot2::element_blank(),
-                panel.grid.minor = ggplot2::element_blank(),
-                axis.text = ggplot2::element_text(size = textSizeLabsCoocc),
-                axis.title = ggplot2::element_text(size = textSizeLabsCoocc)
-              ) +
-              ggplot2::scale_fill_gradient(
-                low = "white", high = "deepskyblue3",
-                name = "Number of\nobservations",
-                limits = c(0, maxN)) +
-              ggplot2::ggtitle(w$groupby[1])
-            if (length(plot_terms) == 1) {
-              gp <- gp + theme(axis.text.x = element_blank(),
-                               axis.title.x = element_blank(),
-                               axis.ticks.x = element_blank())
-            }
-            if (flipCoordCoocc) {
-              gp <- gp + ggplot2::coord_flip()
-            }
-            gp
-          })
-      })
-      
-      # Plot cooccurrence matrix ----------------------------------------------
-      output$cooccurrence_matrix_plot <- shiny::renderPlot({
-        shiny::validate(
-          shiny::need(
-            input$dds_design != "" ,
-            paste0("Please provide a formula where all terms appear in ",
-                   "the sample data")
-          )
         )
-        if (is.null(cooccurrenceplots())) {
-          NULL
+        expdesign <- expdesign[,-1]
+      }
+      cat(file = stderr(), paste("read metadata: rows:", nrow(expdesign), "colnames:", colnames(expdesign), "\n"))
+      return(expdesign)
+    })
+    
+    # load the demo data
+    observeEvent(input$btn_loaddemo,withProgress(
+      message = "Loading demo data",
+      detail = "Loading airway count and metadata information", value = 0,
+      {
+        aw <- requireNamespace("airway",quietly = TRUE)
+        incProgress(0.2,detail = "`airway` package loaded")
+        if(aw) {
+          data(airway,package="airway",envir = environment())
+          
+          cm_airway <- assay(airway)
+          incProgress(0.7, detail = "Count matrix loaded")
+          ed_airway <- as.data.frame(colData(airway))
+          
+          values$countmatrix <- cm_airway
+          values$expdesign <- ed_airway
+          incProgress(0.3, detail = "Experimental metadata loaded")
+          # just to be sure, erase the annotation and the rest
+          # browser()
+          values$dds_obj <- NULL
+          values$annotation_obj <- NULL
+          values$res_obj <- NULL
+          showNotification("All components for generating the DESeqDataset object have been loaded, proceed to Step 2!",
+                           type = "message")
         } else {
-          cowplot::plot_grid(plotlist = cooccurrenceplots(),
-                             ncol = 1)
+          showNotification("The 'airway' package is currently not installed. Please do so by executing BiocManager::install('airway') before launching idealImmunoTP()",type = "warning")
         }
       })
-      # server ui steps -----------------------------------------------------------
-      output$ui_step2 <- renderUI({
-        if (is.null(values$expdesign) | is.null(values$countmatrix))
-          return(NULL)
-        box(width = 12, title = "Step 2", status = "warning", solidHeader = TRUE,
-            tagList(
-              # as in https://groups.google.com/forum/#!topic/shiny-discuss/qQ8yICfvDu0
-              h2("Select the DE design and create the DESeqDataSet object"),
-              fluidRow(
-                column(
-                  width = 6,
-                  uiOutput("ddsdesign"),
-                  uiOutput("ddsintercept"),
-                  # checkboxInput(inputId = "multiplyDesign", label = "multiply first two arguments",value = FALSE),
-                  textInput("geneFilter", "Reg. expr. to fileter genes", value = values$geneFilter),
-                  uiOutput("ui_diydds"),
-                  hr(),
-                  # uiOutput("ok_dds"),
-                  verbatimTextOutput("debugdiy")
-                ),
-                column(
-                  width = 6,
-                  plotOutput("cooccurrence_matrix_plot"),
-                  
-                )
-              )
-            ))
-      })
+    )
+    
+    observeEvent(input$help_format, {
+      showModal(modalDialog(
+        title = "Format specifications for idealImmunoTP",
+        includeMarkdown(system.file("extdata", "datainput.md",package = "idealImmunoTP")),
+        h4("Example:"),
+        tags$img(
+          src = base64enc::dataURI(file = system.file("www", "help_dataformats.png",package = "pcaExplorer"), mime = "image/png"),
+          width = 750
+        ),
+        easyClose = TRUE,
+        footer = NULL,
+        size = "l"
+      ))
+    })
+    
+    output$ddsdesign <- renderUI({
+      cat(file = stderr(), paste("ddsdesign\n"))
+      if(is.null(values$expdesign))
+        return(NULL)
+      poss_covars <- colnames(values$expdesign)
+      # cat(file = stderr(), "selectINPUT dds_design\n")
+      selectInput('dds_design', label = 'Select the design for your experiment: ',
+                  choices = c(NULL, poss_covars), selected = values$dds_design, multiple = TRUE)
+    })
+    
+    output$ddsintercept <- renderUI({
+      cat(file = stderr(), paste("ddsintercept\n"))
       
-      output$ui_stepanno <- renderUI({
-        if (is.null(values$dds_obj)) ### and not provided already with sep annotation?
-          return(NULL)
-        
-        box(width = 12, title = "Optional Step", status = "info", solidHeader = TRUE,
-            tagList(
-              h2("Create the annotation data frame for your dataset"),
-              
-              fluidRow(
-                column(
-                  width = 8,
-                  uiOutput("ui_selectspecies"),
-                  verbatimTextOutput("speciespkg"),
-                  uiOutput("ui_idtype"),
-                  verbatimTextOutput("printDIYanno")
-                  
-                )
-              )
-              ,
-              uiOutput("ui_getanno")
-            )
+      if(is.null(values$expdesign))
+        return(NULL)
+      if(is.null(input$dds_design))
+        return(NULL)
+      # browser()
+      if(!all(input$dds_design %in% colnames(values$expdesign)))
+        return(NULL)
+      # browser()
+      poss_covars <- levels(values$expdesign[,input$dds_design[1]])
+      selectInput('dds_intercept', label = 'Select the intercept for your experiment: ',
+                  choices = c(NULL, poss_covars), selected = values$dds_intercept, multiple = FALSE)
+    })
+    
+    observeEvent(input$dds_intercept, {
+      values$dds_intercept = input$dds_intercept
+    })
+    
+    # The following comes from ExploreModelMatrix package
+    ## ----------------------------------------------------------------------- ##
+    ## Create co-occurrence plot
+    ## ----------------------------------------------------------------------- ##
+    cooccurrenceplots <- reactive({
+      cat(file = stderr(), paste("cooccurrenceplots\n"))
+      # browser()
+      if(is.null(values$expdesign))
+        return(NULL)
+      if(is.null(input$dds_design))
+        return(NULL)
+      if(!all(input$dds_design %in% colnames(values$expdesign)))
+        return(NULL)
+      dsgn <- as.formula(paste0("~", paste(input$dds_design, collapse = " + ")))
+      terms <- all.vars(dsgn)
+      sampleData <- values$expdesign %>% dplyr::select(dplyr::all_of(terms))
+      mm <- stats::model.matrix(dsgn, data = values$expdesign)
+      ## ----------------------------------------------------------------------- ##
+      ## Calculate pseudoinverse of design matrix
+      ## ----------------------------------------------------------------------- ##
+      psinverse <- MASS::ginv(mm)
+      rownames(psinverse) <- colnames(mm)
+      colnames(psinverse) <- rownames(mm)
+      sampleData$value <- ""
+      for (i in seq_len(nrow(sampleData))) {
+        idxkeep <- which(mm[i, ] != 0)
+        nmtmp <- colnames(mm)[idxkeep]
+        mmtmp <- as.character(mm[i, idxkeep])
+        idxneg <- grep("^-", mmtmp)
+        mmtmp[idxneg] <- paste0("(", mmtmp[idxneg], ")")
+        mmtmp[mmtmp != "1"] <- paste0(mmtmp[mmtmp != "1"], "*")
+        mmtmp[mmtmp == "1"] <- ""
+        v <- paste0(mmtmp, nmtmp)
+        v <- paste(v, collapse = " + ")
+        sampleData$value[i] <- v
+      }
+      sampleData <- sampleData %>%
+        dplyr::group_by(dplyr::across(dplyr::everything())) %>%
+        dplyr::mutate(nSamples = length(value)) %>% dplyr::ungroup() %>%
+        dplyr::distinct() %>% as.data.frame()
+      ## ----------------------------------------------------------------------- ##
+      ## Define terms to include in the plot, and terms used for splitting plots
+      ## ----------------------------------------------------------------------- ##
+      if (length(terms) <= 1) {
+        plot_terms <- terms
+      } else {
+        plot_terms <- terms[seq(length(terms) - 1, length(terms))]
+      }
+      if (length(terms) > 2) {
+        split_terms <- terms[seq_len(length(terms) - 2)]
+      } else {
+        split_terms <- c()
+      }
+      # ## ----------------------------------------------------------------------- ##
+      # ## Add \n if the modeled value has too many characters
+      # ## ----------------------------------------------------------------------- ##
+      plot_data <- sampleData
+      # %>%
+      #   dplyr::mutate(value = vapply(value, function(i)
+      #     .AddNewLine(i, lineWidthFitted), ""))
+      
+      ## ----------------------------------------------------------------------- ##
+      ## Convert all columns to factors for plotting
+      ## ----------------------------------------------------------------------- ##
+      plot_data <- plot_data %>%
+        dplyr::mutate_at(dplyr::vars(-nSamples, -value), as.factor)
+      
+      ## ----------------------------------------------------------------------- ##
+      ## Add value of split terms (to use for plot titles)
+      ## ----------------------------------------------------------------------- ##
+      if (length(split_terms) > 0) {
+        for (st in split_terms) {
+          plot_data[[st]] <- paste0(st, " = ", plot_data[[st]])
+        }
+        plot_data <- plot_data %>%
+          tidyr::unite("groupby", dplyr::all_of(split_terms), sep = ", ")
+      } else {
+        plot_data$groupby <- ""
+      }
+      
+      ## ----------------------------------------------------------------------- ##
+      ## Split terms into individual rows
+      ## ----------------------------------------------------------------------- ##
+      plot_data <- plot_data %>%
+        tidyr::separate_rows(value, sep = "\\\n") %>%
+        dplyr::mutate(value = gsub("^ ", "", value)) %>%
+        dplyr::group_by_at(c(plot_terms, "groupby")) %>%
+        dplyr::mutate(vjust = 1.5 * (seq(0, dplyr::n() - 1, by = 1) -
+                                       (dplyr::n() - 1)/2) + 0.5) %>%
+        dplyr::ungroup()
+      
+      ## ----------------------------------------------------------------------- ##
+      ## Pre-define colors
+      ## ----------------------------------------------------------------------- ##
+      # if (addColorFitted) {
+      plot_data <- plot_data %>%
+        dplyr::mutate(colorby = gsub("[ ]*\\+[ ]*", "",
+                                     gsub("(\\(-)*[0-9]*\\)*[ ]*\\*[ ]*", "",
+                                          value)))
+      colorPaletteFitted = scales::hue_pal()
+      colors <- structure(colorPaletteFitted(length(unique(plot_data$colorby))),
+                          names = unique(plot_data$colorby))
+      # }
+      
+      
+      ## ----------------------------------------------------------------------- ##
+      ## Create plot(s)
+      ## ----------------------------------------------------------------------- ##
+      ## First, get the total number of "rows" in the final plot.
+      ## Will be used to determine the size of the panel.
+      flipCoordFitted = FALSE
+      if (flipCoordFitted & length(plot_terms) == 1) {
+        totnbrrows <- length(unique(plot_data$groupby))
+      } else if (flipCoordFitted) {
+        totnbrrows <- length(unique(plot_data$groupby)) *
+          length(unique(plot_data[[plot_terms[2]]]))
+      } else {
+        totnbrrows <- length(unique(plot_data$groupby)) *
+          length(unique(plot_data[[plot_terms[1]]]))
+      }
+      
+      textSizeCoocc = 5
+      textSizeLabsCoocc = 12
+      flipCoordCoocc = FALSE
+      keepcols <- setdiff(colnames(plot_data), c("value", "vjust", "colorby"))
+      maxN <- max(plot_data$nSamples)
+      ggcoocc <- lapply(split(
+        plot_data, f = plot_data$groupby),
+        function(w) {
+          w <- w %>% dplyr::select(dplyr::all_of(keepcols)) %>% dplyr::distinct()
+          gp <- ggplot2::ggplot(
+            w,
+            ggplot2::aes_string(
+              x = ifelse(length(plot_terms) == 1, 1, plot_terms[2]),
+              y = plot_terms[1],
+              fill = "nSamples",
+              label = "nSamples"
+            )) +
+            ggplot2::geom_tile(color = "black") +
+            ggplot2::scale_x_discrete(
+              expand = ggplot2::expansion(mult = 0, add = 0)
+            ) +
+            ggplot2::scale_y_discrete(
+              expand = ggplot2::expansion(mult = 0, add = 0)
+            ) +
+            ggplot2::theme_bw() +
+            ggplot2::geom_text(size = textSizeCoocc) +
+            ggplot2::theme(
+              panel.grid.major = ggplot2::element_blank(),
+              panel.grid.minor = ggplot2::element_blank(),
+              axis.text = ggplot2::element_text(size = textSizeLabsCoocc),
+              axis.title = ggplot2::element_text(size = textSizeLabsCoocc)
+            ) +
+            ggplot2::scale_fill_gradient(
+              low = "white", high = "deepskyblue3",
+              name = "Number of\nobservations",
+              limits = c(0, maxN)) +
+            ggplot2::ggtitle(w$groupby[1])
+          if (length(plot_terms) == 1) {
+            gp <- gp + theme(axis.text.x = element_blank(),
+                             axis.title.x = element_blank(),
+                             axis.ticks.x = element_blank())
+          }
+          if (flipCoordCoocc) {
+            gp <- gp + ggplot2::coord_flip()
+          }
+          gp
+        })
+    })
+    
+    # Plot cooccurrence matrix ----------------------------------------------
+    output$cooccurrence_matrix_plot <- shiny::renderPlot({
+      shiny::validate(
+        shiny::need(
+          input$dds_design != "" ,
+          paste0("Please provide a formula where all terms appear in ",
+                 "the sample data")
         )
-      })
+      )
+      if (is.null(cooccurrenceplots())) {
+        NULL
+      } else {
+        cowplot::plot_grid(plotlist = cooccurrenceplots(),
+                           ncol = 1)
+      }
+    })
+    # server ui steps -----------------------------------------------------------
+    output$ui_step2 <- renderUI({
+      cat(file = stderr(), paste("ui_step2\n"))
       
-      output$ui_stepoutlier <- renderUI({
-        if (is.null(values$dds_obj)) ### and not provided already with sep annotation?
-          return(NULL)
-        
-        box(
-          width = 12, title = "Optional Step", status = "info", solidHeader = TRUE,
+      if (is.null(values$expdesign) | is.null(values$countmatrix))
+        return(NULL)
+      box(width = 12, title = "Step 2", status = "warning", solidHeader = TRUE,
           tagList(
-            h2("Remove sample(s) from the current dataset - suspected outliers!"),
+            # as in https://groups.google.com/forum/#!topic/shiny-discuss/qQ8yICfvDu0
+            h2("Select the DE design and create the DESeqDataSet object"),
+            fluidRow(
+              column(
+                width = 6,
+                uiOutput("ddsdesign"),
+                uiOutput("ddsintercept"),
+                # checkboxInput(inputId = "multiplyDesign", label = "multiply first two arguments",value = FALSE),
+                textInput("geneFilter", "Reg. expr. to fileter genes", value = values$geneFilter),
+                uiOutput("ui_diydds"),
+                hr(),
+                # uiOutput("ok_dds"),
+                verbatimTextOutput("debugdiy")
+              ),
+              column(
+                width = 6,
+                plotOutput("cooccurrence_matrix_plot"),
+                
+              )
+            )
+          ))
+    })
+    
+    output$ui_stepanno <- renderUI({
+      cat(file = stderr(), paste("ui_stepanno\n"))
+      
+      if (is.null(values$dds_obj)) ### and not provided already with sep annotation?
+        return(NULL)
+      
+      box(width = 12, title = "Optional Step", status = "info", solidHeader = TRUE,
+          tagList(
+            h2("Create the annotation data frame for your dataset"),
             
             fluidRow(
               column(
                 width = 8,
-                uiOutput("ui_selectoutliers"),
-                uiOutput("outliersout"),
-                verbatimTextOutput("printremoved")
+                uiOutput("ui_selectspecies"),
+                verbatimTextOutput("speciespkg"),
+                uiOutput("ui_idtype"),
+                verbatimTextOutput("printDIYanno")
+                
               )
             )
+            ,
+            uiOutput("ui_getanno")
           )
-        )
-      })
+      )
+    })
+    
+    output$ui_stepoutlier <- renderUI({
+      if (is.null(values$dds_obj)) ### and not provided already with sep annotation?
+        return(NULL)
       
-      output$ui_diydds <- renderUI({
-        if (is.null(values$expdesign) | is.null(values$countmatrix) | is.null(input$dds_design))
-          return(NULL)
-        actionButton("button_diydds","Generate the dds object", class = "btn btn-success")
-      })
-      
-      output$ui_getanno <- renderUI({
-        if (is.null(values$dds_obj) ) ### and not provided already with sep annotation?
-          return(NULL)
-        shiny::validate(
-          need(values$cur_species != "",
-               "Select a species first in the panel")
-        )
-        actionButton("button_getanno","Retrieve the gene symbol annotation for the uploaded data", class = "btn btn-primary")
-      })
-      
-      # output$ui_nrcores <- renderUI({
-      #   mincores <- 1
-      #   maxcores <- BiocParallel::multicoreWorkers()
-      #   sliderInput("nrcores",label = "Choose how many cores to use for computing:",
-      #               min = mincores, max = maxcores,value = 2, step = 1)
-      # })
-      
-      output$ui_step3 <- renderUI({
-        if (is.null(values$dds_obj)) #
-          return(NULL)
-        box(width = 12, title = "Step 3", status = "success", solidHeader = TRUE,
-            tagList(
-              h2("Run DESeq!"),
-              
-              # fluidRow(
-              #   column(
-              #     width = 4,
-              #     uiOutput("ui_nrcores")
-              #   )
-              # ),
-              
-              uiOutput("rundeseq"),
-              verbatimTextOutput("printDIYresults"),
-              uiOutput("ui_stepend")
-            )
-        )
-      })
-      
-      output$ui_stepend <- renderUI({
-        if(is.null(values$dds_obj))
-          return(NULL)
-        if (!"results" %in% mcols(mcols(values$dds_obj))$type) #
-          return(NULL)
-        
+      box(
+        width = 12, title = "Optional Step", status = "info", solidHeader = TRUE,
         tagList(
-          h2("Good to go!"),
-          box(width = 6, title = "Diagnostic plot", status = "info", solidHeader = TRUE,
-              collapsible = TRUE, collapsed = TRUE,
-              plotOutput("diagno_dispests"))
-        )
-      })
-      
-      output$diagno_dispests <- renderPlot({
-        plotDispEsts(values$dds_obj)
-      })
-      
-      # server ok objects -----------------------------------------------------------
-      output$ok_cm <- renderUI({
-        if (is.null(values$countmatrix))
-          return(NULL)
-        # icon("check",class = "icon-done") # this does not allow to set the size? go manually with..
-        tags$div(HTML('<i class="fa fa-check fa-3x icon-done"></i>'))
-      })
-      output$ok_ed <- renderUI({
-        if (is.null(values$dds_obj))
-          return(NULL)
-        # icon("check",class = "icon-done") # this does not allow to set the size? go manually with..
-        tags$div(HTML('<i class="fa fa-check fa-3x icon-done"></i>'))
-      })
-      output$ok_dds <- renderUI({
-        if (is.null(values$dds_obj))
-          return(NULL)
-        # icon("check",class = "icon-done") # this does not allow to set the size? go manually with..
-        tags$div(HTML('<i class="fa fa-check fa-3x icon-done"></i>'))
-      })
-      output$ok_anno <- renderUI({
-        if (is.null(values$annotation_obj))
-          return(NULL)
-        # icon("check",class = "icon-done") # this does not allow to set the size? go manually with..
-        tags$div(HTML('<i class="fa fa-check fa-3x icon-done"></i>'))
-      })
-      output$ok_ddsRun <- renderUI({
-        if(is.null(values$dds_obj))
-          return(NULL)
-        if (!"results" %in% mcols(mcols(values$dds_obj))$type) #
-          return(NULL)
-        tags$div(HTML('<i class="fa fa-check fa-3x icon-done"></i>'))
-      })
-      output$ok_resu <- renderUI({
-        if (is.null(values$res_obj))
-          return(NULL)
-        # icon("check",class = "icon-done") # this does not allow to set the size? go manually with..
-        tags$div(HTML('<i class="fa fa-check fa-3x icon-done"></i>'))
-      })
-      
-      output$checkdds <- reactive({
-        is.null(values$dds_obj)
-      })
-      output$checkresu<-reactive({
-        is.null(values$res_obj)
-      })
-      
-      outputOptions(output, 'checkresu', suspendWhenHidden = FALSE)
-      outputOptions(output, 'checkdds', suspendWhenHidden = FALSE)
-      
-      output$dt_cm <- DT::renderDataTable({
-        if(is.null(values$countmatrix))
-          return(NULL)
-        datatable(values$countmatrix, options = list(scrollX = TRUE, scrollY = "400px"))
-      })
-      
-      output$dt_ed <- DT::renderDataTable({
-        if(is.null(values$expdesign))
-          return(NULL)
-        datatable(values$expdesign, options = list(scrollX = TRUE))
-      })
-      
-      observeEvent(input$geneFilter, {
-        if (is.null(values$geneFilter)) {
-          updateTextInput(session, inputId = "geneFilter", value = "^MT-|^RP")
-        } 
-        if(input$geneFilter == values$geneFilter){
-          # nothing changed
-          return(NULL)
-        }
-        values$geneFilter = input$geneFilter
-        # browser()
-        values$dds_obj = NULL
-      })
-      # http://stackoverflow.com/questions/17024685/how-to-use-a-character-string-in-formula
-      # http://stats.stackexchange.com/questions/29477/how-to-write-a-linear-model-formula-with-100-variables-in-r
-      # http://stackoverflow.com/questions/7666807/anova-test-fails-on-lme-fits-created-with-pasted-formula/7668846#7668846
-      diyDDS <- reactive({
-        if (is.null(values$countmatrix) | is.null(values$expdesign) | is.null(input$dds_design)) {
-          return(NULL)
-        }
-        # browser()
-        if (!is.null(readCountmatrix()))
-          values$countmatrix <- readCountmatrix()
-        if (!is.null(readMetadata()))
-          values$expdesign <- readMetadata()
-        comSamples <- intersect(colnames(values$countmatrix), rownames(values$expdesign))
-        metaData <- readMetadata()
-        values$expdesign <- values$expdesign[comSamples, ]
-        dsgn <- input$dds_design
-        filterExp <- input$geneFilter
-        values$geneFilter = input$geneFilter
-        values$dds_design = input$dds_design
-        values$res_obj = NULL
-        if (!dsgn[1] == "~") {
-          dStr <- paste0("~", paste(input$dds_design, collapse = " + "))
-          # if (input$multiplyDesign) {
-          #   dStr <- sub('\\+', '*', dStr)
-          # }
-          dsgn <- as.formula(dStr)
-        }
-        locfunc <- stats::median
-        counts <- values$countmatrix[, comSamples]
-        # save(file = "~/SCHNAPPsDebug/idealImmunoTP.RData", list = ls())
-        # cp = load("~/SCHNAPPsDebug/idealImmunoTP.RData")
-        if (nchar(filterExp)>0){
-          counts <- counts[grep(filterExp, rownames(counts), invert = TRUE), ]
-        }
-        values$countmatrix <- counts
-        cGenes = 1:nrow(counts)
-        # browser()
-        md = readMetadata()
-        rc = readCountmatrix()
-        colData = values$expdesign[comSamples, ]
-        c1 = colnames(values$countmatrix)
-        c2= rownames(values$expdesign)
-        design = dsgn
-        # save(file = "~/SCHNAPPsDebug/idealImmunoTPDDS.RData", list = c('counts', "colData", "design", "comSamples", "c1", "c2", "md", "rc"))
-        colData[, input$dds_design[1]] = relevel(colData[, input$dds_design[1]], ref = values$dds_intercept)
-        dds <- tryCatch(
-          {
-            # add 1 if all rows contain at least one 0
-            # needed for estimateSizeFactors
-            # one call also estimateSizeFactors(dds, type = "iterate"). but that takes too long
-            if (all(rowSums(counts==0)>0)) {
-              counts = counts + 1
-            }
-            # reset if count data was supplied via GUI and not as parameter
-            dds <- DESeqDataSetFromMatrix(
-              countData = counts,
-              colData = colData,
-              design = design
+          h2("Remove sample(s) from the current dataset - suspected outliers!"),
+          
+          fluidRow(
+            column(
+              width = 8,
+              uiOutput("ui_selectoutliers"),
+              uiOutput("outliersout"),
+              verbatimTextOutput("printremoved")
             )
-            dds <- estimateSizeFactors(dds)
-          },
-          error = function(e) {
-            cat(file = stderr(), paste("error during creation of dds object:", e))
-            # save(file = "~/SCHNAPPsDebug/idealImmunoTPDDS.RData", list = c('counts', "colData", "design", "comSamples", "c1", "c2", "md", "rc"))
-            # cp =load("/Users/bernd/SCHNAPPsDebug/idealImmunoTPDDS.RData")
-            showNotification(
-              paste(
-                "Error during creation of DDS object",
-                "-----", e
-              ),
-              type = "error"
-            )
-            return(NULL)
-          }
-        )
-        return(dds)
-      })
-      
-      observeEvent(input$button_diydds,
-                   {
-                     if(!is.null(values$countmatrix) & !is.null(values$expdesign))
-                       values$dds_obj <- diyDDS()
-                   })
-      
-      output$debugdiy <- renderPrint({
-        if(!is.null(values$dds_obj)){
-          print(values$dds_obj)
-          print("Design:")
-          print(design(values$dds_obj))
-          print("Gene filter:")
-          print(values$geneFilter)
-        }
-      })
-      
-      # as in http://stackoverflow.com/questions/29716868/r-shiny-how-to-get-an-reactive-data-frame-updated-each-time-pressing-an-actionb
-      observeEvent(input$uploadcmfile,
-                   {
-                     # browser()
-                     values$countmatrix <- readCountmatrix()
-                     values$dds_obj <- NULL
-                     values$res_obj <- NULL
-                   })
-      
-      observeEvent(input$uploadmetadatafile,
-                   {
-                     if("restoreBookmark" %in% names(values) & values$restoreBookmark & !is.null(values$expdesign)){
-                       return()
-                     }
-                     # browser()
-                     values$expdesign <- readMetadata()
-                     values$dds_obj <- NULL
-                     values$res_obj <- NULL
-                   })
-      
-      
-      # server retrieving anno --------------------------------------------------
-      annoSpecies_df <- 
-        data.frame(species=c("","Anopheles","Arabidopsis","Bovine","Worm",
-                             "Canine","Fly","Zebrafish","E coli strain K12",
-                             "E coli strain Sakai","Chicken","Human","Mouse",
-                             "Rhesus","Malaria","Chimp","Rat",
-                             "Yeast","Streptomyces coelicolor", "Pig","Toxoplasma gondii",
-                             "Xenopus"),
-                   pkg=c("","org.Ag.eg.db", "org.At.tair.db", "org.Bt.eg.db", "org.Ce.eg.db",
-                         "org.Cf.eg.db", "org.Dm.eg.db", "org.Dr.eg.db", "org.EcK12.eg.db",
-                         "org.EcSakai.eg.db", "org.Gg.eg.db", "org.Hs.eg.db", "org.Mm.eg.db",
-                         "org.Mmu.eg.db", "org.Pf.plasmo.db", "org.Pt.eg.db", "org.Rn.eg.db",
-                         "org.Sc.sgd.db", "org.Sco.eg.db", "org.Ss.eg.db", "org.Tgondii.eg.db",
-                         "org.Xl.eg.db"),
-                   stringsAsFactors = FALSE)
-      
-      annoSpecies_df <- annoSpecies_df[order(annoSpecies_df$species),]
-      # this one is relevant for creating links to the genes
-      annoSpecies_df$ensembl_db <- c("","","","Bos_taurus","Canis_familiaris","Gallus_gallus","Pan_troglodytes",
-                                     "","","Drosophila_melanogaster","Homo_sapiens","","Mus_musculus",
-                                     "Sus_scrofa","Rattus_norvegicus","Macaca_mulatta","","","Caenorhabditis_elegans",
-                                     "Xenopus_tropicalis","Saccharomyces_cerevisiae","Danio_rerio"
-      )
-      # this one is the shortcut for the limma::goana function
-      annoSpecies_df$species_short[grep(pattern = "eg.db",annoSpecies_df$pkg)] <- gsub(".eg.db","",gsub("org.","",annoSpecies_df$pkg))[grep(pattern = "eg.db",annoSpecies_df$pkg) ]
-      # to match to the goseq genome setting
-      annoSpecies_df$goseq_shortcut <- c("","anoGam1","Arabidopsis","bosTau8","canFam3","galGal4","panTro4","E. coli K12","E. coli Sakai",
-                                         "dm6","hg19","Malaria","mm10","susScr3","rn6","rheMac","","","ce11","xenTro","sacCer3","danRer10")
-      rownames(annoSpecies_df) <- annoSpecies_df$species # easier to access afterwards
-      # annoSpecies_df <- annoSpecies_df[annoSpecies_df$species %in% c("","Human", "Mouse", "Rat", "Fly", "Chimp"),]
-      
-      output$ui_selectspecies <- renderUI({
-        if (is.null(values$dds_obj)) #
-          return(NULL)
-        selectInput("speciesSelect",label = "Select the species of your samples - it will also be used for enhancing result tables",
-                    choices = annoSpecies_df$species,selected="Human")
-      })
-      
-      output$ui_idtype <- renderUI({
-        if (is.null(values$dds_obj)) #
-          return(NULL)
-        
-        std_choices <- c("ENSEMBL","ENTREZID","REFSEQ","SYMBOL")
-        if(!"speciesSelect" %in% names(input)) {
-          return (NULL)
-        }
-        if (input$speciesSelect!=""){
-          annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect]
-          require(annopkg,character.only=TRUE)
-          pkg_choices <- keytypes(get(annopkg))
-          std_choices <- union(std_choices, pkg_choices)
-        }
-        selectInput("idtype", "select the id type in your data", choices=std_choices, selected = "SYMBOL")
-      })
-      
-      output$speciespkg <- renderText({
-        if (is.null(values$dds_obj)) #
-          return(NULL)
-        shiny::validate(
-          need(values$cur_species!="",
-               "Select a species - requires the corresponding annotation package"
           )
         )
-        annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
-        shiny::validate(
-          need(require(annopkg,character.only=TRUE),
-               paste0("The package ",annopkg, " is not installed/available. Try installing it with BiocManager::install('",annopkg,"')"))
-        )
-        retmsg <- paste0(annopkg," - package available and loaded")
-        # if (!require(annopkg,character.only=TRUE)) {
-        # stop("The package",annopkg, "is not installed/available. Try installing it with BiocManager::install() ?")
+      )
+    })
+    
+    output$ui_diydds <- renderUI({
+      if (is.null(values$expdesign) | is.null(values$countmatrix) | is.null(input$dds_design))
+        return(NULL)
+      actionButton("button_diydds","Generate the dds object", class = "btn btn-success")
+    })
+    
+    output$ui_getanno <- renderUI({
+      if (is.null(values$dds_obj) ) ### and not provided already with sep annotation?
+        return(NULL)
+      shiny::validate(
+        need(values$cur_species != "",
+             "Select a species first in the panel")
+      )
+      actionButton("button_getanno","Retrieve the gene symbol annotation for the uploaded data", class = "btn btn-primary")
+    })
+    
+    # output$ui_nrcores <- renderUI({
+    #   mincores <- 1
+    #   maxcores <- BiocParallel::multicoreWorkers()
+    #   sliderInput("nrcores",label = "Choose how many cores to use for computing:",
+    #               min = mincores, max = maxcores,value = 2, step = 1)
+    # })
+    
+    output$ui_step3 <- renderUI({
+      if (is.null(values$dds_obj)) #
+        return(NULL)
+      box(width = 12, title = "Step 3", status = "success", solidHeader = TRUE,
+          tagList(
+            h2("Run DESeq!"),
+            
+            # fluidRow(
+            #   column(
+            #     width = 4,
+            #     uiOutput("ui_nrcores")
+            #   )
+            # ),
+            
+            uiOutput("rundeseq"),
+            verbatimTextOutput("printDIYresults"),
+            uiOutput("ui_stepend")
+          )
+      )
+    })
+    
+    output$ui_stepend <- renderUI({
+      if(is.null(values$dds_obj))
+        return(NULL)
+      if (!"results" %in% mcols(mcols(values$dds_obj))$type) #
+        return(NULL)
+      
+      tagList(
+        h2("Good to go!"),
+        box(width = 6, title = "Diagnostic plot", status = "info", solidHeader = TRUE,
+            collapsible = TRUE, collapsed = TRUE,
+            plotOutput("diagno_dispests"))
+      )
+    })
+    
+    output$diagno_dispests <- renderPlot({
+      plotDispEsts(values$dds_obj)
+    })
+    
+    # server ok objects -----------------------------------------------------------
+    output$ok_cm <- renderUI({
+      if (is.null(values$countmatrix))
+        return(NULL)
+      # icon("check",class = "icon-done") # this does not allow to set the size? go manually with..
+      tags$div(HTML('<i class="fa fa-check fa-3x icon-done"></i>'))
+    })
+    output$ok_ed <- renderUI({
+      if (is.null(values$dds_obj))
+        return(NULL)
+      # icon("check",class = "icon-done") # this does not allow to set the size? go manually with..
+      tags$div(HTML('<i class="fa fa-check fa-3x icon-done"></i>'))
+    })
+    output$ok_dds <- renderUI({
+      if (is.null(values$dds_obj))
+        return(NULL)
+      # icon("check",class = "icon-done") # this does not allow to set the size? go manually with..
+      tags$div(HTML('<i class="fa fa-check fa-3x icon-done"></i>'))
+    })
+    output$ok_anno <- renderUI({
+      if (is.null(values$annotation_obj))
+        return(NULL)
+      # icon("check",class = "icon-done") # this does not allow to set the size? go manually with..
+      tags$div(HTML('<i class="fa fa-check fa-3x icon-done"></i>'))
+    })
+    output$ok_ddsRun <- renderUI({
+      if(is.null(values$dds_obj))
+        return(NULL)
+      if (!"results" %in% mcols(mcols(values$dds_obj))$type) #
+        return(NULL)
+      tags$div(HTML('<i class="fa fa-check fa-3x icon-done"></i>'))
+    })
+    output$ok_resu <- renderUI({
+      if (is.null(values$res_obj))
+        return(NULL)
+      # icon("check",class = "icon-done") # this does not allow to set the size? go manually with..
+      tags$div(HTML('<i class="fa fa-check fa-3x icon-done"></i>'))
+    })
+    
+    output$checkdds <- reactive({
+      is.null(values$dds_obj)
+    })
+    output$checkresu<-reactive({
+      is.null(values$res_obj)
+    })
+    
+    outputOptions(output, 'checkresu', suspendWhenHidden = FALSE)
+    outputOptions(output, 'checkdds', suspendWhenHidden = FALSE)
+    
+    output$dt_cm <- DT::renderDataTable({
+      if(is.null(values$countmatrix))
+        return(NULL)
+      datatable(values$countmatrix, options = list(scrollX = TRUE, scrollY = "400px"))
+    })
+    
+    output$dt_ed <- DT::renderDataTable({
+      if(is.null(values$expdesign))
+        return(NULL)
+      datatable(values$expdesign, options = list(scrollX = TRUE))
+    })
+    
+    observeEvent(input$geneFilter, {
+      cat(file = stderr(), paste("input$geneFilter\n"))
+      # browser()
+      if (is.null(values$geneFilter)) {
+        updateTextInput(session, inputId = "geneFilter", value = "^MT-|^RP")
+        return()
+      } 
+      if(input$geneFilter == values$geneFilter){
+        # nothing changed
+        return(NULL)
+      }
+      values$geneFilter = input$geneFilter
+      # browser()
+      values$dds_obj = NULL
+    })
+    # http://stackoverflow.com/questions/17024685/how-to-use-a-character-string-in-formula
+    # http://stats.stackexchange.com/questions/29477/how-to-write-a-linear-model-formula-with-100-variables-in-r
+    # http://stackoverflow.com/questions/7666807/anova-test-fails-on-lme-fits-created-with-pasted-formula/7668846#7668846
+    diyDDS <- reactive({
+      cat(file = stderr(), paste("diyDDS\n"))
+      
+      if (is.null(values$countmatrix) | is.null(values$expdesign) | is.null(input$dds_design)) {
+        return(NULL)
+      }
+      # browser()
+      if (!is.null(readCountmatrix()))
+        values$countmatrix <- readCountmatrix()
+      if (!is.null(readMetadata()))
+        values$expdesign <- readMetadata()
+      comSamples <- intersect(colnames(values$countmatrix), rownames(values$expdesign))
+      metaData <- readMetadata()
+      values$expdesign <- values$expdesign[comSamples, ]
+      dsgn <- input$dds_design
+      filterExp <- input$geneFilter
+      values$geneFilter = input$geneFilter
+      values$dds_design = input$dds_design
+      values$res_obj = NULL
+      if (!dsgn[1] == "~") {
+        dStr <- paste0("~", paste(input$dds_design, collapse = " + "))
+        # if (input$multiplyDesign) {
+        #   dStr <- sub('\\+', '*', dStr)
         # }
-        retmsg <- paste0(retmsg," - ",gsub(".eg.db","",gsub("org.","",annopkg)))
-        retmsg
-      })
-      
-      # server outliers --------------------------------------------------------
-      output$ui_selectoutliers <- renderUI({
-        if(is.null(values$dds_obj))
-          return(NULL)
-        # cat(file = stderr(), "ui_selectoutliers UI\n")
-        md = colnames(values$dds_obj)
-        cm = colnames(values$dds_obj)
-        if (!is.null(readCountmatrix()))
-          cm <- readCountmatrix()
-        if (!is.null(readMetadata()))
-          md <- readMetadata()
-        comSamples <- intersect(colnames(cm), rownames(md))
-        sele <- values$removedsamples
-        
-        
-        checkboxGroupInput("selectoutliers","Select the samples to remove - candidate outliers",
-                           choices = comSamples, selected = sele)
-        # selectInput("selectoutliers","Select the samples to remove - candidate outliers",
-        #             choices = colnames(values$dds_obj), selected = NULL,multiple = TRUE
-        # )
-      })
-      
-      output$outliersout <- renderUI({
-        if(is.null(values$dds_obj))
-          return(NULL)
-        else
-          actionButton("button_outliersout","Recompute the dds without some samples",class = "btn btn-primary")
-      })
-      
-      observeEvent(input$button_outliersout,{
-        withProgress({
-          allsamples <- colnames(values$countmatrix)
-          outliersamples <- input$selectoutliers
-          
-          keptsamples <- setdiff(allsamples,outliersamples)
-          colData <- values$expdesign[keptsamples,]
-          colData[, input$dds_design[1]] = relevel(colData[, input$dds_design[1]], ref = values$dds_intercept)
-          dds <- tryCatch({DESeqDataSetFromMatrix(countData = values$countmatrix[,keptsamples],
-                                                  colData = colData,
-                                                  design  = design(values$dds_obj)
-                                                  # design=as.formula(paste0("~",paste(input$dds_design, collapse=" + ")))
-          )}, error = function(e) {
-            showNotification(
-              paste(
-                "Error during creation of DDS object",
-                "-----", e
-              ),
-              type = "error"
-            )
-            return(NULL)
-          })
-          if (is.null(dds)) {
-            return(NULL)
+        dsgn <- as.formula(dStr)
+      }
+      locfunc <- stats::median
+      counts <- values$countmatrix[, comSamples]
+      # save(file = "~/SCHNAPPsDebug/idealImmunoTP.RData", list = ls())
+      # cp = load("~/SCHNAPPsDebug/idealImmunoTP.RData")
+      if (nchar(filterExp)>0){
+        counts <- counts[grep(filterExp, rownames(counts), invert = TRUE), ]
+      }
+      values$countmatrix <- counts
+      cGenes = 1:nrow(counts)
+      # browser()
+      md = readMetadata()
+      rc = readCountmatrix()
+      colData = values$expdesign[comSamples, ]
+      c1 = colnames(values$countmatrix)
+      c2= rownames(values$expdesign)
+      design = dsgn
+      # save(file = "~/SCHNAPPsDebug/idealImmunoTPDDS.RData", list = c('counts', "colData", "design", "comSamples", "c1", "c2", "md", "rc"))
+      colData[, input$dds_design[1]] = relevel(colData[, input$dds_design[1]], ref = values$dds_intercept)
+      dds <- tryCatch(
+        {
+          # add 1 if all rows contain at least one 0
+          # needed for estimateSizeFactors
+          # one call also estimateSizeFactors(dds, type = "iterate"). but that takes too long
+          if (all(rowSums(counts==0)>0)) {
+            counts = counts + 1
           }
+          # reset if count data was supplied via GUI and not as parameter
+          dds <- DESeqDataSetFromMatrix(
+            countData = counts,
+            colData = colData,
+            design = design
+          )
           dds <- estimateSizeFactors(dds)
-          
-          # return(dds)
-          # re-create the dds and keep track of which samples were removed
-          values$removedsamples <- input$selectoutliers
-          
-          curr_species <- input$speciesSelect
-          values$dds_obj <- dds
-          updateSelectInput(session, inputId = "speciesSelect", selected = curr_species)
-          # accordingly, reset the results
-          values$res_obj <- NULL},
-          message = "Removing selected samples from the current dataset")
-      })
-      
-      output$printremoved <- renderPrint({
-        print(values$removedsamples)
-      })
-      
-      # server run deseq --------------------------------------------------------
-      output$rundeseq <- renderUI({
-        if(is.null(values$dds_obj))
-          return(NULL)
-        else
-          actionButton("button_rundeseq","Run DESeq!", icon = icon("spinner"), class = "btn btn-success")
-      })
-      
-      observeEvent(input$button_rundeseq,
-                   {
-                     withProgress(message="Running DESeq on your data...",
-                                  detail = "This step might take a while", value = 0,{
-                                    # trick to keep species info while still changing the dds_obj
-                                    curr_species <- input$speciesSelect
-                                    incProgress(0.1)
-                                    
-                                    # if(input$nrcores == 1){
-                                    #   pa = FALSE
-                                    #   bp = bpparam()
-                                    # } else {
-                                    pa = FALSE
-                                    bp = MulticoreParam(workers = 8)
-                                    # }
-                                    # leave open option for computing in parallel?
-                                    values$dds_obj <- tryCatch({
-                                      DESeq(values$dds_obj,
-                                            parallel = pa,
-                                            BPPARAM = bp)},
-                                      # BPPARAM = MulticoreParam(workers = input$nrcores))},
-                                      error = function(e) {
-                                        showNotification(
-                                          paste(
-                                            "Error during creation of DDS object",
-                                            "-----", e
-                                          ),
-                                          type = "error"
-                                        )
-                                        return(values$dds_obj)
-                                      }
-                                    )
-                                    incProgress(0.89)
-                                    updateSelectInput(session, inputId = "speciesSelect", selected = curr_species)
-                                  })
-                   })
-      
-      observeEvent(input$speciesSelect,
-                   {
-                     values$cur_species <- input$speciesSelect
-                     curr_idtype <- values$cur_type
-                     updateSelectInput(session, inputId = "idtype", selected = curr_idtype)
-                   }
-      )
-      
-      output$printDIYresults <- renderPrint({
-        shiny::validate(
-          need(!is.null(values$dds_obj),
-               "Provide or construct a dds object")
-        )
-        shiny::validate(
-          need("results" %in% mcols(mcols(values$dds_obj))$type ,
-               "dds object provided, but couldn't find results. you should first run DESeq() with the button up here"
-          )
-        )
-        summary(DESeq2::results(values$dds_obj), alpha = input$FDR)
-      })
-      
-      # server counts overview --------------------------------------------------------
-      current_countmat <- reactive({
-        if(input$countstable_unit=="raw_counts")
-          return(counts(values$dds_obj,normalized=FALSE))
-        if(input$countstable_unit=="normalized_counts")
-          return(counts(values$dds_obj,normalized=TRUE))
-        if(input$countstable_unit=="rlog_counts")
-          return(NULL) ## see if it is worth to keep in here or explore possibility with fast vst
-        if(input$countstable_unit=="log10_counts")
-          return(log10(1 + counts(values$dds_obj,normalized=TRUE)))
-        if(input$countstable_unit=="tpm_counts")
-          return(NULL) ## TODO!: assumes length of genes/exons as known, and is currently not required in the dds
-        
-      })
-      
-      output$showcountmat <- DT::renderDataTable({
-        datatable(current_countmat())
-      })
-      
-      output$downloadData <- downloadHandler(
-        filename = function() {
-          paste0(input$countstable_unit,"table.csv")
         },
-        content = function(file) {
-          write.csv(current_countmat(), file)
-        }
-      )
-      
-      output$corrplot <- renderPlot({
-        if(input$compute_pairwisecorr)
-          withProgress(
-            pair_corr(current_countmat(),
-                      method=input$corr_method,
-                      log = input$corr_uselogs,
-                      use_subset = input$corr_usesubset),
-            message = "Preparing the plot",
-            detail = "this can take a while..."
+        error = function(e) {
+          cat(file = stderr(), paste("error during creation of dds object:", e))
+          # save(file = "~/SCHNAPPsDebug/idealImmunoTPDDS.RData", list = c('counts', "colData", "design", "comSamples", "c1", "c2", "md", "rc"))
+          # cp =load("/Users/bernd/SCHNAPPsDebug/idealImmunoTPDDS.RData")
+          showNotification(
+            paste(
+              "Error during creation of DDS object",
+              "-----", e
+            ),
+            type = "error"
           )
-      })
-      # HEATCORR ======
-      output$heatcorr <- renderPlotly({
-        input$compute_pairwisecorr
-        input$avail_symbols
-        values$dds_obj
-        input$color_by
-        # if(input$compute_pairwisecorr){
-        # shiny::validate(
-        #   need(!is.null(values$dds_obj),
-        #        "Provide or construct a dds object")
-        # )
-        # cat(file = stderr(), paste("heatcorr: ", class(p),"\n"))
-        # browser()
-        heatmaply::heatmaply_cor(cor(current_countmat()))
-        # }
-        # rld <- rlog(values$dds_obj, blind = FALSE)
-        # # p = plotPCA(rld, intgroup = "STIMULUS", ntop = 1000)
-        # p = plotPCA(rld, intgroup = input$color_by, ntop = 1000)
-        # ggplotify::as.ggplot( p)
-      })
-      
-      output$pcaPlot <- renderPlotly({
-        shiny::validate(
-          need(!is.null(values$dds_obj),
-               "Provide or construct a dds object")
-        )
-        shiny::validate(
-          need(!is.null(input$color_by),
-               "Provide group to color by")
-        )
-        # browser()
-        # rld <- rlog(values$dds_obj, blind = FALSE)
-        rld <- vst(values$dds_obj, blind = FALSE,nsub=10)
-        # browser()
-        # multiAxPCA = function (object, intgroup = "condition", ntop = 500, returnData = FALSE, pc1=1, pc2=2) 
-        p = multiAxPCA(rld, intgroup = input$color_by, ntop = 1000, pc1=as.numeric(input$pcaDim1), pc2=as.numeric(input$pcaDim2))
-        p2 = p +aes(text=colnames(rld))
-        ggplotly(p2, tooltip = "text")
-      })
-      
-      output$pcaEVPlot <- renderPlotly({
-        shiny::validate(
-          need(!is.null(values$dds_obj),
-               "Provide or construct a dds object")
-        )
-        shiny::validate(
-          need(!is.null(input$color_by),
-               "Provide group to color by")
-        )
-        # browser()
-        # rld <- rlog(values$dds_obj, blind = FALSE)
-        rld <- vst(values$dds_obj, blind = FALSE,nsub=10)
-        # browser()
-        # multiAxPCA = function (object, intgroup = "condition", ntop = 500, returnData = FALSE, pc1=1, pc2=2) 
-        pD = multiAxPCA(rld, intgroup = input$color_by, ntop = 1000, pc1=1, pc2=2, returnData = T)
-        df = data.frame(PC=seq(pD),EV=pD)
-        # browser()
-        p<-ggplot(data=df, aes(x=PC, y=EV)) +
-          geom_bar(stat="identity")
-        p
-      })
-      output$pcaPlot34 <- renderPlotly({
-        shiny::validate(
-          need(!is.null(values$dds_obj),
-               "Provide or construct a dds object")
-        )
-        shiny::validate(
-          need(!is.null(input$color_by),
-               "Provide group to color by")
-        )
-        # browser()
-        # rld <- rlog(values$dds_obj, blind = FALSE)
-        rld <- vst(values$dds_obj, blind = FALSE,nsub=10)
-        # browser()
-        # multiAxPCA = function (object, intgroup = "condition", ntop = 500, returnData = FALSE, pc1=1, pc2=2) 
-        p = multiAxPCA(rld, intgroup = input$color_by, ntop = 1000, pc1=3, pc2=4)
-        p2 = p +aes(text=colnames(rld))
-        ggplotly(p2, tooltip = "text")
-      })
-      output$pcaPlot56 <- renderPlotly({
-        shiny::validate(
-          need(!is.null(values$dds_obj),
-               "Provide or construct a dds object")
-        )
-        shiny::validate(
-          need(!is.null(input$color_by),
-               "Provide group to color by")
-        )
-        # browser()
-        # rld <- rlog(values$dds_obj, blind = FALSE)
-        rld <- vst(values$dds_obj, blind = FALSE,nsub=10)
-        # browser()
-        # multiAxPCA = function (object, intgroup = "condition", ntop = 500, returnData = FALSE, pc1=1, pc2=2) 
-        p = multiAxPCA(rld, intgroup = input$color_by, ntop = 1000, pc1=5, pc2=6)
-        p2 = p +aes(text=colnames(rld))
-        ggplotly(p2, tooltip = "text")
-      })
-      
-      output$sizeFactorsPlot <- renderPlot({
-        
-        col <- RColorBrewer::brewer.pal(min(8,unique(colData(values$dds_obj)[, input$color_by[1]]) %>% length()), "Dark2")
-        if(is.null(input$color_by)) {
-          #TODO message about color_by
           return(NULL)
         }
-        # browser()
-        barplot(sizeFactors(values$dds_obj),
-                main = "Size factors ",
-                col = col[as.integer(colData(values$dds_obj)[, input$color_by[1]])],
-                cex.axis = 1.2, cex.names = 0.8, las = 3
+      )
+      return(dds)
+    })
+    
+    observeEvent(input$button_diydds,{
+      if(!is.null(values$countmatrix) & !is.null(values$expdesign))
+        values$dds_obj <- diyDDS()
+    })
+    
+    output$debugdiy <- renderPrint({
+      if(!is.null(values$dds_obj)){
+        print(values$dds_obj)
+        print("Design:")
+        print(design(values$dds_obj))
+        print("Gene filter:")
+        print(values$geneFilter)
+      }
+    })
+    
+    # as in http://stackoverflow.com/questions/29716868/r-shiny-how-to-get-an-reactive-data-frame-updated-each-time-pressing-an-actionb
+    observeEvent(input$uploadcmfile,
+                 {
+                   # browser()
+                   values$countmatrix <- readCountmatrix()
+                   values$dds_obj <- NULL
+                   values$res_obj <- NULL
+                 })
+    
+    observeEvent(input$uploadmetadatafile,{
+      cat(file = stderr(), paste("input$uploadmetadatafile\n"))
+      
+      # browser()
+      if("restoreBookmark" %in% names(values))
+        if(values$restoreBookmark & !is.null(values$expdesign)){
+          return()
+        }
+      
+      values$expdesign <- readMetadata()
+      values$dds_obj <- NULL
+      values$res_obj <- NULL
+    })
+    
+    
+    # server retrieving anno --------------------------------------------------
+    annoSpecies_df <- 
+      data.frame(species=c("","Anopheles","Arabidopsis","Bovine","Worm",
+                           "Canine","Fly","Zebrafish","E coli strain K12",
+                           "E coli strain Sakai","Chicken","Human","Mouse",
+                           "Rhesus","Malaria","Chimp","Rat",
+                           "Yeast","Streptomyces coelicolor", "Pig","Toxoplasma gondii",
+                           "Xenopus"),
+                 pkg=c("","org.Ag.eg.db", "org.At.tair.db", "org.Bt.eg.db", "org.Ce.eg.db",
+                       "org.Cf.eg.db", "org.Dm.eg.db", "org.Dr.eg.db", "org.EcK12.eg.db",
+                       "org.EcSakai.eg.db", "org.Gg.eg.db", "org.Hs.eg.db", "org.Mm.eg.db",
+                       "org.Mmu.eg.db", "org.Pf.plasmo.db", "org.Pt.eg.db", "org.Rn.eg.db",
+                       "org.Sc.sgd.db", "org.Sco.eg.db", "org.Ss.eg.db", "org.Tgondii.eg.db",
+                       "org.Xl.eg.db"),
+                 stringsAsFactors = FALSE)
+    
+    annoSpecies_df <- annoSpecies_df[order(annoSpecies_df$species),]
+    # this one is relevant for creating links to the genes
+    annoSpecies_df$ensembl_db <- c("","","","Bos_taurus","Canis_familiaris","Gallus_gallus","Pan_troglodytes",
+                                   "","","Drosophila_melanogaster","Homo_sapiens","","Mus_musculus",
+                                   "Sus_scrofa","Rattus_norvegicus","Macaca_mulatta","","","Caenorhabditis_elegans",
+                                   "Xenopus_tropicalis","Saccharomyces_cerevisiae","Danio_rerio"
+    )
+    # this one is the shortcut for the limma::goana function
+    annoSpecies_df$species_short[grep(pattern = "eg.db",annoSpecies_df$pkg)] <- gsub(".eg.db","",gsub("org.","",annoSpecies_df$pkg))[grep(pattern = "eg.db",annoSpecies_df$pkg) ]
+    # to match to the goseq genome setting
+    annoSpecies_df$goseq_shortcut <- c("","anoGam1","Arabidopsis","bosTau8","canFam3","galGal4","panTro4","E. coli K12","E. coli Sakai",
+                                       "dm6","hg19","Malaria","mm10","susScr3","rn6","rheMac","","","ce11","xenTro","sacCer3","danRer10")
+    rownames(annoSpecies_df) <- annoSpecies_df$species # easier to access afterwards
+    # annoSpecies_df <- annoSpecies_df[annoSpecies_df$species %in% c("","Human", "Mouse", "Rat", "Fly", "Chimp"),]
+    
+    output$ui_selectspecies <- renderUI({
+      if (is.null(values$dds_obj)) #
+        return(NULL)
+      selectInput("speciesSelect",label = "Select the species of your samples - it will also be used for enhancing result tables",
+                  choices = annoSpecies_df$species,selected="Human")
+    })
+    
+    output$ui_idtype <- renderUI({
+      if (is.null(values$dds_obj)) #
+        return(NULL)
+      
+      std_choices <- c("ENSEMBL","ENTREZID","REFSEQ","SYMBOL")
+      if(!"speciesSelect" %in% names(input)) {
+        return (NULL)
+      }
+      if (input$speciesSelect!=""){
+        annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect]
+        require(annopkg,character.only=TRUE)
+        pkg_choices <- keytypes(get(annopkg))
+        std_choices <- union(std_choices, pkg_choices)
+      }
+      selectInput("idtype", "select the id type in your data", choices=std_choices, selected = "SYMBOL")
+    })
+    
+    output$speciespkg <- renderText({
+      if (is.null(values$dds_obj)) #
+        return(NULL)
+      shiny::validate(
+        need(values$cur_species!="",
+             "Select a species - requires the corresponding annotation package"
         )
-        
-      })
-      output$pairwise_plotUI <- renderUI({
-        if(!input$compute_pairwisecorr) return()
-        
-        plotOutput("corrplot", height = "1000px")
-        # )
-      })
+      )
+      annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
+      shiny::validate(
+        need(require(annopkg,character.only=TRUE),
+             paste0("The package ",annopkg, " is not installed/available. Try installing it with BiocManager::install('",annopkg,"')"))
+      )
+      retmsg <- paste0(annopkg," - package available and loaded")
+      # if (!require(annopkg,character.only=TRUE)) {
+      # stop("The package",annopkg, "is not installed/available. Try installing it with BiocManager::install() ?")
+      # }
+      retmsg <- paste0(retmsg," - ",gsub(".eg.db","",gsub("org.","",annopkg)))
+      retmsg
+    })
+    
+    # server outliers --------------------------------------------------------
+    output$ui_selectoutliers <- renderUI({
+      if(is.null(values$dds_obj))
+        return(NULL)
+      # cat(file = stderr(), "ui_selectoutliers UI\n")
+      md = colnames(values$dds_obj)
+      cm = colnames(values$dds_obj)
+      if (!is.null(readCountmatrix()))
+        cm <- readCountmatrix()
+      if (!is.null(readMetadata()))
+        md <- readMetadata()
+      comSamples <- intersect(colnames(cm), rownames(md))
+      sele <- values$removedsamples
       
-      output$heatcorr_plotUI <- renderUI({
-        input$compute_pairwisecorr
-        # if(!input$compute_pairwisecorr) return()
-        # TODO check that input$color_by is set and set message otherwise
-        plotlyOutput("heatcorr")
-      })
-      output$pca_Dim1 <-renderUI({
-        if(!input$compute_pairwisecorr) return()
-        selectizeInput("pcaDim1", label = "Which PCA on X",
-                       choices = c(1:20), selected = 1, multiple = F)
-      })
-      output$pca_Dim2 <-renderUI({
-        if(!input$compute_pairwisecorr) return()
-        selectizeInput("pcaDim2", label = "Which PCA on Y",
-                       choices = c(1:20), selected = 2, multiple = F)
-      })
-      output$pca_plotUI <- renderUI({
-        if(!input$compute_pairwisecorr) return()
-        plotlyOutput("pcaPlot")
-      })
-      output$pcaEV_plotUI <- renderUI({
-        if(!input$compute_pairwisecorr) return()
-        plotlyOutput("pcaEVPlot")
-      })
-      output$pca_plotUI34 <- renderUI({
-        if(!input$compute_pairwisecorr) return()
-        plotlyOutput("pcaPlot34")
-      })
-      output$pca_plotUI56 <- renderUI({
-        if(!input$compute_pairwisecorr) return()
-        plotlyOutput("pcaPlot56")
-      })
-      output$sizeFactors_plotUI    <- renderUI({
-        if(!input$compute_pairwisecorr) return()
-        plotOutput("sizeFactorsPlot")
-      }) 
-      output$geneHeatmap_plotUI <- renderUI({
-        cat(file =stderr(), paste("geneHeatmap: ",input$compute_pairwisecorr, "\n"))
-        if(input$compute_pairwisecorr<1) return()
-        plotlyOutput("geneHeatmap")
-      })
-      output$geneHeatmap_genesUI <- renderUI({
-        cat(file =stderr(), paste("geneHeatmap: ",input$compute_pairwisecorr, "\n"))
-        if(input$compute_pairwisecorr<1) return()
-        verbatimTextOutput("geneHeatmapgenes")
-      })
       
-      output$geneHeatmap <- renderPlotly({
-        cat(file =stderr(), paste("geneHeatmap renderPlot: ", input$compute_pairwisecorr,"\n"))
-        # We define how many genes we want to look at
-        nGenesHeatmap <- 20
+      checkboxGroupInput("selectoutliers","Select the samples to remove - candidate outliers",
+                         choices = comSamples, selected = sele)
+      # selectInput("selectoutliers","Select the samples to remove - candidate outliers",
+      #             choices = colnames(values$dds_obj), selected = NULL,multiple = TRUE
+      # )
+    })
+    
+    output$outliersout <- renderUI({
+      if(is.null(values$dds_obj))
+        return(NULL)
+      else
+        actionButton("button_outliersout","Recompute the dds without some samples",class = "btn btn-primary")
+    })
+    
+    observeEvent(input$button_outliersout,{
+      cat(file = stderr(), paste("input$button_outliersout\n"))
+      
+      withProgress({
+        allsamples <- colnames(values$countmatrix)
+        outliersamples <- input$selectoutliers
         
-        # ordered by total count over all experiments per gene
-        select <- order(rowMeans(counts(values$dds_obj, normalized = TRUE)),
-                        decreasing = TRUE
-        )[1:nGenesHeatmap]
-        
-        # we transform the data into log2 space
-        nt <- normTransform(values$dds_obj) # defaults to log2(x+1)
-        
-        # and extract the count data from the DESeq2 object.
-        heatmapcounts <- assay(nt)[select, ]
-        # save(file = "~/scShinyHubDebug/idealImmunoTP.RData", list = c(ls(), ls(envir = globalenv())))
-        # load(file="~/scShinyHubDebug/idealImmunoTP.RData")
-        # if("symbol" %in% names(dds_obj)) {
-        #   p <- plot_ma(values$res_obj,
-        #                intgenes = values$genelist_ma$`Gene Symbol`,annotation_obj = values$annotation_obj,FDR = input$FDR)
-        # }
-        # cluster_cols builds the dendrogram on the top
-        if (!is.null(values$annotation_obj)){
-          rownames(heatmapcounts) <- values$annotation_obj$gene_name[
-            match(rownames(heatmapcounts),
-                  rownames(values$annotation_obj))]
+        keptsamples <- setdiff(allsamples,outliersamples)
+        colData <- values$expdesign[keptsamples,]
+        colData[, input$dds_design[1]] = relevel(colData[, input$dds_design[1]], ref = values$dds_intercept)
+        dds <- tryCatch({DESeqDataSetFromMatrix(countData = values$countmatrix[,keptsamples],
+                                                colData = colData,
+                                                design  = design(values$dds_obj)
+                                                # design=as.formula(paste0("~",paste(input$dds_design, collapse=" + ")))
+        )}, error = function(e) {
+          showNotification(
+            paste(
+              "Error during creation of DDS object",
+              "-----", e
+            ),
+            type = "error"
+          )
+          return(NULL)
+        })
+        if (is.null(dds)) {
+          return(NULL)
         }
-        heatmaply(heatmapcounts, cluster_rows = T, show_rownames = TRUE, cluster_cols = T)
-        # p = ggplotify::as.ggplot(p)
-        # p$theme = list()
-        # # browser()
-        # cat(file =stderr(), paste("geneHeatmap renderPlot: ", input$compute_pairwisecorr,"done.\n"))
-        # # ggsave(
-        # #   filename = paste0("test.",input$compute_pairwisecorr, ".png"), plot = p)
-        # p
-      })
-      
-      output$geneHeatmapgenes <- renderPrint({
-        cat(file =stderr(), paste("geneHeatmapgenes renderPlot: ", input$compute_pairwisecorr,"\n"))
-        # We define how many genes we want to look at
-        nGenesHeatmap <- 20
+        dds <- estimateSizeFactors(dds)
         
-        # ordered by total count over all experiments per gene
-        select <- order(rowMeans(counts(values$dds_obj, normalized = TRUE)),
-                        decreasing = TRUE
-        )[1:nGenesHeatmap]
-        paste(rownames(values$dds_obj[select, ]), collapse = " ")
-      })
-      
-      # overview on number of detected genes on different threshold types
-      output$detected_genes <- renderPrint({
-        t1 <- rowSums(counts(values$dds_obj))
-        t2 <- rowMeans(counts(values$dds_obj,normalized=TRUE))
+        # return(dds)
+        # re-create the dds and keep track of which samples were removed
+        values$removedsamples <- input$selectoutliers
         
-        thresh_rowsums <- input$threshold_rowsums
-        thresh_rowmeans <- input$threshold_rowmeans
-        abs_t1 <- sum(t1 > thresh_rowsums)
-        rel_t1 <- 100 * mean(t1 > thresh_rowsums)
-        abs_t2 <- sum(t2 > thresh_rowmeans)
-        rel_t2 <- 100 * mean(t2 > thresh_rowmeans)
-        
-        cat("Number of detected genes:\n")
-        cat(abs_t1,"genes have at least a sample with more than",thresh_rowsums,"counts\n")
-        cat(paste0(round(rel_t1,3),"%"), "of the",nrow(values$dds_obj),
-            "genes have at least a sample with more than",thresh_rowsums,"counts\n")
-        cat(abs_t2,"genes have more than",thresh_rowmeans,"counts (normalized) on average\n")
-        cat(paste0(round(rel_t2,3),"%"), "of the",nrow(values$dds_obj),
-            "genes have more than",thresh_rowsums,"counts (normalized) on average\n")
-        cat("Counts are ranging from", min(counts(values$dds_obj)),"to",max(counts(values$dds_obj)))
-      })
-      
-      observeEvent(input$featfilt_dds,
-                   {
-                     t1 <- rowSums(counts(values$dds_obj))
-                     t2 <- rowMeans(counts(values$dds_obj,normalized=TRUE))
-                     
-                     thresh_rowsums <- input$threshold_rowsums
-                     thresh_rowmeans <- input$threshold_rowmeans
-                     
-                     if(input$filter_crit == "row sums") {
-                       filt_dds <- values$dds_obj[t1 > thresh_rowsums, ]
-                     } else {
-                       filt_dds <- values$dds_obj[t2 > thresh_rowmeans, ]
-                     }
-                     
-                     # TODO: see if re-estimation of size factors is required
-                     filt_dds <- estimateSizeFactors(filt_dds)
-                     
-                     curr_species <- input$speciesSelect
-                     values$dds_obj <- filt_dds
-                     updateSelectInput(session, inputId = "speciesSelect", selected = curr_species)
-                   })
-      
-      # server managing gene lists --------------------------------------------------------
-      ## gene lists upload
-      
-      observeEvent(input$gl1,
-                   {
-                     gl = gl1()
-                     if(is.null(gl)) {values$genelist1 = data.frame(); return(NULL)}
-                     if(nrow(gl)<1) {values$genelist1 = data.frame(); return(NULL)}
-                     mydf <- as.data.frame(gl,stringsAsFactors=FALSE)
-                     names(mydf) <- "Gene Symbol"
-                     values$genelist1 <- mydf
-                   })
-      
-      gl1 <- reactive({
-        if (is.null(input$gl1)) {
-          # User has not uploaded a file yet
-          return(data.frame())
-        } else {
-          gl1 <- read1stCol(input$gl1$datapath, values$dds_obj)
-          # browser()
-          if(is.null(gl1)) return(NULL)
-          return(gl1)
-        }
-      })
-      
-      observeEvent(input$gl2,
-                   {
-                     gl = gl2()
-                     if(is.null(gl)) {values$genelist2 = data.frame(); return(NULL)}
-                     if(nrow(gl)<1) {values$genelist2 = data.frame(); return(NULL)}
-                     mydf <- as.data.frame(gl,stringsAsFactors=FALSE)
-                     names(mydf) <- "Gene Symbol"
-                     
-                     values$genelist2 <- mydf
-                   })
-      
-      gl2 <- reactive({
-        if (is.null(input$gl2)) {
-          # User has not uploaded a file yet
-          return(data.frame())
-        } else {
-          gl2 <- read1stCol(input$gl2$datapath, values$dds_obj)
-          # browser()
-          return(gl2)
-        }
-      })
-      
-      observeEvent(input$gl3,
-                   {
-                     gl = gl3()
-                     if(is.null(gl)) {values$genelist3 = data.frame(); return(NULL)}
-                     if(nrow(gl)<1) {values$genelist3 = data.frame(); return(NULL)}
-                     mydf <- as.data.frame(gl,stringsAsFactors=FALSE)
-                     names(mydf) <- "Gene Symbol"
-                     
-                     values$genelist3 <- mydf
-                   })
-      
-      gl3 <- reactive({
-        if (is.null(input$gl3)) {
-          # User has not uploaded a file yet
-          return(data.frame())
-        } else {
-          gl3 <- read1stCol(input$gl3$datapath, values$dds_obj)
-          # browser()
-          return(gl3)
-        }
-      })
-      
-      observeEvent(input$gl4,
-                   {
-                     gl = gl4()
-                     if(is.null(gl)) {values$genelist4 = data.frame(); return(NULL)}
-                     if(nrow(gl)<1) {values$genelist4 = data.frame(); return(NULL)}
-                     mydf <- as.data.frame(gl,stringsAsFactors=FALSE)
-                     names(mydf) <- "Gene Symbol"
-                     
-                     values$genelist4 <- mydf
-                   })
-      
-      gl4 <- reactive({
-        if (is.null(input$gl4)) {
-          # User has not uploaded a file yet
-          return(data.frame())
-        } else {
-          gl4 <- read1stCol(input$gl4$datapath, values$dds_obj)
-          # browser()
-          return(gl4)
-        }
-      })
-      
-      observeEvent(input$gl_ma,
-                   {
-                     gl = gl_ma()
-                     if(is.null(gl)) {values$genelist_ma = data.frame(); return(NULL)}
-                     if(nrow(gl)<1) {values$genelist_ma = data.frame(); return(NULL)}
-                     mydf <- as.data.frame(gl,stringsAsFactors=FALSE)
-                     names(mydf) <- "Gene Symbol"
-                     values$genelist_ma <- mydf
-                   })
-      
-      gl_ma <- reactive({
-        if (is.null(input$gl_ma)) {
-          # User has not uploaded a file yet
-          return(data.frame())
-        } else {
-          gl_ma <- read1stCol(input$gl_ma$datapath, values$dds_obj)
-          # browser()
-          return(gl_ma)
-        }
-      })
-      
-      output$debuggls <- renderPrint({
-        # values$genelist1
-        # values$genelist2
-      })
-      
-      
-      # DE genes lists ----------------------------------------------------------
-      genelistUP <- reactive({
-        listUP <- tryCatch({
-          # browser()
-          res_tbl <- deseqresult2DEgenes(values$res_obj, FDR = input$FDR)
-          if(nrow(res_tbl)<1) return(NULL)
-          res_tbl_UP <- res_tbl[res_tbl$log2FoldChange > 0 & !is.na(res_tbl$padj),]
-          # res_tbl_DOWN <- res_tbl[res_tbl$log2FoldChange < 0 & !is.na(res_tbl$padj),]
-          
-          if("symbol" %in% colnames(values$res_obj)) { 
-            if(!is.null(values$annotation_obj)) {
-              res_tbl_UP$symbol <- values$annotation_obj$gene_name[
-                match(res_tbl_UP$id,
-                      rownames(values$annotation_obj))]
-              listUP <- res_tbl_UP$symbol
-            } else {
-              listUP <- NULL
-            }
-          } else {
-            listUP <- res_tbl_UP$symbol
-          }
-          listUP},
-          error=function(e)cat(file = stderr(), paste("genelistUP error ; ", e))
-        )
-        return(listUP)
-      })
-      
-      genelistDOWN <- reactive({
-        # browser()
-        res_tbl <- deseqresult2DEgenes(values$res_obj, FDR = input$FDR)
-        if(nrow(res_tbl)<1) return(NULL)
-        # res_tbl_UP <- res_tbl[res_tbl$log2FoldChange > 0 & !is.na(res_tbl$padj),]
-        res_tbl_DOWN <- res_tbl[res_tbl$log2FoldChange < 0 & !is.na(res_tbl$padj),]
-        
-        if("symbol" %in% colnames(values$res_obj)) { 
-          if(!is.null(values$annotation_obj)) {
-            res_tbl_DOWN$symbol <- values$annotation_obj$gene_name[
-              match(res_tbl_DOWN$id,
-                    rownames(values$annotation_obj))]
-            listDOWN <- res_tbl_DOWN$symbol
-          } else {
-            listDOWN <- NULL
-          }
-        } else {
-          listDOWN <- res_tbl_DOWN$symbol
-        }
-        return(listDOWN)
-      })
-      
-      genelistUPDOWN <- reactive({
-        # browser()
-        res_tbl <- deseqresult2DEgenes(values$res_obj, FDR = input$FDR)
-        if(nrow(res_tbl)<1) return(NULL)
-        if("symbol" %in% colnames(values$res_obj)) { 
-          if(!is.null(values$annotation_obj)) {
-            res_tbl$symbol <- values$annotation_obj$gene_name[
-              match(res_tbl$id,
-                    rownames(values$annotation_obj))]
-            listUPDOWN <- res_tbl$symbol
-          } else {
-            listUPDOWN <- NULL
-          }
-        } else {
-          listUPDOWN <- res_tbl$symbol
-        }
-        return(listUPDOWN)
-      })
-      
-      ## list of gene lists
-      gll <- reactive({
-        # browser()
-        mylist <- list(listUP = genelistUP(),
-                       listDOWN = genelistDOWN(),
-                       listUPDOWN = genelistUPDOWN(),
-                       list1 = as.character(values$genelist1$`Gene Symbol`),
-                       list2 = as.character(values$genelist2$`Gene Symbol`),
-                       list3 = as.character(values$genelist3$`Gene Symbol`),
-                       list4 = as.character(values$genelist4$`Gene Symbol`))
-        
-        
-        
-        gll_nonempty <- mylist[!sapply(mylist,is.null)]
-        
-        # plus, add toggles to selectively keep only some lists?
-        
-        lists_tokeep <- names(mylist)[which(c(input$toggle_up,
-                                              input$toggle_down,
-                                              input$toggle_updown,
-                                              input$toggle_list1,
-                                              input$toggle_list2,
-                                              input$toggle_list3,
-                                              input$toggle_list4))]
-        gll_final <- gll_nonempty[match(lists_tokeep,names(gll_nonempty))]
-      })
-      
-      output$debuglists <- renderText({
-        # length(gll_nonempty)
-        # length(gll())
-        # lapply(gll(),length)
-        gll <- gll()
-        txt = ""
-        # save(file = "~/SCHNAPPsDebug/idealImmunoTP.RData", list = ls())
-        # load("~/SCHNAPPsDebug/idealImmunoTP.RData")
-        for (li in 1:length(gll)) {
-          tx = paste(gll[[li]], sep = " ",collapse = " ")
-          txt = paste(c(txt, names(gll)[li],tx), collapse = "\n")
-        }
-        txt
-      })
-      
-      output$debugTable <- DT::renderDataTable(server =  TRUE,{
-        gll <- gll()
-        txt = ""
-        # save(file = "~/SCHNAPPsDebug/idealImmunoTP.RData", list = ls())
-        # load("~/SCHNAPPsDebug/idealImmunoTP.RData")
-        upGll = UpSetR::fromList(gll)
-        ugll = unique(unlist(gll))
-        rownames(upGll) = ugll
-        datatable(upGll, 
-                  filter = list(position = 'top', clear = FALSE))
-      })
-      output$debugTableSelected <- renderText({
-        if(is.null(input$debugTable_rows_all)){
-          return("noting")
-        }
-        gll <- gll()
-        upGll = UpSetR::fromList(gll)
-        ugll = unique(unlist(gll))
-        rownames(upGll) = ugll
-        return(paste(rownames(upGll)[input$debugTable_rows_all], collapse = " "))
-      })
-      
-      output$vennlists <- renderPlot({
-        shiny::validate(
-          need(all(sapply(gll(),function(arg) !is.null(arg))),
-               message = "Some lists are empty - make sure you extracted the results using the annotation object")
-          
-        )
-        
-        gplots::venn(gll())
-      })
-      
-      output$upsetLists <- renderPlot({
-        shiny::validate(
-          need(sum(sapply(gll(),function(arg) length(arg)>0)) > 1,
-               message = "Make sure you provide at least two sets")
-        )
-        UpSetR::upset(fromList(gll()))
-      })
-      
-      observeEvent(input$button_getanno,
-                   {
-                     withProgress(message="Retrieving the annotation...",
-                                  detail = "Locating package", value = 0,{
-                                    # browser()
-                                    annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect]
-                                    incProgress(0.1,detail = "Matching identifiers")
-                                    values$cur_species <- input$speciesSelect
-                                    values$cur_type <- input$idtype
-                                    
-                                    if (input$idtype == "SYMBOL") {
-                                      values$annotation_obj = data.frame(gene_id = rownames(values$dds_obj), gene_name = rownames(values$dds_obj), 
-                                                                         stringsAsFactors = FALSE, row.names = rownames(values$dds_obj))
-                                    } else {
-                                      tryCatch({
-                                        annotation_obj <- get_annotation_orgdb(values$dds_obj,orgdb_species = annopkg, idtype = input$idtype)
-                                        values$annotation_obj <- annotation_obj
-                                        # and also, set the species in the reactiveValues
-                                      },
-                                      error=function(e) {
-                                        showNotification(
-                                          paste("Warning! The annotation object was not generated,",
-                                                "because of an error in the underlying `mapIds` function:",
-                                                "-----", e), type = "warning")
-                                      })
+        curr_species <- input$speciesSelect
+        values$dds_obj <- dds
+        updateSelectInput(session, inputId = "speciesSelect", selected = curr_species)
+        # accordingly, reset the results
+        values$res_obj <- NULL},
+        message = "Removing selected samples from the current dataset")
+    })
+    
+    output$printremoved <- renderPrint({
+      print(values$removedsamples)
+    })
+    
+    # server run deseq --------------------------------------------------------
+    output$rundeseq <- renderUI({
+      if(is.null(values$dds_obj))
+        return(NULL)
+      else
+        actionButton("button_rundeseq","Run DESeq!", icon = icon("spinner"), class = "btn btn-success")
+    })
+    
+    observeEvent(input$button_rundeseq,
+                 {
+                   withProgress(message="Running DESeq on your data...",
+                                detail = "This step might take a while", value = 0,{
+                                  # trick to keep species info while still changing the dds_obj
+                                  curr_species <- input$speciesSelect
+                                  incProgress(0.1)
+                                  
+                                  # if(input$nrcores == 1){
+                                  #   pa = FALSE
+                                  #   bp = bpparam()
+                                  # } else {
+                                  pa = FALSE
+                                  bp = MulticoreParam(workers = 8)
+                                  # }
+                                  # leave open option for computing in parallel?
+                                  values$dds_obj <- tryCatch({
+                                    DESeq(values$dds_obj,
+                                          parallel = pa,
+                                          BPPARAM = bp)},
+                                    # BPPARAM = MulticoreParam(workers = input$nrcores))},
+                                    error = function(e) {
+                                      showNotification(
+                                        paste(
+                                          "Error during creation of DDS object",
+                                          "-----", e
+                                        ),
+                                        type = "error"
+                                      )
+                                      return(values$dds_obj)
                                     }
-                                  })
-                     
+                                  )
+                                  incProgress(0.89)
+                                  updateSelectInput(session, inputId = "speciesSelect", selected = curr_species)
+                                })
+                 })
+    
+    observeEvent(input$speciesSelect,{
+                   values$cur_species <- input$speciesSelect
+                   curr_idtype <- values$cur_type
+                   updateSelectInput(session, inputId = "idtype", selected = curr_idtype)
+                 }
+    )
+    
+    output$printDIYresults <- renderPrint({
+      shiny::validate(
+        need(!is.null(values$dds_obj),
+             "Provide or construct a dds object")
+      )
+      shiny::validate(
+        need("results" %in% mcols(mcols(values$dds_obj))$type ,
+             "dds object provided, but couldn't find results. you should first run DESeq() with the button up here"
+        )
+      )
+      summary(DESeq2::results(values$dds_obj), alpha = input$FDR)
+    })
+    
+    # server counts overview --------------------------------------------------------
+    current_countmat <- reactive({
+      cat(file = stderr(), paste("current_countmat\n"))
+      
+      if(input$countstable_unit=="raw_counts")
+        return(counts(values$dds_obj,normalized=FALSE))
+      if(input$countstable_unit=="normalized_counts")
+        return(counts(values$dds_obj,normalized=TRUE))
+      if(input$countstable_unit=="rlog_counts")
+        return(NULL) ## see if it is worth to keep in here or explore possibility with fast vst
+      if(input$countstable_unit=="log10_counts")
+        return(log10(1 + counts(values$dds_obj,normalized=TRUE)))
+      if(input$countstable_unit=="tpm_counts")
+        return(NULL) ## TODO!: assumes length of genes/exons as known, and is currently not required in the dds
+      
+    })
+    
+    output$showcountmat <- DT::renderDataTable({
+      datatable(current_countmat())
+    })
+    
+    output$downloadData <- downloadHandler(
+      filename = function() {
+        paste0(input$countstable_unit,"table.csv")
+      },
+      content = function(file) {
+        write.csv(current_countmat(), file)
+      }
+    )
+    
+    output$corrplot <- renderPlot({
+      cat(file = stderr(), paste("corrplot\n"))
+      
+      if(input$compute_pairwisecorr)
+        withProgress(
+          pair_corr(current_countmat(),
+                    method=input$corr_method,
+                    log = input$corr_uselogs,
+                    use_subset = input$corr_usesubset),
+          message = "Preparing the plot",
+          detail = "this can take a while..."
+        )
+    })
+    # HEATCORR ======
+    output$heatcorr <- renderPlotly({
+      input$compute_pairwisecorr
+      input$avail_symbols
+      values$dds_obj
+      input$color_by
+      # if(input$compute_pairwisecorr){
+      # shiny::validate(
+      #   need(!is.null(values$dds_obj),
+      #        "Provide or construct a dds object")
+      # )
+      # cat(file = stderr(), paste("heatcorr: ", class(p),"\n"))
+      # browser()
+      heatmaply::heatmaply_cor(cor(current_countmat()))
+      # }
+      # rld <- rlog(values$dds_obj, blind = FALSE)
+      # # p = plotPCA(rld, intgroup = "STIMULUS", ntop = 1000)
+      # p = plotPCA(rld, intgroup = input$color_by, ntop = 1000)
+      # ggplotify::as.ggplot( p)
+    })
+    
+    output$pcaPlot <- renderPlotly({
+      shiny::validate(
+        need(!is.null(values$dds_obj),
+             "Provide or construct a dds object")
+      )
+      shiny::validate(
+        need(!is.null(input$color_by),
+             "Provide group to color by")
+      )
+      # browser()
+      # rld <- rlog(values$dds_obj, blind = FALSE)
+      rld <- vst(values$dds_obj, blind = FALSE,nsub=10)
+      # browser()
+      # multiAxPCA = function (object, intgroup = "condition", ntop = 500, returnData = FALSE, pc1=1, pc2=2) 
+      p = multiAxPCA(rld, intgroup = input$color_by, ntop = 1000, pc1=as.numeric(input$pcaDim1), pc2=as.numeric(input$pcaDim2))
+      p2 = p +aes(text=colnames(rld))
+      ggplotly(p2, tooltip = "text")
+    })
+    
+    output$pcaEVPlot <- renderPlotly({
+      shiny::validate(
+        need(!is.null(values$dds_obj),
+             "Provide or construct a dds object")
+      )
+      shiny::validate(
+        need(!is.null(input$color_by),
+             "Provide group to color by")
+      )
+      # browser()
+      # rld <- rlog(values$dds_obj, blind = FALSE)
+      rld <- vst(values$dds_obj, blind = FALSE,nsub=10)
+      # browser()
+      # multiAxPCA = function (object, intgroup = "condition", ntop = 500, returnData = FALSE, pc1=1, pc2=2) 
+      pD = multiAxPCA(rld, intgroup = input$color_by, ntop = 1000, pc1=1, pc2=2, returnData = T)
+      df = data.frame(PC=seq(pD),EV=pD)
+      # browser()
+      p<-ggplot(data=df, aes(x=PC, y=EV)) +
+        geom_bar(stat="identity")
+      p
+    })
+    output$pcaPlot34 <- renderPlotly({
+      shiny::validate(
+        need(!is.null(values$dds_obj),
+             "Provide or construct a dds object")
+      )
+      shiny::validate(
+        need(!is.null(input$color_by),
+             "Provide group to color by")
+      )
+      # browser()
+      # rld <- rlog(values$dds_obj, blind = FALSE)
+      rld <- vst(values$dds_obj, blind = FALSE,nsub=10)
+      # browser()
+      # multiAxPCA = function (object, intgroup = "condition", ntop = 500, returnData = FALSE, pc1=1, pc2=2) 
+      p = multiAxPCA(rld, intgroup = input$color_by, ntop = 1000, pc1=3, pc2=4)
+      p2 = p +aes(text=colnames(rld))
+      ggplotly(p2, tooltip = "text")
+    })
+    output$pcaPlot56 <- renderPlotly({
+      shiny::validate(
+        need(!is.null(values$dds_obj),
+             "Provide or construct a dds object")
+      )
+      shiny::validate(
+        need(!is.null(input$color_by),
+             "Provide group to color by")
+      )
+      # browser()
+      # rld <- rlog(values$dds_obj, blind = FALSE)
+      rld <- vst(values$dds_obj, blind = FALSE,nsub=10)
+      # browser()
+      # multiAxPCA = function (object, intgroup = "condition", ntop = 500, returnData = FALSE, pc1=1, pc2=2) 
+      p = multiAxPCA(rld, intgroup = input$color_by, ntop = 1000, pc1=5, pc2=6)
+      p2 = p +aes(text=colnames(rld))
+      ggplotly(p2, tooltip = "text")
+    })
+    
+    output$sizeFactorsPlot <- renderPlot({
+      
+      col <- RColorBrewer::brewer.pal(min(8,unique(colData(values$dds_obj)[, input$color_by[1]]) %>% length()), "Dark2")
+      if(is.null(input$color_by)) {
+        #TODO message about color_by
+        return(NULL)
+      }
+      # browser()
+      barplot(sizeFactors(values$dds_obj),
+              main = "Size factors ",
+              col = col[as.integer(colData(values$dds_obj)[, input$color_by[1]])],
+              cex.axis = 1.2, cex.names = 0.8, las = 3
+      )
+      
+    })
+    output$pairwise_plotUI <- renderUI({
+      if(!input$compute_pairwisecorr) return()
+      
+      plotOutput("corrplot", height = "1000px")
+      # )
+    })
+    
+    output$heatcorr_plotUI <- renderUI({
+      input$compute_pairwisecorr
+      # if(!input$compute_pairwisecorr) return()
+      # TODO check that input$color_by is set and set message otherwise
+      plotlyOutput("heatcorr")
+    })
+    output$pca_Dim1 <-renderUI({
+      if(!input$compute_pairwisecorr) return()
+      selectizeInput("pcaDim1", label = "Which PCA on X",
+                     choices = c(1:20), selected = 1, multiple = F)
+    })
+    output$pca_Dim2 <-renderUI({
+      if(!input$compute_pairwisecorr) return()
+      selectizeInput("pcaDim2", label = "Which PCA on Y",
+                     choices = c(1:20), selected = 2, multiple = F)
+    })
+    output$pca_plotUI <- renderUI({
+      if(!input$compute_pairwisecorr) return()
+      plotlyOutput("pcaPlot")
+    })
+    output$pcaEV_plotUI <- renderUI({
+      if(!input$compute_pairwisecorr) return()
+      plotlyOutput("pcaEVPlot")
+    })
+    output$pca_plotUI34 <- renderUI({
+      if(!input$compute_pairwisecorr) return()
+      plotlyOutput("pcaPlot34")
+    })
+    output$pca_plotUI56 <- renderUI({
+      if(!input$compute_pairwisecorr) return()
+      plotlyOutput("pcaPlot56")
+    })
+    output$sizeFactors_plotUI    <- renderUI({
+      if(!input$compute_pairwisecorr) return()
+      plotOutput("sizeFactorsPlot")
+    }) 
+    output$geneHeatmap_plotUI <- renderUI({
+      cat(file =stderr(), paste("geneHeatmap: ",input$compute_pairwisecorr, "\n"))
+      if(input$compute_pairwisecorr<1) return()
+      plotlyOutput("geneHeatmap")
+    })
+    output$geneHeatmap_genesUI <- renderUI({
+      cat(file =stderr(), paste("geneHeatmap: ",input$compute_pairwisecorr, "\n"))
+      if(input$compute_pairwisecorr<1) return()
+      verbatimTextOutput("geneHeatmapgenes")
+    })
+    
+    output$geneHeatmap <- renderPlotly({
+      cat(file =stderr(), paste("geneHeatmap renderPlot: ", input$compute_pairwisecorr,"\n"))
+      # We define how many genes we want to look at
+      nGenesHeatmap <- 20
+      
+      # ordered by total count over all experiments per gene
+      select <- order(rowMeans(counts(values$dds_obj, normalized = TRUE)),
+                      decreasing = TRUE
+      )[1:nGenesHeatmap]
+      
+      # we transform the data into log2 space
+      nt <- normTransform(values$dds_obj) # defaults to log2(x+1)
+      
+      # and extract the count data from the DESeq2 object.
+      heatmapcounts <- assay(nt)[select, ]
+      # save(file = "~/scShinyHubDebug/idealImmunoTP.RData", list = c(ls(), ls(envir = globalenv())))
+      # load(file="~/scShinyHubDebug/idealImmunoTP.RData")
+      # if("symbol" %in% names(dds_obj)) {
+      #   p <- plot_ma(values$res_obj,
+      #                intgenes = values$genelist_ma$`Gene Symbol`,annotation_obj = values$annotation_obj,FDR = input$FDR)
+      # }
+      # cluster_cols builds the dendrogram on the top
+      if (!is.null(values$annotation_obj)){
+        rownames(heatmapcounts) <- values$annotation_obj$gene_name[
+          match(rownames(heatmapcounts),
+                rownames(values$annotation_obj))]
+      }
+      heatmaply(heatmapcounts, cluster_rows = T, show_rownames = TRUE, cluster_cols = T)
+      # p = ggplotify::as.ggplot(p)
+      # p$theme = list()
+      # # browser()
+      # cat(file =stderr(), paste("geneHeatmap renderPlot: ", input$compute_pairwisecorr,"done.\n"))
+      # # ggsave(
+      # #   filename = paste0("test.",input$compute_pairwisecorr, ".png"), plot = p)
+      # p
+    })
+    
+    output$geneHeatmapgenes <- renderPrint({
+      cat(file =stderr(), paste("geneHeatmapgenes renderPlot: ", input$compute_pairwisecorr,"\n"))
+      # We define how many genes we want to look at
+      nGenesHeatmap <- 20
+      
+      # ordered by total count over all experiments per gene
+      select <- order(rowMeans(counts(values$dds_obj, normalized = TRUE)),
+                      decreasing = TRUE
+      )[1:nGenesHeatmap]
+      paste(rownames(values$dds_obj[select, ]), collapse = " ")
+    })
+    
+    # overview on number of detected genes on different threshold types
+    output$detected_genes <- renderPrint({
+      t1 <- rowSums(counts(values$dds_obj))
+      t2 <- rowMeans(counts(values$dds_obj,normalized=TRUE))
+      
+      thresh_rowsums <- input$threshold_rowsums
+      thresh_rowmeans <- input$threshold_rowmeans
+      abs_t1 <- sum(t1 > thresh_rowsums)
+      rel_t1 <- 100 * mean(t1 > thresh_rowsums)
+      abs_t2 <- sum(t2 > thresh_rowmeans)
+      rel_t2 <- 100 * mean(t2 > thresh_rowmeans)
+      
+      cat("Number of detected genes:\n")
+      cat(abs_t1,"genes have at least a sample with more than",thresh_rowsums,"counts\n")
+      cat(paste0(round(rel_t1,3),"%"), "of the",nrow(values$dds_obj),
+          "genes have at least a sample with more than",thresh_rowsums,"counts\n")
+      cat(abs_t2,"genes have more than",thresh_rowmeans,"counts (normalized) on average\n")
+      cat(paste0(round(rel_t2,3),"%"), "of the",nrow(values$dds_obj),
+          "genes have more than",thresh_rowsums,"counts (normalized) on average\n")
+      cat("Counts are ranging from", min(counts(values$dds_obj)),"to",max(counts(values$dds_obj)))
+    })
+    
+    observeEvent(input$featfilt_dds,
+                 {
+                   t1 <- rowSums(counts(values$dds_obj))
+                   t2 <- rowMeans(counts(values$dds_obj,normalized=TRUE))
+                   
+                   thresh_rowsums <- input$threshold_rowsums
+                   thresh_rowmeans <- input$threshold_rowmeans
+                   
+                   if(input$filter_crit == "row sums") {
+                     filt_dds <- values$dds_obj[t1 > thresh_rowsums, ]
+                   } else {
+                     filt_dds <- values$dds_obj[t2 > thresh_rowmeans, ]
+                   }
+                   
+                   # TODO: see if re-estimation of size factors is required
+                   filt_dds <- estimateSizeFactors(filt_dds)
+                   
+                   curr_species <- input$speciesSelect
+                   values$dds_obj <- filt_dds
+                   updateSelectInput(session, inputId = "speciesSelect", selected = curr_species)
+                 })
+    
+    # server managing gene lists --------------------------------------------------------
+    ## gene lists upload
+    
+    observeEvent(input$gl1,
+                 {
+                   gl = gl1()
+                   if(is.null(gl)) {values$genelist1 = data.frame(); return(NULL)}
+                   if(nrow(gl)<1) {values$genelist1 = data.frame(); return(NULL)}
+                   mydf <- as.data.frame(gl,stringsAsFactors=FALSE)
+                   names(mydf) <- "Gene Symbol"
+                   values$genelist1 <- mydf
+                 })
+    
+    gl1 <- reactive({
+      if (is.null(input$gl1)) {
+        # User has not uploaded a file yet
+        return(data.frame())
+      } else {
+        gl1 <- read1stCol(input$gl1$datapath, values$dds_obj)
+        # browser()
+        if(is.null(gl1)) return(NULL)
+        return(gl1)
+      }
+    })
+    
+    observeEvent(input$gl2,
+                 {
+                   gl = gl2()
+                   if(is.null(gl)) {values$genelist2 = data.frame(); return(NULL)}
+                   if(nrow(gl)<1) {values$genelist2 = data.frame(); return(NULL)}
+                   mydf <- as.data.frame(gl,stringsAsFactors=FALSE)
+                   names(mydf) <- "Gene Symbol"
+                   
+                   values$genelist2 <- mydf
+                 })
+    
+    gl2 <- reactive({
+      if (is.null(input$gl2)) {
+        # User has not uploaded a file yet
+        return(data.frame())
+      } else {
+        gl2 <- read1stCol(input$gl2$datapath, values$dds_obj)
+        # browser()
+        return(gl2)
+      }
+    })
+    
+    observeEvent(input$gl3,
+                 {
+                   gl = gl3()
+                   if(is.null(gl)) {values$genelist3 = data.frame(); return(NULL)}
+                   if(nrow(gl)<1) {values$genelist3 = data.frame(); return(NULL)}
+                   mydf <- as.data.frame(gl,stringsAsFactors=FALSE)
+                   names(mydf) <- "Gene Symbol"
+                   
+                   values$genelist3 <- mydf
+                 })
+    
+    gl3 <- reactive({
+      if (is.null(input$gl3)) {
+        # User has not uploaded a file yet
+        return(data.frame())
+      } else {
+        gl3 <- read1stCol(input$gl3$datapath, values$dds_obj)
+        # browser()
+        return(gl3)
+      }
+    })
+    
+    observeEvent(input$gl4,
+                 {
+                   gl = gl4()
+                   if(is.null(gl)) {values$genelist4 = data.frame(); return(NULL)}
+                   if(nrow(gl)<1) {values$genelist4 = data.frame(); return(NULL)}
+                   mydf <- as.data.frame(gl,stringsAsFactors=FALSE)
+                   names(mydf) <- "Gene Symbol"
+                   
+                   values$genelist4 <- mydf
+                 })
+    
+    gl4 <- reactive({
+      if (is.null(input$gl4)) {
+        # User has not uploaded a file yet
+        return(data.frame())
+      } else {
+        gl4 <- read1stCol(input$gl4$datapath, values$dds_obj)
+        # browser()
+        return(gl4)
+      }
+    })
+    
+    observeEvent(input$gl_ma,
+                 {
+                   gl = gl_ma()
+                   if(is.null(gl)) {values$genelist_ma = data.frame(); return(NULL)}
+                   if(nrow(gl)<1) {values$genelist_ma = data.frame(); return(NULL)}
+                   mydf <- as.data.frame(gl,stringsAsFactors=FALSE)
+                   names(mydf) <- "Gene Symbol"
+                   values$genelist_ma <- mydf
+                 })
+    
+    gl_ma <- reactive({
+      if (is.null(input$gl_ma)) {
+        # User has not uploaded a file yet
+        return(data.frame())
+      } else {
+        gl_ma <- read1stCol(input$gl_ma$datapath, values$dds_obj)
+        # browser()
+        return(gl_ma)
+      }
+    })
+    
+    output$debuggls <- renderPrint({
+      # values$genelist1
+      # values$genelist2
+    })
+    
+    
+    # DE genes lists ----------------------------------------------------------
+    genelistUP <- reactive({
+      listUP <- tryCatch({
+        # browser()
+        res_tbl <- deseqresult2DEgenes(values$res_obj, FDR = input$FDR)
+        if(nrow(res_tbl)<1) return(NULL)
+        res_tbl_UP <- res_tbl[res_tbl$log2FoldChange > 0 & !is.na(res_tbl$padj),]
+        # res_tbl_DOWN <- res_tbl[res_tbl$log2FoldChange < 0 & !is.na(res_tbl$padj),]
+        
+        if("symbol" %in% colnames(values$res_obj)) { 
+          if(!is.null(values$annotation_obj)) {
+            res_tbl_UP$symbol <- values$annotation_obj$gene_name[
+              match(res_tbl_UP$id,
+                    rownames(values$annotation_obj))]
+            listUP <- res_tbl_UP$symbol
+          } else {
+            listUP <- NULL
+          }
+        } else {
+          listUP <- res_tbl_UP$symbol
+        }
+        listUP},
+        error=function(e)cat(file = stderr(), paste("genelistUP error ; ", e))
+      )
+      return(listUP)
+    })
+    
+    genelistDOWN <- reactive({
+      # browser()
+      res_tbl <- deseqresult2DEgenes(values$res_obj, FDR = input$FDR)
+      if(nrow(res_tbl)<1) return(NULL)
+      # res_tbl_UP <- res_tbl[res_tbl$log2FoldChange > 0 & !is.na(res_tbl$padj),]
+      res_tbl_DOWN <- res_tbl[res_tbl$log2FoldChange < 0 & !is.na(res_tbl$padj),]
+      
+      if("symbol" %in% colnames(values$res_obj)) { 
+        if(!is.null(values$annotation_obj)) {
+          res_tbl_DOWN$symbol <- values$annotation_obj$gene_name[
+            match(res_tbl_DOWN$id,
+                  rownames(values$annotation_obj))]
+          listDOWN <- res_tbl_DOWN$symbol
+        } else {
+          listDOWN <- NULL
+        }
+      } else {
+        listDOWN <- res_tbl_DOWN$symbol
+      }
+      return(listDOWN)
+    })
+    
+    genelistUPDOWN <- reactive({
+      # browser()
+      res_tbl <- deseqresult2DEgenes(values$res_obj, FDR = input$FDR)
+      if(nrow(res_tbl)<1) return(NULL)
+      if("symbol" %in% colnames(values$res_obj)) { 
+        if(!is.null(values$annotation_obj)) {
+          res_tbl$symbol <- values$annotation_obj$gene_name[
+            match(res_tbl$id,
+                  rownames(values$annotation_obj))]
+          listUPDOWN <- res_tbl$symbol
+        } else {
+          listUPDOWN <- NULL
+        }
+      } else {
+        listUPDOWN <- res_tbl$symbol
+      }
+      return(listUPDOWN)
+    })
+    
+    ## list of gene lists
+    gll <- reactive({
+      # browser()
+      mylist <- list(listUP = genelistUP(),
+                     listDOWN = genelistDOWN(),
+                     listUPDOWN = genelistUPDOWN(),
+                     list1 = as.character(values$genelist1$`Gene Symbol`),
+                     list2 = as.character(values$genelist2$`Gene Symbol`),
+                     list3 = as.character(values$genelist3$`Gene Symbol`),
+                     list4 = as.character(values$genelist4$`Gene Symbol`))
+      
+      
+      
+      gll_nonempty <- mylist[!sapply(mylist,is.null)]
+      
+      # plus, add toggles to selectively keep only some lists?
+      
+      lists_tokeep <- names(mylist)[which(c(input$toggle_up,
+                                            input$toggle_down,
+                                            input$toggle_updown,
+                                            input$toggle_list1,
+                                            input$toggle_list2,
+                                            input$toggle_list3,
+                                            input$toggle_list4))]
+      gll_final <- gll_nonempty[match(lists_tokeep,names(gll_nonempty))]
+    })
+    
+    output$debuglists <- renderText({
+      # length(gll_nonempty)
+      # length(gll())
+      # lapply(gll(),length)
+      gll <- gll()
+      txt = ""
+      # save(file = "~/SCHNAPPsDebug/idealImmunoTP.RData", list = ls())
+      # load("~/SCHNAPPsDebug/idealImmunoTP.RData")
+      for (li in 1:length(gll)) {
+        tx = paste(gll[[li]], sep = " ",collapse = " ")
+        txt = paste(c(txt, names(gll)[li],tx), collapse = "\n")
+      }
+      txt
+    })
+    
+    output$debugTable <- DT::renderDataTable(server =  TRUE,{
+      gll <- gll()
+      txt = ""
+      # save(file = "~/SCHNAPPsDebug/idealImmunoTP.RData", list = ls())
+      # load("~/SCHNAPPsDebug/idealImmunoTP.RData")
+      upGll = UpSetR::fromList(gll)
+      ugll = unique(unlist(gll))
+      rownames(upGll) = ugll
+      datatable(upGll, 
+                filter = list(position = 'top', clear = FALSE))
+    })
+    output$debugTableSelected <- renderText({
+      if(is.null(input$debugTable_rows_all)){
+        return("noting")
+      }
+      gll <- gll()
+      upGll = UpSetR::fromList(gll)
+      ugll = unique(unlist(gll))
+      rownames(upGll) = ugll
+      return(paste(rownames(upGll)[input$debugTable_rows_all], collapse = " "))
+    })
+    
+    output$vennlists <- renderPlot({
+      shiny::validate(
+        need(all(sapply(gll(),function(arg) !is.null(arg))),
+             message = "Some lists are empty - make sure you extracted the results using the annotation object")
+        
+      )
+      
+      gplots::venn(gll())
+    })
+    
+    output$upsetLists <- renderPlot({
+      shiny::validate(
+        need(sum(sapply(gll(),function(arg) length(arg)>0)) > 1,
+             message = "Make sure you provide at least two sets")
+      )
+      UpSetR::upset(fromList(gll()))
+    })
+    
+    observeEvent(input$button_getanno,
+                 {
+                   withProgress(message="Retrieving the annotation...",
+                                detail = "Locating package", value = 0,{
+                                  # browser()
+                                  annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==input$speciesSelect]
+                                  incProgress(0.1,detail = "Matching identifiers")
+                                  values$cur_species <- input$speciesSelect
+                                  values$cur_type <- input$idtype
+                                  
+                                  if (input$idtype == "SYMBOL") {
+                                    values$annotation_obj = data.frame(gene_id = rownames(values$dds_obj), gene_name = rownames(values$dds_obj), 
+                                                                       stringsAsFactors = FALSE, row.names = rownames(values$dds_obj))
+                                  } else {
+                                    tryCatch({
+                                      annotation_obj <- get_annotation_orgdb(values$dds_obj,orgdb_species = annopkg, idtype = input$idtype)
+                                      values$annotation_obj <- annotation_obj
+                                      # and also, set the species in the reactiveValues
+                                    },
+                                    error=function(e) {
+                                      showNotification(
+                                        paste("Warning! The annotation object was not generated,",
+                                              "because of an error in the underlying `mapIds` function:",
+                                              "-----", e), type = "warning")
+                                    })
+                                  }
+                                })
+                   
+                 })
+    
+    output$printDIYanno <- renderPrint({
+      print(head(values$annotation_obj))
+    })
+    
+    output$printUPgenes <- renderPrint({
+      print(head(genelistUP()))
+      print(str(genelistUP()))
+      
+      organism <- annoSpecies_df[values$cur_species,]$species_short
+      backgroundgenes <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj))>0]
+      inputType <- "SYMBOL" # will be replaced by input$...
+      # annopkg <- paste0("org.",organism,".eg.db")
+      annopkg <- annoSpecies_df[values$cur_species,]$pkg
+      listGenesEntrez <- as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = genelistUP(),
+                                                            column="ENTREZID", keytype=inputType))
+      listBackgroundEntrez <- as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
+                                                                 column="ENTREZID", keytype=values$cur_type))
+      
+      # print(genelistUP())
+      print(str(listGenesEntrez))
+      print(class(listGenesEntrez))
+      print(str(listBackgroundEntrez))
+      print(class(listBackgroundEntrez))
+      print(head(listGenesEntrez))
+      print(head(listBackgroundEntrez))
+      
+      # values$gse_up <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
+      # ontology="BP", # could be ideally replaced by input$
+      # number=200)
+    })
+    
+    
+    ### UP
+    observeEvent(input$button_enrUP,
+                 {
+                   # browser()
+                   withProgress(message="Performing Gene Set Enrichment on upregulated genes...",value = 0,{
+                     if (is.null(values$cur_species)) {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(genelistUP())) {
+                       showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(values$cur_species) | values$cur_species =="") {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else {
+                       organism <- annoSpecies_df[values$cur_species,]$species_short
+                       backgroundgenes <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj))>0]
+                       inputType <- "SYMBOL" # will be replaced by input$...
+                       # annopkg <- paste0("org.",organism,".eg.db")
+                       annopkg <- annoSpecies_df[values$cur_species,]$pkg
+                       if (!require(annopkg,character.only=TRUE)) {
+                         stop("The package",annopkg, "is not installed/available. Try installing it with BiocManager::install() ?")
+                       }
+                       listGenesEntrez <-  as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = genelistUP(),
+                                                                              column="ENTREZID", keytype=inputType))
+                       listBackgroundEntrez <-  as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
+                                                                                   column="ENTREZID", keytype=values$cur_type))
+                       incProgress(0.1, detail = "IDs mapped")
+                       values$gse_up <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
+                                                     ontology= input$go_cats[1],
+                                                     number=200)
+                       
+                       incProgress(0.7, detail = "adding gene names to GO terms") # good indicator for showing it has progressed
+                       go_ids <- rownames(values$gse_up)
+                       allegs_list <- lapply(go_ids, function(arg) AnnotationDbi::get(arg, get(paste0("org.",organism,".egGO2ALLEGS"))))
+                       genes_list <- lapply(allegs_list, function(arg) unlist(AnnotationDbi::mget(arg,get(paste0("org.",organism,".egSYMBOL")))))
+                       degenes <- genelistUP()
+                       DEgenes_list <- lapply(genes_list, function(arg) intersect(arg,degenes))
+                       
+                       values$gse_up$genes <- unlist(lapply(DEgenes_list,function(arg) paste(arg,collapse=",")))
+                     }
                    })
-      
-      output$printDIYanno <- renderPrint({
-        print(head(values$annotation_obj))
-      })
-      
-      output$printUPgenes <- renderPrint({
-        print(head(genelistUP()))
-        print(str(genelistUP()))
-        
-        organism <- annoSpecies_df[values$cur_species,]$species_short
-        backgroundgenes <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj))>0]
-        inputType <- "SYMBOL" # will be replaced by input$...
-        # annopkg <- paste0("org.",organism,".eg.db")
-        annopkg <- annoSpecies_df[values$cur_species,]$pkg
-        listGenesEntrez <- as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = genelistUP(),
-                                                              column="ENTREZID", keytype=inputType))
-        listBackgroundEntrez <- as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
-                                                                   column="ENTREZID", keytype=values$cur_type))
-        
-        # print(genelistUP())
-        print(str(listGenesEntrez))
-        print(class(listGenesEntrez))
-        print(str(listBackgroundEntrez))
-        print(class(listBackgroundEntrez))
-        print(head(listGenesEntrez))
-        print(head(listBackgroundEntrez))
-        
-        # values$gse_up <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
-        # ontology="BP", # could be ideally replaced by input$
-        # number=200)
-      })
-      
-      
-      ### UP
-      observeEvent(input$button_enrUP,
-                   {
-                     # browser()
-                     withProgress(message="Performing Gene Set Enrichment on upregulated genes...",value = 0,{
-                       if (is.null(values$cur_species)) {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(genelistUP())) {
-                         showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(values$cur_species) | values$cur_species =="") {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
+                 })
+    
+    observeEvent(input$button_enrUP_goseq,
+                 {
+                   # browser()
+                   withProgress(message="GOSEQ - Performing Gene Set Enrichment on upregulated genes...",value = 0,{
+                     if (is.null(values$cur_species)) {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(genelistUP())) {
+                       showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(values$cur_species) | values$cur_species =="") {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else {
+                       de.genes <- genelistUP() # assumed to be in symbols
+                       assayed.genes.ids <- rownames(values$dds_obj) # as IDs, but then to be converted back
+                       if (!values$cur_type == "SYMBOL") {
+                         assayed.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                                                     keys=assayed.genes.ids,
+                                                     column="SYMBOL",
+                                                     keytype=values$cur_type,
+                                                     multiVals="first")
                        } else {
-                         organism <- annoSpecies_df[values$cur_species,]$species_short
-                         backgroundgenes <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj))>0]
-                         inputType <- "SYMBOL" # will be replaced by input$...
-                         # annopkg <- paste0("org.",organism,".eg.db")
-                         annopkg <- annoSpecies_df[values$cur_species,]$pkg
-                         if (!require(annopkg,character.only=TRUE)) {
-                           stop("The package",annopkg, "is not installed/available. Try installing it with BiocManager::install() ?")
-                         }
-                         listGenesEntrez <-  as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = genelistUP(),
-                                                                                column="ENTREZID", keytype=inputType))
-                         listBackgroundEntrez <-  as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
-                                                                                     column="ENTREZID", keytype=values$cur_type))
-                         incProgress(0.1, detail = "IDs mapped")
-                         values$gse_up <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
-                                                       ontology= input$go_cats[1],
+                         assayed.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                                                     keys=assayed.genes.ids,
+                                                     column="ENSEMBL",
+                                                     keytype="SYMBOL",
+                                                     multiVals="first")
+                         assayed.genes.ids = assayed.genes.ids[!is.na(assayed.genes.ids)]
+                       }
+                       de.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                                              keys=de.genes,
+                                              column="ENSEMBL",
+                                              keytype="SYMBOL",
+                                              multiVals="first")
+                       incProgress(0.1, detail = "IDs mapped")
+                       de.genes.ids = de.genes.ids[!is.na(de.genes.ids)]
+                       # library(goseq)
+                       # library(GO.db)
+                       values$gse_up_goseq <- tryCatch(goseqTable(de.genes = de.genes.ids,
+                                                                  assayed.genes = unique(assayed.genes.ids),
+                                                                  genome = annoSpecies_df[values$cur_species,]$goseq_short,
+                                                                  id = "ensGene",
+                                                                  testCats=paste0("GO:",input$go_cats),
+                                                                  FDR_GO_cutoff = 1,
+                                                                  nTop = 200,
+                                                                  addGeneToTerms=TRUE,
+                                                                  orgDbPkg = annoSpecies_df[values$cur_species,]$pkg # ,
+                       ),error =function(e){return(NULL)})
+                       
+                       incProgress(0.89)
+                     }
+                   })
+                 })
+    
+    observeEvent(input$button_enrUP_topgo,
+                 {
+                   # browser()
+                   withProgress(message="TOPGO - Performing Gene Set Enrichment on upregulated genes...",value = 0,{
+                     if (is.null(values$cur_species)) {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(genelistUP())) {
+                       showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(values$cur_species) | values$cur_species =="") {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else {
+                       de_symbols <- genelistUP() # assumed to be in symbols
+                       bg_ids <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj)) > 0]
+                       if (values$cur_type == "SYMBOL") {
+                         bg_symbols <- bg_ids
+                       } else {
+                         bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                                              keys=bg_ids,
+                                              column="SYMBOL",
+                                              keytype=values$cur_type,
+                                              multiVals="first")
+                       }
+                       incProgress(0.1, detail = "IDs mapped")
+                       # library(topGO)
+                       # requireNamespace("topGO")
+                       values$topgo_up <- pcaExplorer::topGOtable(de_symbols, bg_symbols,
+                                                                  ontology = input$go_cats[1],
+                                                                  mapping = annoSpecies_df[values$cur_species,]$pkg,
+                                                                  geneID = "symbol",addGeneToTerms = TRUE)
+                       incProgress(0.89)
+                     }
+                   })
+                 })
+    
+    ### DOWN
+    observeEvent(input$button_enrDOWN,
+                 {
+                   withProgress(message="Performing Gene Set Enrichment on downregulated genes...",value = 0,{
+                     if (is.null(values$cur_species)) {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(genelistDOWN())) {
+                       showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(values$cur_species) | values$cur_species =="") {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else {
+                       organism <- annoSpecies_df[values$cur_species,]$species_short
+                       backgroundgenes <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj))>0]
+                       inputType <- "SYMBOL" # will be replaced by input$...
+                       annopkg <- annoSpecies_df[values$cur_species,]$pkg
+                       if (!require(annopkg,character.only=TRUE)) {
+                         stop("The package",annopkg, "is not installed/available. Try installing it with BiocManager::install() ?")
+                       }
+                       listGenesEntrez <-  as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = genelistDOWN(),
+                                                                              column="ENTREZID", keytype=inputType))
+                       listBackgroundEntrez <-  as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
+                                                                                   column="ENTREZID", keytype=values$cur_type))
+                       incProgress(0.1, detail = "IDs mapped")
+                       values$gse_down <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
+                                                       ontology=input$go_cats[1],
                                                        number=200)
-                         
-                         incProgress(0.7, detail = "adding gene names to GO terms") # good indicator for showing it has progressed
-                         go_ids <- rownames(values$gse_up)
-                         allegs_list <- lapply(go_ids, function(arg) AnnotationDbi::get(arg, get(paste0("org.",organism,".egGO2ALLEGS"))))
-                         genes_list <- lapply(allegs_list, function(arg) unlist(AnnotationDbi::mget(arg,get(paste0("org.",organism,".egSYMBOL")))))
-                         degenes <- genelistUP()
-                         DEgenes_list <- lapply(genes_list, function(arg) intersect(arg,degenes))
-                         
-                         values$gse_up$genes <- unlist(lapply(DEgenes_list,function(arg) paste(arg,collapse=",")))
-                       }
-                     })
+                       
+                       
+                       incProgress(0.7, detail = "adding gene names to GO terms") # good indicator for showing it has progressed
+                       go_ids <- rownames(values$gse_down)
+                       allegs_list <- lapply(go_ids, function(arg) AnnotationDbi::get(arg, get(paste0("org.",organism,".egGO2ALLEGS"))))
+                       genes_list <- lapply(allegs_list, function(arg) unlist(AnnotationDbi::mget(arg,get(paste0("org.",organism,".egSYMBOL")))))
+                       degenes <- genelistDOWN()
+                       DEgenes_list <- lapply(genes_list, function(arg) intersect(arg,degenes))
+                       
+                       values$gse_down$genes <- unlist(lapply(DEgenes_list,function(arg) paste(arg,collapse=",")))
+                     }
                    })
-      
-      observeEvent(input$button_enrUP_goseq,
-                   {
-                     # browser()
-                     withProgress(message="GOSEQ - Performing Gene Set Enrichment on upregulated genes...",value = 0,{
-                       if (is.null(values$cur_species)) {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(genelistUP())) {
-                         showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(values$cur_species) | values$cur_species =="") {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else {
-                         de.genes <- genelistUP() # assumed to be in symbols
-                         assayed.genes.ids <- rownames(values$dds_obj) # as IDs, but then to be converted back
-                         if (!values$cur_type == "SYMBOL") {
-                           assayed.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                                       keys=assayed.genes.ids,
-                                                       column="SYMBOL",
-                                                       keytype=values$cur_type,
-                                                       multiVals="first")
-                         } else {
-                           assayed.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                                       keys=assayed.genes.ids,
-                                                       column="ENSEMBL",
-                                                       keytype="SYMBOL",
-                                                       multiVals="first")
-                           assayed.genes.ids = assayed.genes.ids[!is.na(assayed.genes.ids)]
-                         }
-                         de.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                                keys=de.genes,
-                                                column="ENSEMBL",
-                                                keytype="SYMBOL",
-                                                multiVals="first")
-                         incProgress(0.1, detail = "IDs mapped")
-                         de.genes.ids = de.genes.ids[!is.na(de.genes.ids)]
-                         # library(goseq)
-                         # library(GO.db)
-                         values$gse_up_goseq <- tryCatch(goseqTable(de.genes = de.genes.ids,
-                                                                    assayed.genes = unique(assayed.genes.ids),
-                                                                    genome = annoSpecies_df[values$cur_species,]$goseq_short,
-                                                                    id = "ensGene",
-                                                                    testCats=paste0("GO:",input$go_cats),
-                                                                    FDR_GO_cutoff = 1,
-                                                                    nTop = 200,
-                                                                    addGeneToTerms=TRUE,
-                                                                    orgDbPkg = annoSpecies_df[values$cur_species,]$pkg # ,
-                         ),error =function(e){return(NULL)})
-                         
-                         incProgress(0.89)
-                       }
-                     })
+                 })
+    
+    observeEvent(input$button_enrDOWN_goseq,
+                 {
+                   withProgress(message="GOSEQ - Performing Gene Set Enrichment on downregulated genes...",value = 0,{
+                     if (is.null(values$cur_species)) {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(genelistDOWN())) {
+                       showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(values$cur_species) | values$cur_species =="") {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else {
+                       de.genes <- genelistDOWN() # assumed to be in symbols
+                       assayed.genes.ids <- rownames(values$dds_obj) # as IDs, but then to be converted back
+                       assayed.genes <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                                               keys=assayed.genes.ids,
+                                               column="SYMBOL",
+                                               keytype=values$cur_type,
+                                               multiVals="first")
+                       de.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                                              keys=de.genes,
+                                              column="ENSEMBL",
+                                              keytype="SYMBOL",
+                                              multiVals="first")
+                       incProgress(0.1, detail = "IDs mapped")
+                       
+                       values$gse_down_goseq <- goseqTable(de.genes.ids,
+                                                           assayed.genes.ids,
+                                                           genome = annoSpecies_df[values$cur_species,]$goseq_short,
+                                                           id= "geneSymbol",
+                                                           testCats=paste0("GO:",input$go_cats),
+                                                           FDR_GO_cutoff = 1,
+                                                           nTop = 200,
+                                                           addGeneToTerms=TRUE,
+                                                           orgDbPkg = annoSpecies_df[values$cur_species,]$pkg # ,
+                       )
+                       
+                       incProgress(0.89)
+                     }
                    })
-      
-      observeEvent(input$button_enrUP_topgo,
-                   {
-                     # browser()
-                     withProgress(message="TOPGO - Performing Gene Set Enrichment on upregulated genes...",value = 0,{
-                       if (is.null(values$cur_species)) {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(genelistUP())) {
-                         showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(values$cur_species) | values$cur_species =="") {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else {
-                         de_symbols <- genelistUP() # assumed to be in symbols
-                         bg_ids <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj)) > 0]
-                         if (values$cur_type == "SYMBOL") {
-                           bg_symbols <- bg_ids
-                         } else {
-                           bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                                keys=bg_ids,
-                                                column="SYMBOL",
-                                                keytype=values$cur_type,
-                                                multiVals="first")
-                         }
-                         incProgress(0.1, detail = "IDs mapped")
-                         # library(topGO)
-                         # requireNamespace("topGO")
-                         values$topgo_up <- pcaExplorer::topGOtable(de_symbols, bg_symbols,
-                                                                    ontology = input$go_cats[1],
+                 })
+    
+    observeEvent(input$button_enrDOWN_topgo,
+                 {
+                   withProgress(message="TOPGO - Performing Gene Set Enrichment on downregulated genes...",value = 0,{
+                     if (is.null(values$cur_species)) {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(genelistDOWN())) {
+                       showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(values$cur_species) | values$cur_species =="") {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else {
+                       de_symbols <- genelistDOWN() # assumed to be in symbols
+                       bg_ids <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj)) > 0]
+                       bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                                            keys=bg_ids,
+                                            column="SYMBOL",
+                                            keytype=values$cur_type,
+                                            multiVals="first")
+                       incProgress(0.1, detail = "IDs mapped")
+                       # library(topGO)
+                       # requireNamespace("topGO")
+                       values$topgo_down <- pcaExplorer::topGOtable(de_symbols, bg_symbols,
+                                                                    ontology = input$go_cats[1], # will take the first ontology
                                                                     mapping = annoSpecies_df[values$cur_species,]$pkg,
                                                                     geneID = "symbol",addGeneToTerms = TRUE)
-                         incProgress(0.89)
-                       }
-                     })
+                       incProgress(0.89)
+                       
+                     }
                    })
-      
-      ### DOWN
-      observeEvent(input$button_enrDOWN,
-                   {
-                     withProgress(message="Performing Gene Set Enrichment on downregulated genes...",value = 0,{
-                       if (is.null(values$cur_species)) {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(genelistDOWN())) {
-                         showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(values$cur_species) | values$cur_species =="") {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else {
-                         organism <- annoSpecies_df[values$cur_species,]$species_short
-                         backgroundgenes <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj))>0]
-                         inputType <- "SYMBOL" # will be replaced by input$...
-                         annopkg <- annoSpecies_df[values$cur_species,]$pkg
-                         if (!require(annopkg,character.only=TRUE)) {
-                           stop("The package",annopkg, "is not installed/available. Try installing it with BiocManager::install() ?")
-                         }
-                         listGenesEntrez <-  as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = genelistDOWN(),
-                                                                                column="ENTREZID", keytype=inputType))
-                         listBackgroundEntrez <-  as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
-                                                                                     column="ENTREZID", keytype=values$cur_type))
-                         incProgress(0.1, detail = "IDs mapped")
-                         values$gse_down <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
+                 })
+    
+    ### UPDOWN
+    observeEvent(input$button_enrUPDOWN,
+                 {
+                   withProgress(message="Performing Gene Set Enrichment on up- and downregulated genes...",value = 0,{
+                     if (is.null(values$cur_species)) {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(genelistUPDOWN())) {
+                       showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(values$cur_species) | values$cur_species =="") {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else {
+                       organism <- annoSpecies_df[values$cur_species,]$species_short
+                       backgroundgenes <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj))>0]
+                       inputType <- "SYMBOL" # will be replaced by input$...
+                       # annopkg <- paste0("org.",organism,".eg.db")
+                       annopkg <- annoSpecies_df[values$cur_species,]$pkg
+                       if (!require(annopkg,character.only=TRUE)) {
+                         stop("The package",annopkg, "is not installed/available. Try installing it with BiocManager::install() ?")
+                       }
+                       listGenesEntrez <-  as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = genelistUPDOWN(),
+                                                                              column="ENTREZID", keytype=inputType))
+                       listBackgroundEntrez <-  as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
+                                                                                   column="ENTREZID", keytype=values$cur_type))
+                       incProgress(0.1, detail = "IDs mapped")
+                       values$gse_updown <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
                                                          ontology=input$go_cats[1],
                                                          number=200)
-                         
-                         
-                         incProgress(0.7, detail = "adding gene names to GO terms") # good indicator for showing it has progressed
-                         go_ids <- rownames(values$gse_down)
-                         allegs_list <- lapply(go_ids, function(arg) AnnotationDbi::get(arg, get(paste0("org.",organism,".egGO2ALLEGS"))))
-                         genes_list <- lapply(allegs_list, function(arg) unlist(AnnotationDbi::mget(arg,get(paste0("org.",organism,".egSYMBOL")))))
-                         degenes <- genelistDOWN()
-                         DEgenes_list <- lapply(genes_list, function(arg) intersect(arg,degenes))
-                         
-                         values$gse_down$genes <- unlist(lapply(DEgenes_list,function(arg) paste(arg,collapse=",")))
-                       }
-                     })
+                       
+                       incProgress(0.7, detail = "adding gene names to GO terms") # good indicator for showing it has progressed
+                       go_ids <- rownames(values$gse_updown)
+                       allegs_list <- lapply(go_ids, function(arg) AnnotationDbi::get(arg, get(paste0("org.",organism,".egGO2ALLEGS"))))
+                       genes_list <- lapply(allegs_list, function(arg) unlist(AnnotationDbi::mget(arg,get(paste0("org.",organism,".egSYMBOL")))))
+                       degenes <- genelistDOWN()
+                       DEgenes_list <- lapply(genes_list, function(arg) intersect(arg,degenes))
+                       
+                       # values$gse_down$genes[1:20] <- DEgenes_list
+                       # lapply(values$gse_down,class)
+                       values$gse_updown$genes <- unlist(lapply(DEgenes_list,function(arg) paste(arg,collapse=",")))
+                     }
                    })
-      
-      observeEvent(input$button_enrDOWN_goseq,
-                   {
-                     withProgress(message="GOSEQ - Performing Gene Set Enrichment on downregulated genes...",value = 0,{
-                       if (is.null(values$cur_species)) {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(genelistDOWN())) {
-                         showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(values$cur_species) | values$cur_species =="") {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else {
-                         de.genes <- genelistDOWN() # assumed to be in symbols
-                         assayed.genes.ids <- rownames(values$dds_obj) # as IDs, but then to be converted back
-                         assayed.genes <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                                 keys=assayed.genes.ids,
-                                                 column="SYMBOL",
-                                                 keytype=values$cur_type,
-                                                 multiVals="first")
-                         de.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                                keys=de.genes,
-                                                column="ENSEMBL",
-                                                keytype="SYMBOL",
-                                                multiVals="first")
-                         incProgress(0.1, detail = "IDs mapped")
-                         
-                         values$gse_down_goseq <- goseqTable(de.genes.ids,
+                 })
+    
+    observeEvent(input$button_enrUPDOWN_goseq,
+                 {
+                   withProgress(message="GOSEQ - Performing Gene Set Enrichment on up and downregulated genes...",value = 0,{
+                     if (is.null(values$cur_species)) {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(genelistUPDOWN())) {
+                       showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(values$cur_species) | values$cur_species =="") {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else {
+                       de.genes <- genelistUPDOWN() # assumed to be in symbols
+                       assayed.genes.ids <- rownames(values$dds_obj) # as IDs, but then to be converted back
+                       assayed.genes <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                                               keys=assayed.genes.ids,
+                                               column="SYMBOL",
+                                               keytype=values$cur_type,
+                                               multiVals="first")
+                       de.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                                              keys=de.genes,
+                                              column="ENSEMBL",
+                                              keytype="SYMBOL",
+                                              multiVals="first")
+                       incProgress(0.1, detail = "IDs mapped")
+                       
+                       values$gse_updown_goseq <- goseqTable(de.genes.ids,
                                                              assayed.genes.ids,
                                                              genome = annoSpecies_df[values$cur_species,]$goseq_short,
                                                              id= "geneSymbol",
@@ -3249,109 +3391,113 @@ idealImmunoTP<- function(dds_obj = NULL,
                                                              nTop = 200,
                                                              addGeneToTerms=TRUE,
                                                              orgDbPkg = annoSpecies_df[values$cur_species,]$pkg # ,
-                         )
-                         
-                         incProgress(0.89)
-                       }
-                     })
+                       )
+                       
+                       incProgress(0.89)
+                     }
+                     
                    })
-      
-      observeEvent(input$button_enrDOWN_topgo,
-                   {
-                     withProgress(message="TOPGO - Performing Gene Set Enrichment on downregulated genes...",value = 0,{
-                       if (is.null(values$cur_species)) {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(genelistDOWN())) {
-                         showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(values$cur_species) | values$cur_species =="") {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else {
-                         de_symbols <- genelistDOWN() # assumed to be in symbols
-                         bg_ids <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj)) > 0]
-                         bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                              keys=bg_ids,
-                                              column="SYMBOL",
-                                              keytype=values$cur_type,
-                                              multiVals="first")
-                         incProgress(0.1, detail = "IDs mapped")
-                         # library(topGO)
-                         # requireNamespace("topGO")
-                         values$topgo_down <- pcaExplorer::topGOtable(de_symbols, bg_symbols,
-                                                                      ontology = input$go_cats[1], # will take the first ontology
+                 })
+    
+    observeEvent(input$button_enrUPDOWN_topgo,
+                 {
+                   withProgress(message="TOPGO - Performing Gene Set Enrichment on up and downregulated genes...",value = 0,{
+                     
+                     if (is.null(values$cur_species)) {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(genelistUPDOWN())) {
+                       showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(values$cur_species) | values$cur_species =="") {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else {
+                       
+                       de_symbols <- genelistUPDOWN() # assumed to be in symbols
+                       bg_ids <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj)) > 0]
+                       bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                                            keys=bg_ids,
+                                            column="SYMBOL",
+                                            keytype=values$cur_type,
+                                            multiVals="first")
+                       incProgress(0.1, detail = "IDs mapped")
+                       # library(topGO)
+                       # requireNamespace("topGO")
+                       values$topgo_updown <- pcaExplorer::topGOtable(de_symbols, bg_symbols,
+                                                                      ontology = input$go_cats[1],
                                                                       mapping = annoSpecies_df[values$cur_species,]$pkg,
                                                                       geneID = "symbol",addGeneToTerms = TRUE)
-                         incProgress(0.89)
-                         
-                       }
-                     })
+                       incProgress(0.89)
+                     }
                    })
-      
-      ### UPDOWN
-      observeEvent(input$button_enrUPDOWN,
-                   {
-                     withProgress(message="Performing Gene Set Enrichment on up- and downregulated genes...",value = 0,{
-                       if (is.null(values$cur_species)) {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(genelistUPDOWN())) {
-                         showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(values$cur_species) | values$cur_species =="") {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else {
-                         organism <- annoSpecies_df[values$cur_species,]$species_short
-                         backgroundgenes <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj))>0]
-                         inputType <- "SYMBOL" # will be replaced by input$...
-                         # annopkg <- paste0("org.",organism,".eg.db")
-                         annopkg <- annoSpecies_df[values$cur_species,]$pkg
-                         if (!require(annopkg,character.only=TRUE)) {
-                           stop("The package",annopkg, "is not installed/available. Try installing it with BiocManager::install() ?")
-                         }
-                         listGenesEntrez <-  as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = genelistUPDOWN(),
-                                                                                column="ENTREZID", keytype=inputType))
-                         listBackgroundEntrez <-  as.character(AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
-                                                                                     column="ENTREZID", keytype=values$cur_type))
-                         incProgress(0.1, detail = "IDs mapped")
-                         values$gse_updown <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
-                                                           ontology=input$go_cats[1],
-                                                           number=200)
-                         
-                         incProgress(0.7, detail = "adding gene names to GO terms") # good indicator for showing it has progressed
-                         go_ids <- rownames(values$gse_updown)
-                         allegs_list <- lapply(go_ids, function(arg) AnnotationDbi::get(arg, get(paste0("org.",organism,".egGO2ALLEGS"))))
-                         genes_list <- lapply(allegs_list, function(arg) unlist(AnnotationDbi::mget(arg,get(paste0("org.",organism,".egSYMBOL")))))
-                         degenes <- genelistDOWN()
-                         DEgenes_list <- lapply(genes_list, function(arg) intersect(arg,degenes))
-                         
-                         # values$gse_down$genes[1:20] <- DEgenes_list
-                         # lapply(values$gse_down,class)
-                         values$gse_updown$genes <- unlist(lapply(DEgenes_list,function(arg) paste(arg,collapse=",")))
+                 })
+    
+    
+    ### LIST1
+    observeEvent(input$button_enrLIST1,
+                 {
+                   withProgress(message="Performing Gene Set Enrichment on upregulated genes...",value = 0,{
+                     if (is.null(values$cur_species)) {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(values$cur_species) | values$cur_species =="") {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else {
+                       organism <- annoSpecies_df[values$cur_species,]$species_short
+                       backgroundgenes <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj))>0]
+                       inputType <- "SYMBOL" # will be replaced by input$...
+                       # annopkg <- paste0("org.",organism,".eg.db")
+                       annopkg <- annoSpecies_df[values$cur_species,]$pkg
+                       if (!require(annopkg,character.only=TRUE)) {
+                         stop("The package",annopkg, "is not installed/available. Try installing it with BiocManager::install() ?")
                        }
-                     })
+                       # browser()
+                       listGenesEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = as.character(values$genelist1$`Gene Symbol`),
+                                                                column="ENTREZID", keytype=inputType)
+                       listBackgroundEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
+                                                                     column="ENTREZID", keytype=values$cur_type)
+                       incProgress(0.1, detail = "IDs mapped")
+                       values$gse_list1 <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
+                                                        ontology=input$go_cats[1],
+                                                        number=200)
+                       
+                       incProgress(0.7, detail = "adding gene names to GO terms") # good indicator for showing it has progressed
+                       go_ids <- rownames(values$gse_list1)
+                       allegs_list <- lapply(go_ids, function(arg) AnnotationDbi::get(arg, get(paste0("org.",organism,".egGO2ALLEGS"))))
+                       genes_list <- lapply(allegs_list, function(arg) unlist(AnnotationDbi::mget(arg,get(paste0("org.",organism,".egSYMBOL")))))
+                       degenes <- genelistDOWN()
+                       DEgenes_list <- lapply(genes_list, function(arg) intersect(arg,degenes))
+                       
+                       values$gse_list1$genes <- unlist(lapply(DEgenes_list,function(arg) paste(arg,collapse=",")))
+                     } 
                    })
-      
-      observeEvent(input$button_enrUPDOWN_goseq,
-                   {
-                     withProgress(message="GOSEQ - Performing Gene Set Enrichment on up and downregulated genes...",value = 0,{
-                       if (is.null(values$cur_species)) {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(genelistUPDOWN())) {
-                         showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(values$cur_species) | values$cur_species =="") {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else {
-                         de.genes <- genelistUPDOWN() # assumed to be in symbols
+                 })
+    
+    observeEvent(input$button_enrLIST1_goseq,
+                 {
+                   # browser()
+                   
+                   withProgress(message="GOSEQ - Performing Gene Set Enrichment on list 1 genes...",value = 0,{
+                     if (is.null(values$cur_species)) {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(values$cur_species) | values$cur_species =="") {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if(is.null(values$genelist1)) {
+                       showNotification("Please load list",type = "warning")
+                     } else if(nrow(values$genelist1)<1){
+                       showNotification("gene list is not good",type = "warning")
+                     } 
+                     else{
+                       tryCatch({
+                         de.genes <- values$genelist1$`Gene Symbol` # assumed to be in symbols
                          assayed.genes.ids <- rownames(values$dds_obj) # as IDs, but then to be converted back
                          assayed.genes <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                                  keys=assayed.genes.ids,
-                                                 column="SYMBOL",
+                                                 column="ENSEMBL",
                                                  keytype=values$cur_type,
                                                  multiVals="first")
                          de.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
@@ -3360,40 +3506,46 @@ idealImmunoTP<- function(dds_obj = NULL,
                                                 keytype="SYMBOL",
                                                 multiVals="first")
                          incProgress(0.1, detail = "IDs mapped")
+                         genesin = unique(unname(de.genes.ids))
+                         genesin = genesin[genesin %in% get(paste0( annoSpecies_df[values$cur_species,]$goseq_short ,".ensGene.LENGTH"))$Gene]
+                         assayedGenes = unique(unname(assayed.genes))
+                         assayedGenes = assayedGenes[assayedGenes %in% get(paste0( annoSpecies_df[values$cur_species,]$goseq_short ,".ensGene.LENGTH"))$Gene]
                          
-                         values$gse_updown_goseq <- goseqTable(de.genes.ids,
-                                                               assayed.genes.ids,
-                                                               genome = annoSpecies_df[values$cur_species,]$goseq_short,
-                                                               id= "geneSymbol",
-                                                               testCats=paste0("GO:",input$go_cats),
-                                                               FDR_GO_cutoff = 1,
-                                                               nTop = 200,
-                                                               addGeneToTerms=TRUE,
-                                                               orgDbPkg = annoSpecies_df[values$cur_species,]$pkg # ,
+                         values$gse_list1_goseq <- goseqTable(de.genes = genesin,
+                                                              assayed.genes = assayedGenes,
+                                                              genome = annoSpecies_df[values$cur_species,]$goseq_short,
+                                                              id= "ensGene",
+                                                              testCats=paste0("GO:",input$go_cats),
+                                                              FDR_GO_cutoff = 1,
+                                                              nTop = 200,
+                                                              addGeneToTerms=TRUE,
+                                                              orgDbPkg = annoSpecies_df[values$cur_species,]$pkg # ,
                          )
                          
-                         incProgress(0.89)
-                       }
-                       
-                     })
-                   })
-      
-      observeEvent(input$button_enrUPDOWN_topgo,
-                   {
-                     withProgress(message="TOPGO - Performing Gene Set Enrichment on up and downregulated genes...",value = 0,{
-                       
-                       if (is.null(values$cur_species)) {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(genelistUPDOWN())) {
-                         showNotification("You are using ids different than symbols, please convert them by creating/using an annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(values$cur_species) | values$cur_species =="") {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else {
                          
-                         de_symbols <- genelistUPDOWN() # assumed to be in symbols
+                       }, error = function(e){
+                         showNotification("something went wrong",type = "warning")
+                       })
+                       incProgress(0.89)
+                     }
+                   })
+                 })
+    
+    observeEvent(input$button_enrLIST1_topgo,
+                 {
+                   withProgress(message="TOPGO - Performing Gene Set Enrichment on list1 genes...",value = 0,{
+                     if (is.null(values$cur_species)) {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(values$cur_species) | values$cur_species =="") {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if(is.null(values$genelist1)) {
+                       showNotification("Please load list",type = "warning")
+                     } else {
+                       tryCatch({
+                         # browser()
+                         de_symbols <- values$genelist1$`Gene Symbol` # assumed to be in symbols
                          bg_ids <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj)) > 0]
                          bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
                                               keys=bg_ids,
@@ -3403,27 +3555,37 @@ idealImmunoTP<- function(dds_obj = NULL,
                          incProgress(0.1, detail = "IDs mapped")
                          # library(topGO)
                          # requireNamespace("topGO")
-                         values$topgo_updown <- pcaExplorer::topGOtable(de_symbols, bg_symbols,
-                                                                        ontology = input$go_cats[1],
-                                                                        mapping = annoSpecies_df[values$cur_species,]$pkg,
-                                                                        geneID = "symbol",addGeneToTerms = TRUE)
+                         # There is a bug in topGOtable that requrires some differences between de and bg
+                         if (length(unique(as.integer(bg_symbols %in% de_symbols))) == 1) {
+                           showNotification("all the same",type = "warning")
+                           return(NULL)
+                         }
+                         values$topgo_list1 <- pcaExplorer::topGOtable(de_symbols, bg_symbols,
+                                                                       ontology = input$go_cats[1],
+                                                                       mapping = annoSpecies_df[values$cur_species,]$pkg,
+                                                                       geneID = "symbol",addGeneToTerms = TRUE)
                          incProgress(0.89)
-                       }
-                     })
+                       }, error = function(e){
+                         showNotification("something went wrong",type = "warning")
+                         cat(file= stderr(), paste("error message:", e, "\n"))
+                       })
+                     }
                    })
-      
-      
-      ### LIST1
-      observeEvent(input$button_enrLIST1,
-                   {
-                     withProgress(message="Performing Gene Set Enrichment on upregulated genes...",value = 0,{
-                       if (is.null(values$cur_species)) {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(values$cur_species) | values$cur_species =="") {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else {
+                 })
+    ### LIST2
+    observeEvent(input$button_enrLIST2,
+                 {
+                   withProgress(message="Performing Gene Set Enrichment on upregulated genes...",value = 0,{
+                     if (is.null(values$cur_species)) {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(values$cur_species) | values$cur_species =="") {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if(is.null(values$genelist2)) {
+                       showNotification("Please load list",type = "warning")
+                     } else {
+                       tryCatch({
                          organism <- annoSpecies_df[values$cur_species,]$species_short
                          backgroundgenes <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj))>0]
                          inputType <- "SYMBOL" # will be replaced by input$...
@@ -3432,2892 +3594,2751 @@ idealImmunoTP<- function(dds_obj = NULL,
                          if (!require(annopkg,character.only=TRUE)) {
                            stop("The package",annopkg, "is not installed/available. Try installing it with BiocManager::install() ?")
                          }
-                         # browser()
-                         listGenesEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = as.character(values$genelist1$`Gene Symbol`),
+                         listGenesEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = as.character(values$genelist2$`Gene Symbol`),
                                                                   column="ENTREZID", keytype=inputType)
                          listBackgroundEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
                                                                        column="ENTREZID", keytype=values$cur_type)
                          incProgress(0.1, detail = "IDs mapped")
-                         values$gse_list1 <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
+                         values$gse_list2 <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
                                                           ontology=input$go_cats[1],
                                                           number=200)
-                         
                          incProgress(0.7, detail = "adding gene names to GO terms") # good indicator for showing it has progressed
-                         go_ids <- rownames(values$gse_list1)
+                         go_ids <- rownames(values$gse_list2)
                          allegs_list <- lapply(go_ids, function(arg) AnnotationDbi::get(arg, get(paste0("org.",organism,".egGO2ALLEGS"))))
                          genes_list <- lapply(allegs_list, function(arg) unlist(AnnotationDbi::mget(arg,get(paste0("org.",organism,".egSYMBOL")))))
                          degenes <- genelistDOWN()
                          DEgenes_list <- lapply(genes_list, function(arg) intersect(arg,degenes))
                          
-                         values$gse_list1$genes <- unlist(lapply(DEgenes_list,function(arg) paste(arg,collapse=",")))
-                       } 
-                     })
+                         values$gse_list2$genes <- unlist(lapply(DEgenes_list,function(arg) paste(arg,collapse=",")))
+                       }, error = function(e){
+                         showNotification("something went wrong",type = "warning")
+                       })
+                     }
                    })
-      
-      observeEvent(input$button_enrLIST1_goseq,
-                   {
-                     # browser()
-                     
-                     withProgress(message="GOSEQ - Performing Gene Set Enrichment on list 1 genes...",value = 0,{
-                       if (is.null(values$cur_species)) {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(values$cur_species) | values$cur_species =="") {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if(is.null(values$genelist1)) {
-                         showNotification("Please load list",type = "warning")
-                       } else if(nrow(values$genelist1)<1){
-                         showNotification("gene list is not good",type = "warning")
-                       } 
-                       else{
-                         tryCatch({
-                           de.genes <- values$genelist1$`Gene Symbol` # assumed to be in symbols
-                           assayed.genes.ids <- rownames(values$dds_obj) # as IDs, but then to be converted back
-                           assayed.genes <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                                   keys=assayed.genes.ids,
-                                                   column="ENSEMBL",
-                                                   keytype=values$cur_type,
-                                                   multiVals="first")
-                           de.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                                  keys=de.genes,
-                                                  column="ENSEMBL",
-                                                  keytype="SYMBOL",
-                                                  multiVals="first")
-                           incProgress(0.1, detail = "IDs mapped")
-                           genesin = unique(unname(de.genes.ids))
-                           genesin = genesin[genesin %in% get(paste0( annoSpecies_df[values$cur_species,]$goseq_short ,".ensGene.LENGTH"))$Gene]
-                           assayedGenes = unique(unname(assayed.genes))
-                           assayedGenes = assayedGenes[assayedGenes %in% get(paste0( annoSpecies_df[values$cur_species,]$goseq_short ,".ensGene.LENGTH"))$Gene]
-                           
-                           values$gse_list1_goseq <- goseqTable(de.genes = genesin,
-                                                                assayed.genes = assayedGenes,
-                                                                genome = annoSpecies_df[values$cur_species,]$goseq_short,
-                                                                id= "ensGene",
-                                                                testCats=paste0("GO:",input$go_cats),
-                                                                FDR_GO_cutoff = 1,
-                                                                nTop = 200,
-                                                                addGeneToTerms=TRUE,
-                                                                orgDbPkg = annoSpecies_df[values$cur_species,]$pkg # ,
-                           )
-                           
-                           
-                         }, error = function(e){
-                           showNotification("something went wrong",type = "warning")
-                         })
-                         incProgress(0.89)
-                       }
-                     })
-                   })
-      
-      observeEvent(input$button_enrLIST1_topgo,
-                   {
-                     withProgress(message="TOPGO - Performing Gene Set Enrichment on list1 genes...",value = 0,{
-                       if (is.null(values$cur_species)) {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(values$cur_species) | values$cur_species =="") {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if(is.null(values$genelist1)) {
-                         showNotification("Please load list",type = "warning")
-                       } else {
-                         tryCatch({
-                           # browser()
-                           de_symbols <- values$genelist1$`Gene Symbol` # assumed to be in symbols
-                           bg_ids <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj)) > 0]
-                           bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                                keys=bg_ids,
-                                                column="SYMBOL",
-                                                keytype=values$cur_type,
+                 })
+    
+    observeEvent(input$button_enrLIST2_goseq,
+                 {
+                   withProgress(message="GOSEQ - Performing Gene Set Enrichment on list 2 genes...",value = 0,{
+                     if (is.null(values$cur_species)) {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(values$cur_species) | values$cur_species =="") {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if(is.null(values$genelist2)) {
+                       showNotification("Please load list",type = "warning")
+                     } else {
+                       tryCatch({
+                         de.genes <- values$genelist2$`Gene Symbol` # assumed to be in symbols
+                         assayed.genes.ids <- rownames(values$dds_obj) # as IDs, but then to be converted back
+                         assayed.genes <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                                                 keys=assayed.genes.ids,
+                                                 column="ENSEMBL",
+                                                 keytype=values$cur_type,
+                                                 multiVals="first")
+                         de.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                                                keys=de.genes,
+                                                column="ENSEMBL",
+                                                keytype="SYMBOL",
                                                 multiVals="first")
-                           incProgress(0.1, detail = "IDs mapped")
-                           # library(topGO)
-                           # requireNamespace("topGO")
-                           # There is a bug in topGOtable that requrires some differences between de and bg
-                           if (length(unique(as.integer(bg_symbols %in% de_symbols))) == 1) {
-                             showNotification("all the same",type = "warning")
-                             return(NULL)
-                           }
-                           values$topgo_list1 <- pcaExplorer::topGOtable(de_symbols, bg_symbols,
-                                                                         ontology = input$go_cats[1],
-                                                                         mapping = annoSpecies_df[values$cur_species,]$pkg,
-                                                                         geneID = "symbol",addGeneToTerms = TRUE)
-                           incProgress(0.89)
-                         }, error = function(e){
-                           showNotification("something went wrong",type = "warning")
-                           cat(file= stderr(), paste("error message:", e, "\n"))
-                         })
-                       }
-                     })
+                         incProgress(0.1, detail = "IDs mapped")
+                         genesin = unique(unname(de.genes.ids))
+                         genesin = genesin[genesin %in% get(paste0( annoSpecies_df[values$cur_species,]$goseq_short ,".ensGene.LENGTH"))$Gene]
+                         assayedGenes = unique(unname(assayed.genes))
+                         assayedGenes = assayedGenes[assayedGenes %in% get(paste0( annoSpecies_df[values$cur_species,]$goseq_short ,".ensGene.LENGTH"))$Gene]
+                         
+                         values$gse_list2_goseq <- goseqTable(de.genes = genesin,
+                                                              assayed.genes = assayedGenes,
+                                                              genome = annoSpecies_df[values$cur_species,]$goseq_short,
+                                                              id= "ensGene",
+                                                              testCats=paste0("GO:",input$go_cats),
+                                                              FDR_GO_cutoff = 1,
+                                                              nTop = 200,
+                                                              addGeneToTerms=TRUE,
+                                                              orgDbPkg = annoSpecies_df[values$cur_species,]$pkg # ,
+                         )
+                         
+                       }, error = function(e){
+                         showNotification("something went wrong",type = "warning")
+                       })
+                       incProgress(0.89)
+                     }
                    })
-      ### LIST2
-      observeEvent(input$button_enrLIST2,
-                   {
-                     withProgress(message="Performing Gene Set Enrichment on upregulated genes...",value = 0,{
-                       if (is.null(values$cur_species)) {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(values$cur_species) | values$cur_species =="") {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if(is.null(values$genelist2)) {
-                         showNotification("Please load list",type = "warning")
-                       } else {
-                         tryCatch({
-                           organism <- annoSpecies_df[values$cur_species,]$species_short
-                           backgroundgenes <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj))>0]
-                           inputType <- "SYMBOL" # will be replaced by input$...
-                           # annopkg <- paste0("org.",organism,".eg.db")
-                           annopkg <- annoSpecies_df[values$cur_species,]$pkg
-                           if (!require(annopkg,character.only=TRUE)) {
-                             stop("The package",annopkg, "is not installed/available. Try installing it with BiocManager::install() ?")
-                           }
-                           listGenesEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = as.character(values$genelist2$`Gene Symbol`),
-                                                                    column="ENTREZID", keytype=inputType)
-                           listBackgroundEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
-                                                                         column="ENTREZID", keytype=values$cur_type)
-                           incProgress(0.1, detail = "IDs mapped")
-                           values$gse_list2 <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
-                                                            ontology=input$go_cats[1],
-                                                            number=200)
-                           incProgress(0.7, detail = "adding gene names to GO terms") # good indicator for showing it has progressed
-                           go_ids <- rownames(values$gse_list2)
-                           allegs_list <- lapply(go_ids, function(arg) AnnotationDbi::get(arg, get(paste0("org.",organism,".egGO2ALLEGS"))))
-                           genes_list <- lapply(allegs_list, function(arg) unlist(AnnotationDbi::mget(arg,get(paste0("org.",organism,".egSYMBOL")))))
-                           degenes <- genelistDOWN()
-                           DEgenes_list <- lapply(genes_list, function(arg) intersect(arg,degenes))
-                           
-                           values$gse_list2$genes <- unlist(lapply(DEgenes_list,function(arg) paste(arg,collapse=",")))
-                         }, error = function(e){
-                           showNotification("something went wrong",type = "warning")
-                         })
-                       }
-                     })
-                   })
-      
-      observeEvent(input$button_enrLIST2_goseq,
-                   {
-                     withProgress(message="GOSEQ - Performing Gene Set Enrichment on list 2 genes...",value = 0,{
-                       if (is.null(values$cur_species)) {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(values$cur_species) | values$cur_species =="") {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if(is.null(values$genelist2)) {
-                         showNotification("Please load list",type = "warning")
-                       } else {
-                         tryCatch({
-                           de.genes <- values$genelist2$`Gene Symbol` # assumed to be in symbols
-                           assayed.genes.ids <- rownames(values$dds_obj) # as IDs, but then to be converted back
-                           assayed.genes <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                                   keys=assayed.genes.ids,
-                                                   column="ENSEMBL",
-                                                   keytype=values$cur_type,
-                                                   multiVals="first")
-                           de.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                                  keys=de.genes,
-                                                  column="ENSEMBL",
-                                                  keytype="SYMBOL",
-                                                  multiVals="first")
-                           incProgress(0.1, detail = "IDs mapped")
-                           genesin = unique(unname(de.genes.ids))
-                           genesin = genesin[genesin %in% get(paste0( annoSpecies_df[values$cur_species,]$goseq_short ,".ensGene.LENGTH"))$Gene]
-                           assayedGenes = unique(unname(assayed.genes))
-                           assayedGenes = assayedGenes[assayedGenes %in% get(paste0( annoSpecies_df[values$cur_species,]$goseq_short ,".ensGene.LENGTH"))$Gene]
-                           
-                           values$gse_list2_goseq <- goseqTable(de.genes = genesin,
-                                                                assayed.genes = assayedGenes,
-                                                                genome = annoSpecies_df[values$cur_species,]$goseq_short,
-                                                                id= "ensGene",
-                                                                testCats=paste0("GO:",input$go_cats),
-                                                                FDR_GO_cutoff = 1,
-                                                                nTop = 200,
-                                                                addGeneToTerms=TRUE,
-                                                                orgDbPkg = annoSpecies_df[values$cur_species,]$pkg # ,
-                           )
-                           
-                         }, error = function(e){
-                           showNotification("something went wrong",type = "warning")
-                         })
+                 })
+    
+    observeEvent(input$button_enrLIST2_topgo,
+                 {
+                   withProgress(message="TOPGO - Performing Gene Set Enrichment on list2 genes...",value = 0,{
+                     if (is.null(values$cur_species)) {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(values$cur_species) | values$cur_species =="") {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if(is.null(values$genelist2)) {
+                       showNotification("Please load list",type = "warning")
+                     } else {
+                       tryCatch({
+                         de_symbols <- values$genelist2$`Gene Symbol` # assumed to be in symbols
+                         bg_ids <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj)) > 0]
+                         bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                                              keys=bg_ids,
+                                              column="SYMBOL",
+                                              keytype=values$cur_type,
+                                              multiVals="first")
+                         incProgress(0.1, detail = "IDs mapped")
+                         # library(topGO)
+                         # requireNamespace("topGO")
+                         values$topgo_list2 <- pcaExplorer::topGOtable(de_symbols, bg_symbols,
+                                                                       ontology = input$go_cats[1],
+                                                                       mapping = annoSpecies_df[values$cur_species,]$pkg,
+                                                                       geneID = "symbol",addGeneToTerms = TRUE)
                          incProgress(0.89)
-                       }
-                     })
+                       }, error = function(e){
+                         showNotification("something went wrong",type = "warning")
+                       })
+                     }
                    })
-      
-      observeEvent(input$button_enrLIST2_topgo,
-                   {
-                     withProgress(message="TOPGO - Performing Gene Set Enrichment on list2 genes...",value = 0,{
-                       if (is.null(values$cur_species)) {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(values$cur_species) | values$cur_species =="") {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if(is.null(values$genelist2)) {
-                         showNotification("Please load list",type = "warning")
-                       } else {
-                         tryCatch({
-                           de_symbols <- values$genelist2$`Gene Symbol` # assumed to be in symbols
-                           bg_ids <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj)) > 0]
-                           bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                                keys=bg_ids,
-                                                column="SYMBOL",
-                                                keytype=values$cur_type,
+                 })
+    
+    
+    ### LIST3
+    observeEvent(input$button_enrLIST3,
+                 {
+                   withProgress(message="Performing Gene Set Enrichment on upregulated genes...",value = 0,{
+                     if (is.null(values$cur_species)) {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(values$cur_species) | values$cur_species =="") {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if(is.null(values$genelist3)) {
+                       showNotification("Please load list",type = "warning")
+                     } else {
+                       tryCatch({
+                         organism <- annoSpecies_df[values$cur_species,]$species_short
+                         backgroundgenes <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj))>0]
+                         inputType <- "SYMBOL" # will be replaced by input$...
+                         # annopkg <- paste0("org.",organism,".eg.db")
+                         annopkg <- annoSpecies_df[values$cur_species,]$pkg
+                         if (!require(annopkg,character.only=TRUE)) {
+                           stop("The package",annopkg, "is not installed/available. Try installing it with BiocManager::install() ?")
+                         }
+                         listGenesEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = as.character(values$genelist3$`Gene Symbol`),
+                                                                  column="ENTREZID", keytype=inputType)
+                         listBackgroundEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
+                                                                       column="ENTREZID", keytype=values$cur_type)
+                         incProgress(0.1, detail = "IDs mapped")
+                         values$gse_list3 <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
+                                                          ontology=input$go_cats[1],
+                                                          number=200)
+                         incProgress(0.7, detail = "adding gene names to GO terms") # good indicator for showing it has progressed
+                         go_ids <- rownames(values$gse_list3)
+                         allegs_list <- lapply(go_ids, function(arg) AnnotationDbi::get(arg, get(paste0("org.",organism,".egGO2ALLEGS"))))
+                         genes_list <- lapply(allegs_list, function(arg) unlist(AnnotationDbi::mget(arg,get(paste0("org.",organism,".egSYMBOL")))))
+                         degenes <- genelistDOWN()
+                         DEgenes_list <- lapply(genes_list, function(arg) intersect(arg,degenes))
+                         
+                         values$gse_list3$genes <- unlist(lapply(DEgenes_list,function(arg) paste(arg,collapse=",")))
+                       }, error = function(e){
+                         showNotification("something went wrong",type = "warning")
+                       })
+                     }
+                   })
+                 })
+    
+    observeEvent(input$button_enrLIST3_goseq,
+                 {
+                   withProgress(message="GOSEQ - Performing Gene Set Enrichment on list 3 genes...",value = 0,{
+                     if (is.null(values$cur_species)) {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(values$cur_species) | values$cur_species =="") {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if(is.null(values$genelist3)) {
+                       showNotification("Please load list",type = "warning")
+                     } else {
+                       tryCatch({
+                         de.genes <- values$genelist3$`Gene Symbol` # assumed to be in symbols
+                         assayed.genes.ids <- rownames(values$dds_obj) # as IDs, but then to be converted back
+                         assayed.genes <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                                                 keys=assayed.genes.ids,
+                                                 column="ENSEMBL",
+                                                 keytype=values$cur_type,
+                                                 multiVals="first")
+                         de.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                                                keys=de.genes,
+                                                column="ENSEMBL",
+                                                keytype="SYMBOL",
                                                 multiVals="first")
-                           incProgress(0.1, detail = "IDs mapped")
-                           # library(topGO)
-                           # requireNamespace("topGO")
-                           values$topgo_list2 <- pcaExplorer::topGOtable(de_symbols, bg_symbols,
-                                                                         ontology = input$go_cats[1],
-                                                                         mapping = annoSpecies_df[values$cur_species,]$pkg,
-                                                                         geneID = "symbol",addGeneToTerms = TRUE)
-                           incProgress(0.89)
-                         }, error = function(e){
-                           showNotification("something went wrong",type = "warning")
-                         })
-                       }
-                     })
+                         incProgress(0.1, detail = "IDs mapped")
+                         genesin = unique(unname(de.genes.ids))
+                         genesin = genesin[genesin %in% get(paste0( annoSpecies_df[values$cur_species,]$goseq_short ,".ensGene.LENGTH"))$Gene]
+                         assayedGenes = unique(unname(assayed.genes))
+                         assayedGenes = assayedGenes[assayedGenes %in% get(paste0( annoSpecies_df[values$cur_species,]$goseq_short ,".ensGene.LENGTH"))$Gene]
+                         
+                         values$gse_list3_goseq <- goseqTable(de.genes = genesin,
+                                                              assayed.genes = assayedGenes,
+                                                              genome = annoSpecies_df[values$cur_species,]$goseq_short,
+                                                              id= "ensGene",
+                                                              testCats=paste0("GO:",input$go_cats),
+                                                              FDR_GO_cutoff = 1,
+                                                              nTop = 200,
+                                                              addGeneToTerms=TRUE,
+                                                              orgDbPkg = annoSpecies_df[values$cur_species,]$pkg # ,
+                         )
+                         
+                       }, error = function(e){
+                         showNotification("something went wrong",type = "warning")
+                       })
+                       incProgress(0.89)
+                     }
                    })
-      
-      
-      ### LIST3
-      observeEvent(input$button_enrLIST3,
-                   {
-                     withProgress(message="Performing Gene Set Enrichment on upregulated genes...",value = 0,{
-                       if (is.null(values$cur_species)) {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(values$cur_species) | values$cur_species =="") {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if(is.null(values$genelist3)) {
-                         showNotification("Please load list",type = "warning")
-                       } else {
-                         tryCatch({
-                           organism <- annoSpecies_df[values$cur_species,]$species_short
-                           backgroundgenes <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj))>0]
-                           inputType <- "SYMBOL" # will be replaced by input$...
-                           # annopkg <- paste0("org.",organism,".eg.db")
-                           annopkg <- annoSpecies_df[values$cur_species,]$pkg
-                           if (!require(annopkg,character.only=TRUE)) {
-                             stop("The package",annopkg, "is not installed/available. Try installing it with BiocManager::install() ?")
-                           }
-                           listGenesEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = as.character(values$genelist3$`Gene Symbol`),
-                                                                    column="ENTREZID", keytype=inputType)
-                           listBackgroundEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
-                                                                         column="ENTREZID", keytype=values$cur_type)
-                           incProgress(0.1, detail = "IDs mapped")
-                           values$gse_list3 <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
-                                                            ontology=input$go_cats[1],
-                                                            number=200)
-                           incProgress(0.7, detail = "adding gene names to GO terms") # good indicator for showing it has progressed
-                           go_ids <- rownames(values$gse_list3)
-                           allegs_list <- lapply(go_ids, function(arg) AnnotationDbi::get(arg, get(paste0("org.",organism,".egGO2ALLEGS"))))
-                           genes_list <- lapply(allegs_list, function(arg) unlist(AnnotationDbi::mget(arg,get(paste0("org.",organism,".egSYMBOL")))))
-                           degenes <- genelistDOWN()
-                           DEgenes_list <- lapply(genes_list, function(arg) intersect(arg,degenes))
-                           
-                           values$gse_list3$genes <- unlist(lapply(DEgenes_list,function(arg) paste(arg,collapse=",")))
-                         }, error = function(e){
-                           showNotification("something went wrong",type = "warning")
-                         })
-                       }
-                     })
-                   })
-      
-      observeEvent(input$button_enrLIST3_goseq,
-                   {
-                     withProgress(message="GOSEQ - Performing Gene Set Enrichment on list 3 genes...",value = 0,{
-                       if (is.null(values$cur_species)) {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(values$cur_species) | values$cur_species =="") {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if(is.null(values$genelist3)) {
-                         showNotification("Please load list",type = "warning")
-                       } else {
-                         tryCatch({
-                           de.genes <- values$genelist3$`Gene Symbol` # assumed to be in symbols
-                           assayed.genes.ids <- rownames(values$dds_obj) # as IDs, but then to be converted back
-                           assayed.genes <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                                   keys=assayed.genes.ids,
-                                                   column="ENSEMBL",
-                                                   keytype=values$cur_type,
-                                                   multiVals="first")
-                           de.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                                  keys=de.genes,
-                                                  column="ENSEMBL",
-                                                  keytype="SYMBOL",
-                                                  multiVals="first")
-                           incProgress(0.1, detail = "IDs mapped")
-                           genesin = unique(unname(de.genes.ids))
-                           genesin = genesin[genesin %in% get(paste0( annoSpecies_df[values$cur_species,]$goseq_short ,".ensGene.LENGTH"))$Gene]
-                           assayedGenes = unique(unname(assayed.genes))
-                           assayedGenes = assayedGenes[assayedGenes %in% get(paste0( annoSpecies_df[values$cur_species,]$goseq_short ,".ensGene.LENGTH"))$Gene]
-                           
-                           values$gse_list3_goseq <- goseqTable(de.genes = genesin,
-                                                                assayed.genes = assayedGenes,
-                                                                genome = annoSpecies_df[values$cur_species,]$goseq_short,
-                                                                id= "ensGene",
-                                                                testCats=paste0("GO:",input$go_cats),
-                                                                FDR_GO_cutoff = 1,
-                                                                nTop = 200,
-                                                                addGeneToTerms=TRUE,
-                                                                orgDbPkg = annoSpecies_df[values$cur_species,]$pkg # ,
-                           )
-                           
-                         }, error = function(e){
-                           showNotification("something went wrong",type = "warning")
-                         })
+                 })
+    
+    observeEvent(input$button_enrLIST3_topgo,
+                 {
+                   withProgress(message="TOPGO - Performing Gene Set Enrichment on list3 genes...",value = 0,{
+                     if (is.null(values$cur_species)) {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(values$cur_species) | values$cur_species =="") {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if(is.null(values$genelist3)) {
+                       showNotification("Please load list",type = "warning")
+                     } else {
+                       tryCatch({
+                         de_symbols <- values$genelist3$`Gene Symbol` # assumed to be in symbols
+                         bg_ids <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj)) > 0]
+                         bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                                              keys=bg_ids,
+                                              column="SYMBOL",
+                                              keytype=values$cur_type,
+                                              multiVals="first")
+                         incProgress(0.1, detail = "IDs mapped")
+                         # library(topGO)
+                         # requireNamespace("topGO")
+                         values$topgo_list3 <- pcaExplorer::topGOtable(de_symbols, bg_symbols,
+                                                                       ontology = input$go_cats[1],
+                                                                       mapping = annoSpecies_df[values$cur_species,]$pkg,
+                                                                       geneID = "symbol",addGeneToTerms = TRUE)
                          incProgress(0.89)
-                       }
-                     })
+                       }, error = function(e){
+                         showNotification("something went wrong",type = "warning")
+                       })
+                     }
                    })
-      
-      observeEvent(input$button_enrLIST3_topgo,
-                   {
-                     withProgress(message="TOPGO - Performing Gene Set Enrichment on list3 genes...",value = 0,{
-                       if (is.null(values$cur_species)) {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(values$cur_species) | values$cur_species =="") {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if(is.null(values$genelist3)) {
-                         showNotification("Please load list",type = "warning")
-                       } else {
-                         tryCatch({
-                           de_symbols <- values$genelist3$`Gene Symbol` # assumed to be in symbols
-                           bg_ids <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj)) > 0]
-                           bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                                keys=bg_ids,
-                                                column="SYMBOL",
-                                                keytype=values$cur_type,
+                 })
+    
+    
+    ### LIST4
+    observeEvent(input$button_enrLIST4,
+                 {
+                   withProgress(message="Performing Gene Set Enrichment on upregulated genes...",value = 0,{
+                     if (is.null(values$cur_species)) {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(values$cur_species) | values$cur_species =="") {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if(is.null(values$genelist4)) {
+                       showNotification("Please load list",type = "warning")
+                     } else {
+                       tryCatch({
+                         organism <- annoSpecies_df[values$cur_species,]$species_short
+                         backgroundgenes <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj))>0]
+                         inputType <- "SYMBOL" # will be replaced by input$...
+                         # annopkg <- paste0("org.",organism,".eg.db")
+                         annopkg <- annoSpecies_df[values$cur_species,]$pkg
+                         if (!require(annopkg,character.only=TRUE)) {
+                           stop("The package",annopkg, "is not installed/available. Try installing it with BiocManager::install() ?")
+                         }
+                         listGenesEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = as.character(values$genelist4$`Gene Symbol`),
+                                                                  column="ENTREZID", keytype=inputType)
+                         listBackgroundEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
+                                                                       column="ENTREZID", keytype=values$cur_type)
+                         incProgress(0.1, detail = "IDs mapped")
+                         values$gse_list4 <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
+                                                          ontology=input$go_cats[1],
+                                                          number=200)
+                         incProgress(0.7, detail = "adding gene names to GO terms") # good indicator for showing it has progressed
+                         go_ids <- rownames(values$gse_list4)
+                         allegs_list <- lapply(go_ids, function(arg) AnnotationDbi::get(arg, get(paste0("org.",organism,".egGO2ALLEGS"))))
+                         genes_list <- lapply(allegs_list, function(arg) unlist(AnnotationDbi::mget(arg,get(paste0("org.",organism,".egSYMBOL")))))
+                         degenes <- genelistDOWN()
+                         DEgenes_list <- lapply(genes_list, function(arg) intersect(arg,degenes))
+                         
+                         values$gse_list4$genes <- unlist(lapply(DEgenes_list,function(arg) paste(arg,collapse=",")))
+                       }, error = function(e){
+                         showNotification("something went wrong",type = "warning")
+                       })
+                     }
+                   })
+                 })
+    
+    observeEvent(input$button_enrLIST4_goseq,
+                 {
+                   withProgress(message="GOSEQ - Performing Gene Set Enrichment on list 4 genes...",value = 0,{
+                     if (is.null(values$cur_species)) {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(values$cur_species) | values$cur_species =="") {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if(is.null(values$genelist4)) {
+                       showNotification("Please load list",type = "warning")
+                     } else {
+                       tryCatch({
+                         de.genes <- values$genelist4$`Gene Symbol` # assumed to be in symbols
+                         assayed.genes.ids <- rownames(values$dds_obj) # as IDs, but then to be converted back
+                         assayed.genes <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                                                 keys=assayed.genes.ids,
+                                                 column="ENSEMBL",
+                                                 keytype=values$cur_type,
+                                                 multiVals="first")
+                         de.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                                                keys=de.genes,
+                                                column="ENSEMBL",
+                                                keytype="SYMBOL",
                                                 multiVals="first")
-                           incProgress(0.1, detail = "IDs mapped")
-                           # library(topGO)
-                           # requireNamespace("topGO")
-                           values$topgo_list3 <- pcaExplorer::topGOtable(de_symbols, bg_symbols,
-                                                                         ontology = input$go_cats[1],
-                                                                         mapping = annoSpecies_df[values$cur_species,]$pkg,
-                                                                         geneID = "symbol",addGeneToTerms = TRUE)
-                           incProgress(0.89)
-                         }, error = function(e){
-                           showNotification("something went wrong",type = "warning")
-                         })
-                       }
-                     })
+                         incProgress(0.1, detail = "IDs mapped")
+                         genesin = unique(unname(de.genes.ids))
+                         genesin = genesin[genesin %in% get(paste0( annoSpecies_df[values$cur_species,]$goseq_short ,".ensGene.LENGTH"))$Gene]
+                         assayedGenes = unique(unname(assayed.genes))
+                         assayedGenes = assayedGenes[assayedGenes %in% get(paste0( annoSpecies_df[values$cur_species,]$goseq_short ,".ensGene.LENGTH"))$Gene]
+                         
+                         values$gse_list4_goseq <- goseqTable(de.genes = genesin,
+                                                              assayed.genes = assayedGenes,
+                                                              genome = annoSpecies_df[values$cur_species,]$goseq_short,
+                                                              id= "ensGene",
+                                                              testCats=paste0("GO:",input$go_cats),
+                                                              FDR_GO_cutoff = 1,
+                                                              nTop = 200,
+                                                              addGeneToTerms=TRUE,
+                                                              orgDbPkg = annoSpecies_df[values$cur_species,]$pkg # ,
+                         )
+                         
+                       }, error = function(e){
+                         showNotification("something went wrong",type = "warning")
+                       })
+                       incProgress(0.89)
+                     }
                    })
-      
-      
-      ### LIST4
-      observeEvent(input$button_enrLIST4,
-                   {
-                     withProgress(message="Performing Gene Set Enrichment on upregulated genes...",value = 0,{
-                       if (is.null(values$cur_species)) {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(values$cur_species) | values$cur_species =="") {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if(is.null(values$genelist4)) {
-                         showNotification("Please load list",type = "warning")
-                       } else {
-                         tryCatch({
-                           organism <- annoSpecies_df[values$cur_species,]$species_short
-                           backgroundgenes <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj))>0]
-                           inputType <- "SYMBOL" # will be replaced by input$...
-                           # annopkg <- paste0("org.",organism,".eg.db")
-                           annopkg <- annoSpecies_df[values$cur_species,]$pkg
-                           if (!require(annopkg,character.only=TRUE)) {
-                             stop("The package",annopkg, "is not installed/available. Try installing it with BiocManager::install() ?")
-                           }
-                           listGenesEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = as.character(values$genelist4$`Gene Symbol`),
-                                                                    column="ENTREZID", keytype=inputType)
-                           listBackgroundEntrez <- AnnotationDbi::mapIds(eval(parse(text=annopkg)), keys = backgroundgenes,
-                                                                         column="ENTREZID", keytype=values$cur_type)
-                           incProgress(0.1, detail = "IDs mapped")
-                           values$gse_list4 <- limma::topGO(limma::goana(listGenesEntrez, listBackgroundEntrez, species = organism),
-                                                            ontology=input$go_cats[1],
-                                                            number=200)
-                           incProgress(0.7, detail = "adding gene names to GO terms") # good indicator for showing it has progressed
-                           go_ids <- rownames(values$gse_list4)
-                           allegs_list <- lapply(go_ids, function(arg) AnnotationDbi::get(arg, get(paste0("org.",organism,".egGO2ALLEGS"))))
-                           genes_list <- lapply(allegs_list, function(arg) unlist(AnnotationDbi::mget(arg,get(paste0("org.",organism,".egSYMBOL")))))
-                           degenes <- genelistDOWN()
-                           DEgenes_list <- lapply(genes_list, function(arg) intersect(arg,degenes))
-                           
-                           values$gse_list4$genes <- unlist(lapply(DEgenes_list,function(arg) paste(arg,collapse=",")))
-                         }, error = function(e){
-                           showNotification("something went wrong",type = "warning")
-                         })
-                       }
-                     })
-                   })
-      
-      observeEvent(input$button_enrLIST4_goseq,
-                   {
-                     withProgress(message="GOSEQ - Performing Gene Set Enrichment on list 4 genes...",value = 0,{
-                       if (is.null(values$cur_species)) {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(values$cur_species) | values$cur_species =="") {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if(is.null(values$genelist4)) {
-                         showNotification("Please load list",type = "warning")
-                       } else {
-                         tryCatch({
-                           de.genes <- values$genelist4$`Gene Symbol` # assumed to be in symbols
-                           assayed.genes.ids <- rownames(values$dds_obj) # as IDs, but then to be converted back
-                           assayed.genes <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                                   keys=assayed.genes.ids,
-                                                   column="ENSEMBL",
-                                                   keytype=values$cur_type,
-                                                   multiVals="first")
-                           de.genes.ids <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                                  keys=de.genes,
-                                                  column="ENSEMBL",
-                                                  keytype="SYMBOL",
-                                                  multiVals="first")
-                           incProgress(0.1, detail = "IDs mapped")
-                           genesin = unique(unname(de.genes.ids))
-                           genesin = genesin[genesin %in% get(paste0( annoSpecies_df[values$cur_species,]$goseq_short ,".ensGene.LENGTH"))$Gene]
-                           assayedGenes = unique(unname(assayed.genes))
-                           assayedGenes = assayedGenes[assayedGenes %in% get(paste0( annoSpecies_df[values$cur_species,]$goseq_short ,".ensGene.LENGTH"))$Gene]
-                           
-                           values$gse_list4_goseq <- goseqTable(de.genes = genesin,
-                                                                assayed.genes = assayedGenes,
-                                                                genome = annoSpecies_df[values$cur_species,]$goseq_short,
-                                                                id= "ensGene",
-                                                                testCats=paste0("GO:",input$go_cats),
-                                                                FDR_GO_cutoff = 1,
-                                                                nTop = 200,
-                                                                addGeneToTerms=TRUE,
-                                                                orgDbPkg = annoSpecies_df[values$cur_species,]$pkg # ,
-                           )
-                           
-                         }, error = function(e){
-                           showNotification("something went wrong",type = "warning")
-                         })
+                 })
+    
+    observeEvent(input$button_enrLIST4_topgo,
+                 {
+                   withProgress(message="TOPGO - Performing Gene Set Enrichment on list4 genes...",value = 0,{
+                     if (is.null(values$cur_species)) {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if (is.null(values$cur_species) | values$cur_species =="") {
+                       showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
+                       return(NULL)
+                     } else if(is.null(values$genelist4)) {
+                       showNotification("Please load list",type = "warning")
+                     } else {
+                       tryCatch({
+                         de_symbols <- values$genelist4$`Gene Symbol` # assumed to be in symbols
+                         bg_ids <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj)) > 0]
+                         bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                                              keys=bg_ids,
+                                              column="SYMBOL",
+                                              keytype=values$cur_type,
+                                              multiVals="first")
+                         incProgress(0.1, detail = "IDs mapped")
+                         # library(topGO)
+                         # requireNamespace("topGO")
+                         values$topgo_list4 <- pcaExplorer::topGOtable(de_symbols, bg_symbols,
+                                                                       ontology = input$go_cats[1],
+                                                                       mapping = annoSpecies_df[values$cur_species,]$pkg,
+                                                                       geneID = "symbol",addGeneToTerms = TRUE)
                          incProgress(0.89)
-                       }
-                     })
+                       }, error = function(e){
+                         showNotification("something went wrong",type = "warning")
+                       })
+                     }
                    })
+                 })
+    
+    
+    
+    
+    
+    # server gse datatables --------------------------------------------------------
+    ## ui outputs here
+    output$ui_DT_gse_up <- renderUI({
+      if(is.null(values$gse_up))
+        return(NULL)
+      return(
+        tagList(
+          h4("goana table - up"),
+          DT::dataTableOutput("DT_gse_up")
+        )
+      )
+    })
+    output$ui_DT_gse_down <- renderUI({
+      if(is.null(values$gse_down))
+        return(NULL)
+      return(
+        tagList(
+          h4("goana table - down"),
+          DT::dataTableOutput("DT_gse_down")
+        )
+      )
+    })
+    output$ui_DT_gse_updown <- renderUI({
+      if(is.null(values$gse_updown))
+        return(NULL)
+      return(
+        tagList(
+          h4("goana table - up&down"),
+          DT::dataTableOutput("DT_gse_updown")
+        )
+      )
+    })
+    output$ui_DT_gse_list1 <- renderUI({
+      if(is.null(values$gse_list1))
+        return(NULL)
+      return(
+        tagList(
+          h4("goana table - list1"),
+          DT::dataTableOutput("DT_gse_list1")
+        )
+      )
+    })
+    output$ui_DT_gse_list2 <- renderUI({
+      if(is.null(values$gse_up))
+        return(NULL)
+      return(
+        tagList(
+          h4("goana table - list2"),
+          DT::dataTableOutput("DT_gse_list2")
+        )
+      )
+    })
+    output$ui_DT_gse_list3 <- renderUI({
+      if(is.null(values$gse_up))
+        return(NULL)
+      return(
+        tagList(
+          h4("goana table - list3"),
+          DT::dataTableOutput("DT_gse_list3")
+        )
+      )
+    })
+    output$ui_DT_gse_list4 <- renderUI({
+      if(is.null(values$gse_up))
+        return(NULL)
+      return(
+        tagList(
+          h4("goana table - list4"),
+          DT::dataTableOutput("DT_gse_list4")
+        )
+      )
+    })
+    
+    output$ui_DT_gse_up_topgo <- renderUI({
+      if(is.null(values$topgo_up))
+        return(NULL)
+      return(
+        tagList(
+          h4("topGO table - up"),
+          DT::dataTableOutput("DT_gse_up_topgo")
+        )
+      )
+    })
+    output$ui_DT_gse_down_topgo <- renderUI({
+      if(is.null(values$topgo_down))
+        return(NULL)
+      return(
+        tagList(
+          h4("topGO table - down"),
+          DT::dataTableOutput("DT_gse_down_topgo")
+        )
+      )
+    })
+    output$ui_DT_gse_updown_topgo <- renderUI({
+      if(is.null(values$topgo_updown))
+        return(NULL)
+      return(
+        tagList(
+          h4("topGO table - up&down"),
+          DT::dataTableOutput("DT_gse_updown_topgo")
+        )
+      )
+    })
+    output$ui_DT_gse_list1_topgo <- renderUI({
+      if(is.null(values$topgo_list1))
+        return(NULL)
+      return(
+        tagList(
+          h4("topGO table - list1"),
+          DT::dataTableOutput("DT_gse_list1_topgo")
+        )
+      )
+    })
+    output$ui_DT_gse_list2_topgo <- renderUI({
+      if(is.null(values$topgo_list2))
+        return(NULL)
+      return(
+        tagList(
+          h4("topGO table - list2"),
+          DT::dataTableOutput("DT_gse_list2_topgo")
+        )
+      )
+    })
+    output$ui_DT_gse_list3_topgo <- renderUI({
+      if(is.null(values$topgo_list3))
+        return(NULL)
+      return(
+        tagList(
+          h4("topGO table - list3"),
+          DT::dataTableOutput("DT_gse_list3_topgo")
+        )
+      )
+    })
+    output$ui_DT_gse_list4_topgo <- renderUI({
+      if(is.null(values$topgo_list4))
+        return(NULL)
+      return(
+        tagList(
+          h4("topGO table - list4"),
+          DT::dataTableOutput("DT_gse_list4_topgo")
+        )
+      )
+    })
+    
+    output$ui_DT_gse_up_goseq <- renderUI({
+      if(is.null(values$gse_up_goseq))
+        return(NULL)
+      return(
+        tagList(
+          h4("goseq table - up"),
+          DT::dataTableOutput("DT_gse_up_goseq")
+        )
+      )
+    })
+    output$ui_DT_gse_down_goseq <- renderUI({
+      if(is.null(values$gse_down_goseq))
+        return(NULL)
+      return(
+        tagList(
+          h4("goseq table - down"),
+          DT::dataTableOutput("DT_gse_down_goseq")
+        )
+      )
+    })
+    output$ui_DT_gse_updown_goseq <- renderUI({
+      if(is.null(values$gse_updown_goseq))
+        return(NULL)
+      return(
+        tagList(
+          h4("goseq table - up&down"),
+          DT::dataTableOutput("DT_gse_updown_goseq")
+        )
+      )
+    })
+    output$ui_DT_gse_list1_goseq <- renderUI({
+      if(is.null(values$gse_list1_goseq))
+        return(NULL)
+      return(
+        tagList(
+          h4("goseq table - list1"),
+          DT::dataTableOutput("DT_gse_list1_goseq")
+        )
+      )
+    })
+    output$ui_DT_gse_list2_goseq <- renderUI({
+      if(is.null(values$gse_up_goseq))
+        return(NULL)
+      return(
+        tagList(
+          h4("goseq table - list2"),
+          DT::dataTableOutput("DT_gse_list2_goseq")
+        )
+      )
+    })
+    output$ui_DT_gse_list3_goseq <- renderUI({
+      if(is.null(values$gse_up_goseq))
+        return(NULL)
+      return(
+        tagList(
+          h4("goseq table - list3"),
+          DT::dataTableOutput("DT_gse_list3_goseq")
+        )
+      )
+    })
+    output$ui_DT_gse_list4_goseq <- renderUI({
+      if(is.null(values$gse_up_goseq))
+        return(NULL)
+      return(
+        tagList(
+          h4("goseq table - list4"),
+          DT::dataTableOutput("DT_gse_list4_goseq")
+        )
+      )
+    })
+    
+    ## actual DTs here
+    output$DT_gse_up <- DT::renderDataTable({
+      # if not null...
+      if(is.null(values$gse_up))
+        return(NULL)
+      mytbl <- values$gse_up
+      rownames(mytbl) <- createLinkGO(rownames(mytbl))
+      mytbl
+    },escape=FALSE, options = list(scrollX = T))
+    output$DT_gse_down <- DT::renderDataTable({
+      # if not null...
+      if(is.null(values$gse_down))
+        return(NULL)
+      mytbl <- values$gse_down
+      rownames(mytbl) <- createLinkGO(rownames(mytbl))
+      mytbl
+    },escape=FALSE,options = list(
+      scrollX = T,
+      autoWidth = TRUE,
+      columnDefs = list(list(width = '20px', targets = c(8,9,10)))
+    ))
+    output$DT_gse_updown <- DT::renderDataTable({
+      # if not null...
+      if(is.null(values$gse_updown))
+        return(NULL)
+      mytbl <- values$gse_updown
+      rownames(mytbl) <- createLinkGO(rownames(mytbl))
+      mytbl
+    },escape=FALSE, options = list(scrollX = F))
+    
+    output$DT_gse_list1 <- DT::renderDataTable({
+      # if not null...
+      if(is.null(values$gse_list1))
+        return(NULL)
+      mytbl <- values$gse_list1
+      # mytbl$GOid <- rownames(mytbl)
+      rownames(mytbl) <- createLinkGO(rownames(mytbl))
+      mytbl
+    },escape=FALSE, options = list(scrollX = F))
+    output$DT_gse_list2 <- DT::renderDataTable({
+      # if not null...
+      if(is.null(values$gse_list2))
+        return(NULL)
+      mytbl <- values$gse_list2
+      rownames(mytbl) <- createLinkGO(rownames(mytbl))
+      mytbl
+    },escape=FALSE, options = list(scrollX = F))
+    output$DT_gse_list3 <- DT::renderDataTable({
+      # if not null...
+      if(is.null(values$gse_list3))
+        return(NULL)
+      mytbl <- values$gse_list3
+      rownames(mytbl) <- createLinkGO(rownames(mytbl))
+      mytbl
+    },escape=FALSE, options = list(scrollX = F))
+    output$DT_gse_list4 <- DT::renderDataTable({
+      # if not null...
+      if(is.null(values$gse_list4))
+        return(NULL)
+      mytbl <- values$gse_list4
+      rownames(mytbl) <- createLinkGO(rownames(mytbl))
+      mytbl
+    },escape=FALSE, options = list(scrollX = F))
+    
+    
+    output$DT_gse_up_topgo <- DT::renderDataTable({
+      # if not null...
+      if(is.null(values$topgo_up))
+        return(NULL)
+      mytbl <- values$topgo_up
+      mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
+      mytbl
+    },escape=FALSE, selection=list(mode="single"), options = list(scrollX = F))
+    output$DT_gse_down_topgo <- DT::renderDataTable({
+      # if not null...
+      if(is.null(values$topgo_down))
+        return(NULL)
+      mytbl <- values$topgo_down
+      mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
+      mytbl
+    },escape=FALSE, selection=list(mode="single"), options = list(scrollX = F))
+    output$DT_gse_updown_topgo <- DT::renderDataTable({
+      # if not null...
+      if(is.null(values$topgo_updown))
+        return(NULL)
+      mytbl <- values$topgo_updown
+      mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
+      mytbl
+    },escape=FALSE, selection=list(mode="single"), options = list(scrollX = F))
+    output$DT_gse_list1_topgo <- DT::renderDataTable({
+      # if not null...
+      if(is.null(values$topgo_list1))
+        return(NULL)
+      mytbl <- values$topgo_list1
+      # mytbl$GOid <- rownames(mytbl)
+      mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
+      mytbl
+    },escape=FALSE, selection=list(mode="single"), options = list(scrollX = F))
+    output$DT_gse_list2_topgo <- DT::renderDataTable({
+      # if not null...
+      if(is.null(values$topgo_list2))
+        return(NULL)
+      mytbl <- values$topgo_list2
+      # mytbl$GOid <- rownames(mytbl)
+      mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
+      mytbl
+    },escape=FALSE, selection=list(mode="single"), options = list(scrollX = F))
+    output$DT_gse_list3_topgo <- DT::renderDataTable({
+      # if not null...
+      if(is.null(values$topgo_list3))
+        return(NULL)
+      mytbl <- values$topgo_list3
+      # mytbl$GOid <- rownames(mytbl)
+      mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
+      mytbl
+    },escape=FALSE, selection=list(mode="single"), options = list(scrollX = F))
+    output$DT_gse_list4_topgo <- DT::renderDataTable({
+      # if not null...
+      if(is.null(values$topgo_list4))
+        return(NULL)
+      mytbl <- values$topgo_list4
+      # mytbl$GOid <- rownames(mytbl)
+      mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
+      mytbl
+    },escape=FALSE, selection=list(mode="single"), options = list(scrollX = F))
+    
+    
+    output$DT_gse_up_goseq <- DT::renderDataTable({
+      # if not null...
+      if(is.null(values$gse_up_goseq))
+        return(NULL)
+      mytbl <- values$gse_up_goseq
+      mytbl$category <- createLinkGO(mytbl$category)
+      mytbl
+    },escape=FALSE, rownames = FALSE, options = list(scrollX = F))
+    output$DT_gse_down_goseq <- DT::renderDataTable({
+      # if not null...
+      if(is.null(values$gse_down_goseq))
+        return(NULL)
+      mytbl <- values$gse_down_goseq
+      mytbl$category <- createLinkGO(mytbl$category)
+      mytbl
+    },escape=FALSE, rownames = FALSE, options = list(scrollX = F))
+    output$DT_gse_updown_goseq <- DT::renderDataTable({
+      # if not null...
+      if(is.null(values$gse_updown_goseq))
+        return(NULL)
+      mytbl <- values$gse_updown_goseq
+      mytbl$category <- createLinkGO(mytbl$category)
+      mytbl
+    },escape=FALSE, rownames = FALSE, options = list(scrollX = F))
+    output$DT_gse_list1_goseq <- DT::renderDataTable({
+      # if not null...
+      if(is.null(values$gse_list1_goseq))
+        return(NULL)
+      mytbl <- values$gse_list1_goseq
+      # mytbl$GOid <- rownames(mytbl)
+      mytbl$category <- createLinkGO(mytbl$category)
+      mytbl
+    },escape=FALSE, rownames = FALSE, options = list(scrollX = F))
+    output$DT_gse_list2_goseq <- DT::renderDataTable({
+      # if not null...
+      if(is.null(values$gse_list2_goseq))
+        return(NULL)
+      mytbl <- values$gse_list2_goseq
+      # mytbl$GOid <- rownames(mytbl)
+      mytbl$category <- createLinkGO(mytbl$category)
+      mytbl
+    },escape=FALSE, rownames = FALSE, options = list(scrollX = F))
+    output$DT_gse_list3_goseq <- DT::renderDataTable({
+      # if not null...
+      if(is.null(values$gse_list23_goseq))
+        return(NULL)
+      mytbl <- values$gse_list3_goseq
+      # mytbl$GOid <- rownames(mytbl)
+      mytbl$category <- createLinkGO(mytbl$category)
+      mytbl
+    },escape=FALSE, rownames = FALSE, options = list(scrollX = F))
+    output$DT_gse_list4_goseq <- DT::renderDataTable({
+      # if not null...
+      if(is.null(values$gse_list4_goseq))
+        return(NULL)
+      mytbl <- values$gse_list4_goseq
+      # mytbl$GOid <- rownames(mytbl)
+      mytbl$category <- createLinkGO(mytbl$category)
+      mytbl
+    },escape=FALSE, rownames = FALSE, options = list(scrollX = F))
+    
+    
+    # server gse heatmaps --------------------------------------------------------
+    output$goterm_heatmap_up_topgo <- renderPlotly({
+      # cat(file = stderr(), paste("goterm_heatmap_up_topgo\n"))
       
-      observeEvent(input$button_enrLIST4_topgo,
-                   {
-                     withProgress(message="TOPGO - Performing Gene Set Enrichment on list4 genes...",value = 0,{
-                       if (is.null(values$cur_species)) {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if (is.null(values$cur_species) | values$cur_species =="") {
-                         showNotification("Please specify the species in the Data Setup panel and retrieve the annotation object",type = "warning")
-                         return(NULL)
-                       } else if(is.null(values$genelist4)) {
-                         showNotification("Please load list",type = "warning")
-                       } else {
-                         tryCatch({
-                           de_symbols <- values$genelist4$`Gene Symbol` # assumed to be in symbols
-                           bg_ids <- rownames(values$dds_obj)[rowSums(counts(values$dds_obj)) > 0]
-                           bg_symbols <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                                keys=bg_ids,
-                                                column="SYMBOL",
-                                                keytype=values$cur_type,
-                                                multiVals="first")
-                           incProgress(0.1, detail = "IDs mapped")
-                           # library(topGO)
-                           # requireNamespace("topGO")
-                           values$topgo_list4 <- pcaExplorer::topGOtable(de_symbols, bg_symbols,
-                                                                         ontology = input$go_cats[1],
-                                                                         mapping = annoSpecies_df[values$cur_species,]$pkg,
-                                                                         geneID = "symbol",addGeneToTerms = TRUE)
-                           incProgress(0.89)
-                         }, error = function(e){
-                           showNotification("something went wrong",type = "warning")
-                         })
-                       }
-                     })
-                   })
+      s <- input$DT_gse_up_topgo_rows_selected
+      idtype <- values$cur_type
+      speciesSelect <- values$cur_species
+      dds_obj <- values$dds_obj
+      if(length(s) == 0)
+        return(NULL)
+      # cat(file = stderr(), paste("goterm_heatmap_up_topgo\n"))
       
+      # allow only one selected line
+      mygenes <- values$topgo_up[s,]$genes[1]
+      myterm <- paste0(
+        values$topgo_up[s,]$`GO.ID`, " - ",
+        values$topgo_up[s,]$Term)
       
+      genevec <- unlist(strsplit(mygenes,split=","))
+      annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==speciesSelect]
+      genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,idtype,"SYMBOL",multiVals="first"))
+      log2things <- assay(normTransform(dds_obj))
+      selectedLogvalues <- log2things[genevec_ids,]
       
+      # check that I do not have nas or similar...
+      if(length(genevec_ids)==length(genevec)){
+        rowlabs <- genevec
+      } else {
+        rowlabs <- genevec_ids
+        # rowlabs <- ifelse(, genevec, genevec_ids)
+      }
+      # save(file = "~/SCHNAPPsDebug/idealImmunoTP.goterm_heatmap_up_topgo.RData", list = ls())
+      # load("~/SCHNAPPsDebug/idealImmunoTP.goterm_heatmap_up_topgo.RData")
+      heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
       
+    })
+    
+    output$goterm_heatmap_down_topgo <- renderPlotly({
+      # cat(file = stderr(), paste("goterm_heatmap_down_topgo\n"))
       
-      # server gse datatables --------------------------------------------------------
-      ## ui outputs here
-      output$ui_DT_gse_up <- renderUI({
-        if(is.null(values$gse_up))
-          return(NULL)
-        return(
-          tagList(
-            h4("goana table - up"),
-            DT::dataTableOutput("DT_gse_up")
-          )
-        )
-      })
-      output$ui_DT_gse_down <- renderUI({
-        if(is.null(values$gse_down))
-          return(NULL)
-        return(
-          tagList(
-            h4("goana table - down"),
-            DT::dataTableOutput("DT_gse_down")
-          )
-        )
-      })
-      output$ui_DT_gse_updown <- renderUI({
-        if(is.null(values$gse_updown))
-          return(NULL)
-        return(
-          tagList(
-            h4("goana table - up&down"),
-            DT::dataTableOutput("DT_gse_updown")
-          )
-        )
-      })
-      output$ui_DT_gse_list1 <- renderUI({
-        if(is.null(values$gse_list1))
-          return(NULL)
-        return(
-          tagList(
-            h4("goana table - list1"),
-            DT::dataTableOutput("DT_gse_list1")
-          )
-        )
-      })
-      output$ui_DT_gse_list2 <- renderUI({
-        if(is.null(values$gse_up))
-          return(NULL)
-        return(
-          tagList(
-            h4("goana table - list2"),
-            DT::dataTableOutput("DT_gse_list2")
-          )
-        )
-      })
-      output$ui_DT_gse_list3 <- renderUI({
-        if(is.null(values$gse_up))
-          return(NULL)
-        return(
-          tagList(
-            h4("goana table - list3"),
-            DT::dataTableOutput("DT_gse_list3")
-          )
-        )
-      })
-      output$ui_DT_gse_list4 <- renderUI({
-        if(is.null(values$gse_up))
-          return(NULL)
-        return(
-          tagList(
-            h4("goana table - list4"),
-            DT::dataTableOutput("DT_gse_list4")
-          )
-        )
-      })
+      s <- input$DT_gse_down_topgo_rows_selected
+      if(length(s) == 0)
+        return(NULL)
+      # cat(file = stderr(), paste("goterm_heatmap_down_topgo\n"))
       
-      output$ui_DT_gse_up_topgo <- renderUI({
-        if(is.null(values$topgo_up))
-          return(NULL)
-        return(
-          tagList(
-            h4("topGO table - up"),
-            DT::dataTableOutput("DT_gse_up_topgo")
-          )
-        )
-      })
-      output$ui_DT_gse_down_topgo <- renderUI({
-        if(is.null(values$topgo_down))
-          return(NULL)
-        return(
-          tagList(
-            h4("topGO table - down"),
-            DT::dataTableOutput("DT_gse_down_topgo")
-          )
-        )
-      })
-      output$ui_DT_gse_updown_topgo <- renderUI({
-        if(is.null(values$topgo_updown))
-          return(NULL)
-        return(
-          tagList(
-            h4("topGO table - up&down"),
-            DT::dataTableOutput("DT_gse_updown_topgo")
-          )
-        )
-      })
-      output$ui_DT_gse_list1_topgo <- renderUI({
-        if(is.null(values$topgo_list1))
-          return(NULL)
-        return(
-          tagList(
-            h4("topGO table - list1"),
-            DT::dataTableOutput("DT_gse_list1_topgo")
-          )
-        )
-      })
-      output$ui_DT_gse_list2_topgo <- renderUI({
-        if(is.null(values$topgo_list2))
-          return(NULL)
-        return(
-          tagList(
-            h4("topGO table - list2"),
-            DT::dataTableOutput("DT_gse_list2_topgo")
-          )
-        )
-      })
-      output$ui_DT_gse_list3_topgo <- renderUI({
-        if(is.null(values$topgo_list3))
-          return(NULL)
-        return(
-          tagList(
-            h4("topGO table - list3"),
-            DT::dataTableOutput("DT_gse_list3_topgo")
-          )
-        )
-      })
-      output$ui_DT_gse_list4_topgo <- renderUI({
-        if(is.null(values$topgo_list4))
-          return(NULL)
-        return(
-          tagList(
-            h4("topGO table - list4"),
-            DT::dataTableOutput("DT_gse_list4_topgo")
-          )
-        )
-      })
+      # allow only one selected line
+      mygenes <- values$topgo_down[input$DT_gse_down_topgo_rows_selected,]$genes[1]
+      myterm <- paste0(
+        values$topgo_down[input$DT_gse_down_topgo_rows_selected,]$`GO.ID`, " - ",
+        values$topgo_down[input$DT_gse_down_topgo_rows_selected,]$Term)
       
-      output$ui_DT_gse_up_goseq <- renderUI({
-        if(is.null(values$gse_up_goseq))
-          return(NULL)
-        return(
-          tagList(
-            h4("goseq table - up"),
-            DT::dataTableOutput("DT_gse_up_goseq")
-          )
-        )
-      })
-      output$ui_DT_gse_down_goseq <- renderUI({
-        if(is.null(values$gse_down_goseq))
-          return(NULL)
-        return(
-          tagList(
-            h4("goseq table - down"),
-            DT::dataTableOutput("DT_gse_down_goseq")
-          )
-        )
-      })
-      output$ui_DT_gse_updown_goseq <- renderUI({
-        if(is.null(values$gse_updown_goseq))
-          return(NULL)
-        return(
-          tagList(
-            h4("goseq table - up&down"),
-            DT::dataTableOutput("DT_gse_updown_goseq")
-          )
-        )
-      })
-      output$ui_DT_gse_list1_goseq <- renderUI({
-        if(is.null(values$gse_list1_goseq))
-          return(NULL)
-        return(
-          tagList(
-            h4("goseq table - list1"),
-            DT::dataTableOutput("DT_gse_list1_goseq")
-          )
-        )
-      })
-      output$ui_DT_gse_list2_goseq <- renderUI({
-        if(is.null(values$gse_up_goseq))
-          return(NULL)
-        return(
-          tagList(
-            h4("goseq table - list2"),
-            DT::dataTableOutput("DT_gse_list2_goseq")
-          )
-        )
-      })
-      output$ui_DT_gse_list3_goseq <- renderUI({
-        if(is.null(values$gse_up_goseq))
-          return(NULL)
-        return(
-          tagList(
-            h4("goseq table - list3"),
-            DT::dataTableOutput("DT_gse_list3_goseq")
-          )
-        )
-      })
-      output$ui_DT_gse_list4_goseq <- renderUI({
-        if(is.null(values$gse_up_goseq))
-          return(NULL)
-        return(
-          tagList(
-            h4("goseq table - list4"),
-            DT::dataTableOutput("DT_gse_list4_goseq")
-          )
-        )
-      })
+      genevec <- unlist(strsplit(mygenes,split=","))
+      annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
+      genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,values$cur_type,"SYMBOL",multiVals="first"))
+      log2things <- assay(normTransform(values$dds_obj))
+      selectedLogvalues <- log2things[genevec_ids,]
       
-      ## actual DTs here
-      output$DT_gse_up <- DT::renderDataTable({
-        # if not null...
-        if(is.null(values$gse_up))
-          return(NULL)
-        mytbl <- values$gse_up
-        rownames(mytbl) <- createLinkGO(rownames(mytbl))
-        mytbl
-      },escape=FALSE, options = list(scrollX = T))
-      output$DT_gse_down <- DT::renderDataTable({
-        # if not null...
-        if(is.null(values$gse_down))
-          return(NULL)
-        mytbl <- values$gse_down
-        rownames(mytbl) <- createLinkGO(rownames(mytbl))
-        mytbl
-      },escape=FALSE,options = list(
-        scrollX = T,
-        autoWidth = TRUE,
-        columnDefs = list(list(width = '20px', targets = c(8,9,10)))
-      ))
-      output$DT_gse_updown <- DT::renderDataTable({
-        # if not null...
-        if(is.null(values$gse_updown))
-          return(NULL)
-        mytbl <- values$gse_updown
-        rownames(mytbl) <- createLinkGO(rownames(mytbl))
-        mytbl
-      },escape=FALSE, options = list(scrollX = F))
+      # check that I do not have nas or similar...
+      if(length(genevec_ids)==length(genevec)){
+        rowlabs <- genevec
+      } else {
+        rowlabs <- genevec_ids
+        # rowlabs <- ifelse(, genevec, genevec_ids)
+      }
+      # save(file = "~/SCHNAPPsDebug/idealImmunoTP.goterm_heatmap_down_topgo.RData", list = ls())
+      heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
       
-      output$DT_gse_list1 <- DT::renderDataTable({
-        # if not null...
-        if(is.null(values$gse_list1))
-          return(NULL)
-        mytbl <- values$gse_list1
-        # mytbl$GOid <- rownames(mytbl)
-        rownames(mytbl) <- createLinkGO(rownames(mytbl))
-        mytbl
-      },escape=FALSE, options = list(scrollX = F))
-      output$DT_gse_list2 <- DT::renderDataTable({
-        # if not null...
-        if(is.null(values$gse_list2))
-          return(NULL)
-        mytbl <- values$gse_list2
-        rownames(mytbl) <- createLinkGO(rownames(mytbl))
-        mytbl
-      },escape=FALSE, options = list(scrollX = F))
-      output$DT_gse_list3 <- DT::renderDataTable({
-        # if not null...
-        if(is.null(values$gse_list3))
-          return(NULL)
-        mytbl <- values$gse_list3
-        rownames(mytbl) <- createLinkGO(rownames(mytbl))
-        mytbl
-      },escape=FALSE, options = list(scrollX = F))
-      output$DT_gse_list4 <- DT::renderDataTable({
-        # if not null...
-        if(is.null(values$gse_list4))
-          return(NULL)
-        mytbl <- values$gse_list4
-        rownames(mytbl) <- createLinkGO(rownames(mytbl))
-        mytbl
-      },escape=FALSE, options = list(scrollX = F))
+    })
+    
+    output$goterm_heatmap_updown_topgo <- renderPlotly({
+      # cat(file = stderr(), paste("goterm_heatmap_updown_topgo\n"))
       
+      s <- input$DT_gse_updown_topgo_rows_selected
+      if(length(s) == 0)
+        return(NULL)
+      # cat(file = stderr(), paste("goterm_heatmap_updown_topgo\n"))
       
-      output$DT_gse_up_topgo <- DT::renderDataTable({
-        # if not null...
-        if(is.null(values$topgo_up))
-          return(NULL)
-        mytbl <- values$topgo_up
-        mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
-        mytbl
-      },escape=FALSE, selection=list(mode="single"), options = list(scrollX = F))
-      output$DT_gse_down_topgo <- DT::renderDataTable({
-        # if not null...
-        if(is.null(values$topgo_down))
-          return(NULL)
-        mytbl <- values$topgo_down
-        mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
-        mytbl
-      },escape=FALSE, selection=list(mode="single"), options = list(scrollX = F))
-      output$DT_gse_updown_topgo <- DT::renderDataTable({
-        # if not null...
-        if(is.null(values$topgo_updown))
-          return(NULL)
-        mytbl <- values$topgo_updown
-        mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
-        mytbl
-      },escape=FALSE, selection=list(mode="single"), options = list(scrollX = F))
-      output$DT_gse_list1_topgo <- DT::renderDataTable({
-        # if not null...
-        if(is.null(values$topgo_list1))
-          return(NULL)
-        mytbl <- values$topgo_list1
-        # mytbl$GOid <- rownames(mytbl)
-        mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
-        mytbl
-      },escape=FALSE, selection=list(mode="single"), options = list(scrollX = F))
-      output$DT_gse_list2_topgo <- DT::renderDataTable({
-        # if not null...
-        if(is.null(values$topgo_list2))
-          return(NULL)
-        mytbl <- values$topgo_list2
-        # mytbl$GOid <- rownames(mytbl)
-        mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
-        mytbl
-      },escape=FALSE, selection=list(mode="single"), options = list(scrollX = F))
-      output$DT_gse_list3_topgo <- DT::renderDataTable({
-        # if not null...
-        if(is.null(values$topgo_list3))
-          return(NULL)
-        mytbl <- values$topgo_list3
-        # mytbl$GOid <- rownames(mytbl)
-        mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
-        mytbl
-      },escape=FALSE, selection=list(mode="single"), options = list(scrollX = F))
-      output$DT_gse_list4_topgo <- DT::renderDataTable({
-        # if not null...
-        if(is.null(values$topgo_list4))
-          return(NULL)
-        mytbl <- values$topgo_list4
-        # mytbl$GOid <- rownames(mytbl)
-        mytbl$GO.ID <- createLinkGO(mytbl$GO.ID)
-        mytbl
-      },escape=FALSE, selection=list(mode="single"), options = list(scrollX = F))
+      values$topgo_updown[input$DT_gse_updown_topgo_rows_selected,]$genes
       
+      # allow only one selected line
+      mygenes <- values$topgo_updown[input$DT_gse_updown_topgo_rows_selected,]$genes[1]
+      myterm <- paste0(
+        values$topgo_updown[input$DT_gse_updown_topgo_rows_selected,]$`GO.ID`, " - ",
+        values$topgo_updown[input$DT_gse_updown_topgo_rows_selected,]$Term)
       
-      output$DT_gse_up_goseq <- DT::renderDataTable({
-        # if not null...
-        if(is.null(values$gse_up_goseq))
-          return(NULL)
-        mytbl <- values$gse_up_goseq
-        mytbl$category <- createLinkGO(mytbl$category)
-        mytbl
-      },escape=FALSE, rownames = FALSE, options = list(scrollX = F))
-      output$DT_gse_down_goseq <- DT::renderDataTable({
-        # if not null...
-        if(is.null(values$gse_down_goseq))
-          return(NULL)
-        mytbl <- values$gse_down_goseq
-        mytbl$category <- createLinkGO(mytbl$category)
-        mytbl
-      },escape=FALSE, rownames = FALSE, options = list(scrollX = F))
-      output$DT_gse_updown_goseq <- DT::renderDataTable({
-        # if not null...
-        if(is.null(values$gse_updown_goseq))
-          return(NULL)
-        mytbl <- values$gse_updown_goseq
-        mytbl$category <- createLinkGO(mytbl$category)
-        mytbl
-      },escape=FALSE, rownames = FALSE, options = list(scrollX = F))
-      output$DT_gse_list1_goseq <- DT::renderDataTable({
-        # if not null...
-        if(is.null(values$gse_list1_goseq))
-          return(NULL)
-        mytbl <- values$gse_list1_goseq
-        # mytbl$GOid <- rownames(mytbl)
-        mytbl$category <- createLinkGO(mytbl$category)
-        mytbl
-      },escape=FALSE, rownames = FALSE, options = list(scrollX = F))
-      output$DT_gse_list2_goseq <- DT::renderDataTable({
-        # if not null...
-        if(is.null(values$gse_list2_goseq))
-          return(NULL)
-        mytbl <- values$gse_list2_goseq
-        # mytbl$GOid <- rownames(mytbl)
-        mytbl$category <- createLinkGO(mytbl$category)
-        mytbl
-      },escape=FALSE, rownames = FALSE, options = list(scrollX = F))
-      output$DT_gse_list3_goseq <- DT::renderDataTable({
-        # if not null...
-        if(is.null(values$gse_list23_goseq))
-          return(NULL)
-        mytbl <- values$gse_list3_goseq
-        # mytbl$GOid <- rownames(mytbl)
-        mytbl$category <- createLinkGO(mytbl$category)
-        mytbl
-      },escape=FALSE, rownames = FALSE, options = list(scrollX = F))
-      output$DT_gse_list4_goseq <- DT::renderDataTable({
-        # if not null...
-        if(is.null(values$gse_list4_goseq))
-          return(NULL)
-        mytbl <- values$gse_list4_goseq
-        # mytbl$GOid <- rownames(mytbl)
-        mytbl$category <- createLinkGO(mytbl$category)
-        mytbl
-      },escape=FALSE, rownames = FALSE, options = list(scrollX = F))
+      genevec <- unlist(strsplit(mygenes,split=","))
+      annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
+      genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,values$cur_type,"SYMBOL",multiVals="first"))
+      log2things <- assay(normTransform(values$dds_obj))
+      selectedLogvalues <- log2things[genevec_ids,]
       
+      # check that I do not have nas or similar...
+      if(length(genevec_ids)==length(genevec)){
+        rowlabs <- genevec
+      } else {
+        rowlabs <- genevec_ids
+        # rowlabs <- ifelse(, genevec, genevec_ids)
+      }
+      # save(file = "~/SCHNAPPsDebug/idealImmunoTP.goterm_heatmap_updown_topgo.RData", list = ls())
+      heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
       
-      # server gse heatmaps --------------------------------------------------------
-      output$goterm_heatmap_up_topgo <- renderPlotly({
-        # cat(file = stderr(), paste("goterm_heatmap_up_topgo\n"))
-        
-        s <- input$DT_gse_up_topgo_rows_selected
-        idtype <- values$cur_type
-        speciesSelect <- values$cur_species
-        dds_obj <- values$dds_obj
-        if(length(s) == 0)
-          return(NULL)
-        # cat(file = stderr(), paste("goterm_heatmap_up_topgo\n"))
-        
-        # allow only one selected line
-        mygenes <- values$topgo_up[s,]$genes[1]
-        myterm <- paste0(
-          values$topgo_up[s,]$`GO.ID`, " - ",
-          values$topgo_up[s,]$Term)
-        
-        genevec <- unlist(strsplit(mygenes,split=","))
-        annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==speciesSelect]
-        genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,idtype,"SYMBOL",multiVals="first"))
-        log2things <- assay(normTransform(dds_obj))
-        selectedLogvalues <- log2things[genevec_ids,]
-        
-        # check that I do not have nas or similar...
-        if(length(genevec_ids)==length(genevec)){
-          rowlabs <- genevec
-        } else {
-          rowlabs <- genevec_ids
-          # rowlabs <- ifelse(, genevec, genevec_ids)
-        }
-        # save(file = "~/SCHNAPPsDebug/idealImmunoTP.goterm_heatmap_up_topgo.RData", list = ls())
-        # load("~/SCHNAPPsDebug/idealImmunoTP.goterm_heatmap_up_topgo.RData")
-        heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
-        
-      })
+    })
+    
+    output$goterm_heatmap_l1_topgo <- renderPlotly({
+      # cat(file = stderr(), paste("goterm_heatmap_l1_topgo\n"))
       
-      output$goterm_heatmap_down_topgo <- renderPlotly({
-        # cat(file = stderr(), paste("goterm_heatmap_down_topgo\n"))
-        
-        s <- input$DT_gse_down_topgo_rows_selected
-        if(length(s) == 0)
-          return(NULL)
-        # cat(file = stderr(), paste("goterm_heatmap_down_topgo\n"))
-        
-        # allow only one selected line
-        mygenes <- values$topgo_down[input$DT_gse_down_topgo_rows_selected,]$genes[1]
-        myterm <- paste0(
-          values$topgo_down[input$DT_gse_down_topgo_rows_selected,]$`GO.ID`, " - ",
-          values$topgo_down[input$DT_gse_down_topgo_rows_selected,]$Term)
-        
-        genevec <- unlist(strsplit(mygenes,split=","))
+      s <- input$DT_gse_list1_topgo_rows_selected
+      if(length(s) == 0)
+        return(NULL)
+      # cat(file = stderr(), paste("goterm_heatmap_l1_topgo\n"))
+      
+      # allow only one selected line
+      mygenes <- values$topgo_list1[input$DT_gse_list1_topgo_rows_selected,]$genes[1]
+      myterm <- paste0(
+        values$topgo_list1[input$DT_gse_list1_topgo_rows_selected,]$`GO.ID`, " - ",
+        values$topgo_list1[input$DT_gse_list1_topgo_rows_selected,]$Term)
+      
+      genevec <- unlist(strsplit(mygenes,split=","))
+      annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
+      genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,values$cur_type,"SYMBOL",multiVals="first"))
+      log2things <- assay(normTransform(values$dds_obj))
+      selectedLogvalues <- log2things[genevec_ids,]
+      
+      # check that I do not have nas or similar...
+      if(length(genevec_ids)==length(genevec)){
+        rowlabs <- genevec
+      } else {
+        rowlabs <- genevec_ids
+        # rowlabs <- ifelse(, genevec, genevec_ids)
+      }
+      # save(file = "~/SCHNAPPsDebug/idealImmunoTP.goterm_heatmap_l1_topgo.RData", list = ls())
+      heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
+      
+    })
+    
+    output$goterm_heatmap_l2_topgo <- renderPlotly({
+      # cat(file = stderr(), paste("goterm_heatmap_l2_topgo\n"))
+      
+      s <- input$DT_gse_list2_topgo_rows_selected
+      if(length(s) == 0)
+        return(NULL)
+      # cat(file = stderr(), paste("goterm_heatmap_l2_topgo\n"))
+      
+      # allow only one selected line
+      mygenes <- values$topgo_list2[input$DT_gse_list2_topgo_rows_selected,]$genes[1]
+      myterm <- paste0(
+        values$topgo_list2[input$DT_gse_list2_topgo_rows_selected,]$`GO.ID`, " - ",
+        values$topgo_list2[input$DT_gse_list2_topgo_rows_selected,]$Term)
+      
+      genevec <- unlist(strsplit(mygenes,split=","))
+      annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
+      genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,values$cur_type,"SYMBOL",multiVals="first"))
+      log2things <- assay(normTransform(values$dds_obj))
+      selectedLogvalues <- log2things[genevec_ids,]
+      
+      # check that I do not have nas or similar...
+      if(length(genevec_ids)==length(genevec)){
+        rowlabs <- genevec
+      } else {
+        rowlabs <- genevec_ids
+        # rowlabs <- ifelse(, genevec, genevec_ids)
+      }
+      # save(file = "~/SCHNAPPsDebug/idealImmunoTP.goterm_heatmap_l2_topgo.RData", list = ls())
+      heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
+      
+    })
+    output$goterm_heatmap_l3_topgo <- renderPlotly({
+      # cat(file = stderr(), paste("goterm_heatmap_l4_topgo\n"))
+      
+      s <- input$DT_gse_list3_topgo_rows_selected
+      if(length(s) == 0)
+        return(NULL)
+      # cat(file = stderr(), paste("goterm_heatmap_l4_topgo\n"))
+      
+      # allow only one selected line
+      mygenes <- values$topgo_list3[input$DT_gse_list3_topgo_rows_selected,]$genes[1]
+      myterm <- paste0(
+        values$topgo_list3[input$DT_gse_list3_topgo_rows_selected,]$`GO.ID`, " - ",
+        values$topgo_list3[input$DT_gse_list3_topgo_rows_selected,]$Term)
+      
+      genevec <- unlist(strsplit(mygenes,split=","))
+      annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
+      genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,values$cur_type,"SYMBOL",multiVals="first"))
+      log2things <- assay(normTransform(values$dds_obj))
+      selectedLogvalues <- log2things[genevec_ids,]
+      
+      # check that I do not have nas or similar...
+      if(length(genevec_ids)==length(genevec)){
+        rowlabs <- genevec
+      } else {
+        rowlabs <- genevec_ids
+        # rowlabs <- ifelse(, genevec, genevec_ids)
+      }
+      # save(file = "~/SCHNAPPsDebug/idealImmunoTP.goterm_heatmap_l3_topgo.RData", list = ls())
+      heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
+      
+    })
+    output$goterm_heatmap_l4_topgo <- renderPlotly({
+      # cat(file = stderr(), paste("goterm_heatmap_l4_topgo\n"))
+      
+      s <- input$DT_gse_list4_topgo_rows_selected
+      if(length(s) == 0)
+        return(NULL)
+      # cat(file = stderr(), paste("goterm_heatmap_l4_topgo\n"))
+      
+      # allow only one selected line
+      mygenes <- values$topgo_list4[input$DT_gse_list4_topgo_rows_selected,]$genes[1]
+      myterm <- paste0(
+        values$topgo_list4[input$DT_gse_list4_topgo_rows_selected,]$`GO.ID`, " - ",
+        values$topgo_list4[input$DT_gse_list4_topgo_rows_selected,]$Term)
+      
+      genevec <- unlist(strsplit(mygenes,split=","))
+      annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
+      genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,values$cur_type,"SYMBOL",multiVals="first"))
+      log2things <- assay(normTransform(values$dds_obj))
+      selectedLogvalues <- log2things[genevec_ids,]
+      
+      # check that I do not have nas or similar...
+      if(length(genevec_ids)==length(genevec)){
+        rowlabs <- genevec
+      } else {
+        rowlabs <- genevec_ids
+        # rowlabs <- ifelse(, genevec, genevec_ids)
+      }
+      # save(file = "~/SCHNAPPsDebug/idealImmunoTP.goterm_heatmap_l4_topgo.RData", list = ls())
+      heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
+      
+    })
+    
+    # server signature explorer ------------------------------------------------------
+    output$sig_ui_gmtin <- renderUI({
+      fileInput("sig_gmtin","gmt input file")
+    })
+    
+    loaded_gmt <- reactive({
+      if (is.null(input$sig_gmtin))
+        return(NULL)
+      mysigs <- read_gmt(input$sig_gmtin$datapath)
+      return(mysigs)
+    })
+    
+    observeEvent(input$sig_gmtin,
+                 {
+                   values$gene_signatures <- loaded_gmt()
+                 })
+    
+    output$sig_ui_nrsigs <- renderUI({
+      if(!is.null(values$gene_signatures))
+        return(valueBox("Gene signatures",
+                        paste0(length(values$gene_signatures), " gene signatures"),
+                        icon = icon("list"),
+                        color = "green",width = NULL))
+      else
+        return(valueBox("Gene signatures",
+                        "yet to be loaded",
+                        icon = icon("list"),
+                        color = "red",width = NULL))
+    })
+    
+    observeEvent(input$sig_button_computevst,
+                 {
+                   withProgress(message="Computing the variance stabilized transformed data...",
+                                detail = "This step can take a little while",
+                                value = 0,{
+                                  values$vst_obj <- vst(values$dds_obj)
+                                })
+                 })
+    
+    output$sig_ui_selectsig <- renderUI({
+      if(!is.null(values$gene_signatures))
+        return(selectizeInput("sig_selectsig", label = "Select the gene signature",
+                              choices = NULL, selected = NULL, multiple = FALSE))
+      else
+        return(NULL)
+    })
+    
+    observe({
+      updateSelectizeInput(session = session, inputId = 'sig_selectsig', choices = c(Choose = '', names(values$gene_signatures)), server = TRUE)
+    })
+    
+    output$sig_sigmembers <- renderPrint({
+      values$gene_signatures[[input$sig_selectsig]]
+    })
+    
+    output$sig_ui_annocoldata <- renderUI({
+      if(!is.null(values$dds_obj))
+        return(selectizeInput("sig_annocoldata", label = "Select the colData to decorate",
+                              choices = names(colData(values$dds_obj)),
+                              selected = NULL, multiple = TRUE))
+      else
+        return(NULL)
+    })
+    
+    
+    output$sig_ui_id_data <- renderUI({
+      if (is.null(values$dds_obj)) #
+        return(NULL)
+      validate(
+        need(!is.null(values$cur_species), message = "Please specify the species in the Data Setup panel")
+      )
+      
+      std_choices <- c("SYMBOL", "ENSEMBL","ENTREZID","REFSEQ")
+      if (values$cur_species!=""){
         annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
-        genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,values$cur_type,"SYMBOL",multiVals="first"))
-        log2things <- assay(normTransform(values$dds_obj))
-        selectedLogvalues <- log2things[genevec_ids,]
-        
-        # check that I do not have nas or similar...
-        if(length(genevec_ids)==length(genevec)){
-          rowlabs <- genevec
-        } else {
-          rowlabs <- genevec_ids
-          # rowlabs <- ifelse(, genevec, genevec_ids)
-        }
-        # save(file = "~/SCHNAPPsDebug/idealImmunoTP.goterm_heatmap_down_topgo.RData", list = ls())
-        heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
-        
-      })
+        pkg_choices <- keytypes(get(annopkg))
+        std_choices <- union(std_choices, pkg_choices)
+      }
+      selectInput("sig_id_data", "select the id type in your dds data", choices=std_choices)
+    })
+    
+    output$sig_ui_id_sigs <- renderUI({
+      if (is.null(values$gene_signatures)) #
+        return(NULL)
+      validate(
+        need(!is.null(values$cur_species), message = "Please specify the species in the Data Setup panel")
+      )
       
-      output$goterm_heatmap_updown_topgo <- renderPlotly({
-        # cat(file = stderr(), paste("goterm_heatmap_updown_topgo\n"))
-        
-        s <- input$DT_gse_updown_topgo_rows_selected
-        if(length(s) == 0)
-          return(NULL)
-        # cat(file = stderr(), paste("goterm_heatmap_updown_topgo\n"))
-        
-        values$topgo_updown[input$DT_gse_updown_topgo_rows_selected,]$genes
-        
-        # allow only one selected line
-        mygenes <- values$topgo_updown[input$DT_gse_updown_topgo_rows_selected,]$genes[1]
-        myterm <- paste0(
-          values$topgo_updown[input$DT_gse_updown_topgo_rows_selected,]$`GO.ID`, " - ",
-          values$topgo_updown[input$DT_gse_updown_topgo_rows_selected,]$Term)
-        
-        genevec <- unlist(strsplit(mygenes,split=","))
+      std_choices <- c("SYMBOL", "ENSEMBL","ENTREZID","REFSEQ")
+      if (values$cur_species!=""){
         annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
-        genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,values$cur_type,"SYMBOL",multiVals="first"))
-        log2things <- assay(normTransform(values$dds_obj))
-        selectedLogvalues <- log2things[genevec_ids,]
-        
-        # check that I do not have nas or similar...
-        if(length(genevec_ids)==length(genevec)){
-          rowlabs <- genevec
-        } else {
-          rowlabs <- genevec_ids
-          # rowlabs <- ifelse(, genevec, genevec_ids)
-        }
-        # save(file = "~/SCHNAPPsDebug/idealImmunoTP.goterm_heatmap_updown_topgo.RData", list = ls())
-        heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
-        
-      })
+        pkg_choices <- keytypes(get(annopkg))
+        std_choices <- union(std_choices, pkg_choices)
+      }
+      selectInput("sig_id_sigs", "select the id type in your signatures", choices=std_choices)
+    })
+    
+    available_orgdb <- rownames(installed.packages())[
+      grep(pattern = "^org.*db$",rownames(installed.packages()))]
+    
+    output$sig_ui_orgdbpkg <- renderUI({
       
-      output$goterm_heatmap_l1_topgo <- renderPlotly({
-        # cat(file = stderr(), paste("goterm_heatmap_l1_topgo\n"))
-        
-        s <- input$DT_gse_list1_topgo_rows_selected
-        if(length(s) == 0)
-          return(NULL)
-        # cat(file = stderr(), paste("goterm_heatmap_l1_topgo\n"))
-        
-        # allow only one selected line
-        mygenes <- values$topgo_list1[input$DT_gse_list1_topgo_rows_selected,]$genes[1]
-        myterm <- paste0(
-          values$topgo_list1[input$DT_gse_list1_topgo_rows_selected,]$`GO.ID`, " - ",
-          values$topgo_list1[input$DT_gse_list1_topgo_rows_selected,]$Term)
-        
-        genevec <- unlist(strsplit(mygenes,split=","))
-        annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
-        genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,values$cur_type,"SYMBOL",multiVals="first"))
-        log2things <- assay(normTransform(values$dds_obj))
-        selectedLogvalues <- log2things[genevec_ids,]
-        
-        # check that I do not have nas or similar...
-        if(length(genevec_ids)==length(genevec)){
-          rowlabs <- genevec
-        } else {
-          rowlabs <- genevec_ids
-          # rowlabs <- ifelse(, genevec, genevec_ids)
-        }
-        # save(file = "~/SCHNAPPsDebug/idealImmunoTP.goterm_heatmap_l1_topgo.RData", list = ls())
-        heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
-        
-      })
+      suggested_orgdb <- tryCatch(
+        annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species],
+        error = function(e){return("")})
+      selectInput("sig_orgdbpkg", "Select the organism package for matching", 
+                  choices=c("",available_orgdb),selected = suggested_orgdb)
+    })
+    
+    observeEvent(values$cur_species,
+                 {
+                   suggested_orgdb <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
+                   if(suggested_orgdb %in% available_orgdb)
+                     updateSelectInput(session, inputId = "sig_orgdbpkg", selected = suggested_orgdb)
+                 })
+    
+    observeEvent(input$sig_convert_setup,
+                 {
+                   require(input$sig_orgdbpkg,character.only=TRUE)
+                   withProgress(message="Matching the identifiers",
+                                detail = "Locating package", value = 0,{
+                                  
+                                  incProgress(0.1,detail = "Matching identifiers")
+                                  
+                                  x <- get(input$sig_orgdbpkg)
+                                  # browser()
+                                  if(any(is.null(input$sig_id_sigs), is.null(input$sig_id_data))){
+                                    cat(file = stderr(), paste("\n\ndid you specifvy the annotations?\n\n"))
+                                    return(NULL)
+                                  }
+                                  if (input$sig_id_sigs == "SYMBOL" & input$sig_id_data == "SYMBOL") {
+                                    anno_vec = rownames(values$dds_obj)
+                                    names(anno_vec) = rownames(values$dds_obj)
+                                    values$anno_vec = anno_vec
+                                  } else {
+                                    values$anno_vec <- mapIds(x, rownames(values$dds_obj),
+                                                              column = input$sig_id_sigs,
+                                                              keytype = input$sig_id_data)
+                                  }
+                                })
+                 })
+    
+    output$sig_convcheck <- renderPrint({
+      head(values$anno_vec)
+    })
+    
+    output$sig_heat <- renderPlotly({
+      validate(
+        need(!is.null(values$gene_signatures), message = "Please provide some gene signatures in gmt format"),
+        need(!is.null(values$vst_obj), message = "Compute the vst transformed data"),
+        need(!is.null(values$anno_vec), message = "Setup the conversion between data ids and signature ids"),
+        need((!is.null(values$res_obj) | !input$sig_useDEonly),
+             message = "Please compute the results first if you want to subset to DE genes only"),
+        need(input$sig_selectsig!="", message = "Select a signature")
+      )
       
-      output$goterm_heatmap_l2_topgo <- renderPlotly({
-        # cat(file = stderr(), paste("goterm_heatmap_l2_topgo\n"))
-        
-        s <- input$DT_gse_list2_topgo_rows_selected
-        if(length(s) == 0)
-          return(NULL)
-        # cat(file = stderr(), paste("goterm_heatmap_l2_topgo\n"))
-        
-        # allow only one selected line
-        mygenes <- values$topgo_list2[input$DT_gse_list2_topgo_rows_selected,]$genes[1]
-        myterm <- paste0(
-          values$topgo_list2[input$DT_gse_list2_topgo_rows_selected,]$`GO.ID`, " - ",
-          values$topgo_list2[input$DT_gse_list2_topgo_rows_selected,]$Term)
-        
-        genevec <- unlist(strsplit(mygenes,split=","))
-        annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
-        genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,values$cur_type,"SYMBOL",multiVals="first"))
-        log2things <- assay(normTransform(values$dds_obj))
-        selectedLogvalues <- log2things[genevec_ids,]
-        
-        # check that I do not have nas or similar...
-        if(length(genevec_ids)==length(genevec)){
-          rowlabs <- genevec
-        } else {
-          rowlabs <- genevec_ids
-          # rowlabs <- ifelse(, genevec, genevec_ids)
-        }
-        # save(file = "~/SCHNAPPsDebug/idealImmunoTP.goterm_heatmap_l2_topgo.RData", list = ls())
-        heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
-        
-      })
-      output$goterm_heatmap_l3_topgo <- renderPlotly({
-        # cat(file = stderr(), paste("goterm_heatmap_l4_topgo\n"))
-        
-        s <- input$DT_gse_list3_topgo_rows_selected
-        if(length(s) == 0)
-          return(NULL)
-        # cat(file = stderr(), paste("goterm_heatmap_l4_topgo\n"))
-        
-        # allow only one selected line
-        mygenes <- values$topgo_list3[input$DT_gse_list3_topgo_rows_selected,]$genes[1]
-        myterm <- paste0(
-          values$topgo_list3[input$DT_gse_list3_topgo_rows_selected,]$`GO.ID`, " - ",
-          values$topgo_list3[input$DT_gse_list3_topgo_rows_selected,]$Term)
-        
-        genevec <- unlist(strsplit(mygenes,split=","))
-        annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
-        genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,values$cur_type,"SYMBOL",multiVals="first"))
-        log2things <- assay(normTransform(values$dds_obj))
-        selectedLogvalues <- log2things[genevec_ids,]
-        
-        # check that I do not have nas or similar...
-        if(length(genevec_ids)==length(genevec)){
-          rowlabs <- genevec
-        } else {
-          rowlabs <- genevec_ids
-          # rowlabs <- ifelse(, genevec, genevec_ids)
-        }
-        # save(file = "~/SCHNAPPsDebug/idealImmunoTP.goterm_heatmap_l3_topgo.RData", list = ls())
-        heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
-        
-      })
-      output$goterm_heatmap_l4_topgo <- renderPlotly({
-        # cat(file = stderr(), paste("goterm_heatmap_l4_topgo\n"))
-        
-        s <- input$DT_gse_list4_topgo_rows_selected
-        if(length(s) == 0)
-          return(NULL)
-        # cat(file = stderr(), paste("goterm_heatmap_l4_topgo\n"))
-        
-        # allow only one selected line
-        mygenes <- values$topgo_list4[input$DT_gse_list4_topgo_rows_selected,]$genes[1]
-        myterm <- paste0(
-          values$topgo_list4[input$DT_gse_list4_topgo_rows_selected,]$`GO.ID`, " - ",
-          values$topgo_list4[input$DT_gse_list4_topgo_rows_selected,]$Term)
-        
-        genevec <- unlist(strsplit(mygenes,split=","))
-        annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
-        genevec_ids <- as.character(mapIds(eval(parse(text=annopkg)),genevec,values$cur_type,"SYMBOL",multiVals="first"))
-        log2things <- assay(normTransform(values$dds_obj))
-        selectedLogvalues <- log2things[genevec_ids,]
-        
-        # check that I do not have nas or similar...
-        if(length(genevec_ids)==length(genevec)){
-          rowlabs <- genevec
-        } else {
-          rowlabs <- genevec_ids
-          # rowlabs <- ifelse(, genevec, genevec_ids)
-        }
-        # save(file = "~/SCHNAPPsDebug/idealImmunoTP.goterm_heatmap_l4_topgo.RData", list = ls())
-        heatmaply(selectedLogvalues,scale="row",labels_row=rowlabs,main = myterm)
-        
-      })
+      print(
+        sig_heatmap(
+          values$vst_obj,
+          my_signature = values$gene_signatures[[input$sig_selectsig]],
+          res_data = values$res_obj,
+          FDR = input$FDR,
+          de_only = input$sig_useDEonly,
+          annovec = values$anno_vec,
+          # anno_colData = colData(values$vst_obj)[,input$sig_annocoldata, drop = FALSE],
+          title = names(values$gene_signatures)[match(input$sig_selectsig,names(values$gene_signatures))],
+          cluster_rows = input$sig_clusterrows,
+          cluster_cols = input$sig_clustercols,
+          center_mean = input$sig_centermean,
+          scale_row = input$sig_scalerow
+        ))
       
-      # server signature explorer ------------------------------------------------------
-      output$sig_ui_gmtin <- renderUI({
-        fileInput("sig_gmtin","gmt input file")
-      })
+    })
+    
+    output$sig_heat_genes <- renderPrint({
+      validate(
+        need(!is.null(values$gene_signatures), message = "Please provide some gene signatures in gmt format"),
+        need(!is.null(values$vst_obj), message = "Compute the vst transformed data"),
+        need(!is.null(values$anno_vec), message = "Setup the conversion between data ids and signature ids"),
+        need((!is.null(values$res_obj) | !input$sig_useDEonly),
+             message = "Please compute the results first if you want to subset to DE genes only"),
+        need(input$sig_selectsig!="", message = "Select a signature")
+      )
+      annovec = values$anno_vec
+      mydata <- assay(values$vst_obj)
       
-      loaded_gmt <- reactive({
-        if (is.null(input$sig_gmtin))
-          return(NULL)
-        mysigs <- read_gmt(input$sig_gmtin$datapath)
-        return(mysigs)
-      })
+      my_signature = values$gene_signatures[[input$sig_selectsig]]
+      # save(file = "~/SCHNAPPsDebug/ideal.sig_heatmap.RData", list = c(ls()))
+      # load("~/SCHNAPPsDebug/ideal.sig_heatmap.RData")
+      signature_original_ids <- names(annovec)[match(my_signature,annovec)]
       
-      observeEvent(input$sig_gmtin,
-                   {
-                     values$gene_signatures <- loaded_gmt()
-                   })
+      sig_to_keep <- (signature_original_ids %in% rownames(mydata))#
+      my_signature <- my_signature[sig_to_keep]
+      signature_original_ids <- signature_original_ids[sig_to_keep]
       
-      output$sig_ui_nrsigs <- renderUI({
-        if(!is.null(values$gene_signatures))
-          return(valueBox("Gene signatures",
-                          paste0(length(values$gene_signatures), " gene signatures"),
-                          icon = icon("list"),
-                          color = "green",width = NULL))
-        else
-          return(valueBox("Gene signatures",
-                          "yet to be loaded",
-                          icon = icon("list"),
-                          color = "red",width = NULL))
-      })
+      mydata_sig <- mydata[signature_original_ids,]
       
-      observeEvent(input$sig_button_computevst,
-                   {
-                     withProgress(message="Computing the variance stabilized transformed data...",
-                                  detail = "This step can take a little while",
-                                  value = 0,{
-                                    values$vst_obj <- vst(values$dds_obj)
-                                  })
-                   })
+      # to avoid problems later, remove the ones non-expressed and with variance = 0
+      to_remove <- apply(mydata_sig, 1, var) == 0
+      mydata_sig <- mydata_sig[!to_remove,]
+      mydata_sig <- mydata[signature_original_ids,]
       
-      output$sig_ui_selectsig <- renderUI({
-        if(!is.null(values$gene_signatures))
-          return(selectizeInput("sig_selectsig", label = "Select the gene signature",
-                                choices = NULL, selected = NULL, multiple = FALSE))
-        else
-          return(NULL)
-      })
-      
-      observe({
-        updateSelectizeInput(session = session, inputId = 'sig_selectsig', choices = c(Choose = '', names(values$gene_signatures)), server = TRUE)
-      })
-      
-      output$sig_sigmembers <- renderPrint({
-        values$gene_signatures[[input$sig_selectsig]]
-      })
-      
-      output$sig_ui_annocoldata <- renderUI({
-        if(!is.null(values$dds_obj))
-          return(selectizeInput("sig_annocoldata", label = "Select the colData to decorate",
-                                choices = names(colData(values$dds_obj)),
-                                selected = NULL, multiple = TRUE))
-        else
-          return(NULL)
-      })
-      
-      
-      output$sig_ui_id_data <- renderUI({
-        if (is.null(values$dds_obj)) #
-          return(NULL)
-        validate(
-          need(!is.null(values$cur_species), message = "Please specify the species in the Data Setup panel")
-        )
-        
-        std_choices <- c("SYMBOL", "ENSEMBL","ENTREZID","REFSEQ")
-        if (values$cur_species!=""){
-          annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
-          pkg_choices <- keytypes(get(annopkg))
-          std_choices <- union(std_choices, pkg_choices)
-        }
-        selectInput("sig_id_data", "select the id type in your dds data", choices=std_choices)
-      })
-      
-      output$sig_ui_id_sigs <- renderUI({
-        if (is.null(values$gene_signatures)) #
-          return(NULL)
-        validate(
-          need(!is.null(values$cur_species), message = "Please specify the species in the Data Setup panel")
-        )
-        
-        std_choices <- c("SYMBOL", "ENSEMBL","ENTREZID","REFSEQ")
-        if (values$cur_species!=""){
-          annopkg <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
-          pkg_choices <- keytypes(get(annopkg))
-          std_choices <- union(std_choices, pkg_choices)
-        }
-        selectInput("sig_id_sigs", "select the id type in your signatures", choices=std_choices)
-      })
-      
-      available_orgdb <- rownames(installed.packages())[
-        grep(pattern = "^org.*db$",rownames(installed.packages()))]
-      
-      output$sig_ui_orgdbpkg <- renderUI({
-        
-        suggested_orgdb <- tryCatch(
-          annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species],
-          error = function(e){return("")})
-        selectInput("sig_orgdbpkg", "Select the organism package for matching", 
-                    choices=c("",available_orgdb),selected = suggested_orgdb)
-      })
-      
-      observeEvent(values$cur_species,
-                   {
-                     suggested_orgdb <- annoSpecies_df$pkg[annoSpecies_df$species==values$cur_species]
-                     if(suggested_orgdb %in% available_orgdb)
-                       updateSelectInput(session, inputId = "sig_orgdbpkg", selected = suggested_orgdb)
-                   })
-      
-      observeEvent(input$sig_convert_setup,
-                   {
-                     require(input$sig_orgdbpkg,character.only=TRUE)
-                     withProgress(message="Matching the identifiers",
-                                  detail = "Locating package", value = 0,{
-                                    
-                                    incProgress(0.1,detail = "Matching identifiers")
-                                    
-                                    x <- get(input$sig_orgdbpkg)
-                                    # browser()
-                                    if(any(is.null(input$sig_id_sigs), is.null(input$sig_id_data))){
-                                      cat(file = stderr(), paste("\n\ndid you specifvy the annotations?\n\n"))
-                                      return(NULL)
-                                    }
-                                    if (input$sig_id_sigs == "SYMBOL" & input$sig_id_data == "SYMBOL") {
-                                      anno_vec = rownames(values$dds_obj)
-                                      names(anno_vec) = rownames(values$dds_obj)
-                                      values$anno_vec = anno_vec
-                                    } else {
-                                      values$anno_vec <- mapIds(x, rownames(values$dds_obj),
-                                                                column = input$sig_id_sigs,
-                                                                keytype = input$sig_id_data)
-                                    }
-                                  })
-                   })
-      
-      output$sig_convcheck <- renderPrint({
-        head(values$anno_vec)
-      })
-      
-      output$sig_heat <- renderPlotly({
-        validate(
-          need(!is.null(values$gene_signatures), message = "Please provide some gene signatures in gmt format"),
-          need(!is.null(values$vst_obj), message = "Compute the vst transformed data"),
-          need(!is.null(values$anno_vec), message = "Setup the conversion between data ids and signature ids"),
-          need((!is.null(values$res_obj) | !input$sig_useDEonly),
-               message = "Please compute the results first if you want to subset to DE genes only"),
-          need(input$sig_selectsig!="", message = "Select a signature")
-        )
-        
-        print(
-          sig_heatmap(
-            values$vst_obj,
-            my_signature = values$gene_signatures[[input$sig_selectsig]],
-            res_data = values$res_obj,
-            FDR = input$FDR,
-            de_only = input$sig_useDEonly,
-            annovec = values$anno_vec,
-            # anno_colData = colData(values$vst_obj)[,input$sig_annocoldata, drop = FALSE],
-            title = names(values$gene_signatures)[match(input$sig_selectsig,names(values$gene_signatures))],
-            cluster_rows = input$sig_clusterrows,
-            cluster_cols = input$sig_clustercols,
-            center_mean = input$sig_centermean,
-            scale_row = input$sig_scalerow
-          ))
-        
-      })
-      
-      output$sig_heat_genes <- renderPrint({
-        validate(
-          need(!is.null(values$gene_signatures), message = "Please provide some gene signatures in gmt format"),
-          need(!is.null(values$vst_obj), message = "Compute the vst transformed data"),
-          need(!is.null(values$anno_vec), message = "Setup the conversion between data ids and signature ids"),
-          need((!is.null(values$res_obj) | !input$sig_useDEonly),
-               message = "Please compute the results first if you want to subset to DE genes only"),
-          need(input$sig_selectsig!="", message = "Select a signature")
-        )
-        annovec = values$anno_vec
-        mydata <- assay(values$vst_obj)
-        
-        my_signature = values$gene_signatures[[input$sig_selectsig]]
-        # save(file = "~/SCHNAPPsDebug/ideal.sig_heatmap.RData", list = c(ls()))
-        # load("~/SCHNAPPsDebug/ideal.sig_heatmap.RData")
-        signature_original_ids <- names(annovec)[match(my_signature,annovec)]
-        
-        sig_to_keep <- (signature_original_ids %in% rownames(mydata))#
-        my_signature <- my_signature[sig_to_keep]
-        signature_original_ids <- signature_original_ids[sig_to_keep]
-        
-        mydata_sig <- mydata[signature_original_ids,]
-        
-        # to avoid problems later, remove the ones non-expressed and with variance = 0
-        to_remove <- apply(mydata_sig, 1, var) == 0
-        mydata_sig <- mydata_sig[!to_remove,]
-        mydata_sig <- mydata[signature_original_ids,]
-
-        paste(rownames(mydata_sig), collapse = " ")
-      })
-      
-      # server ui update/observers --------------------------------------------------------
-      output$color_by <- renderUI({
-        # browser()
-        if(is.null(values$dds_obj))
-          return(NULL)
-        poss_covars <- names(colData(values$dds_obj))
-        selectInput('color_by', label = 'Group/color by: ',
-                    choices = c(NULL, poss_covars), selected = "STIMULUS",multiple = TRUE)
-      })
-      
-      # this trick speeds up the populating of the select(ize) input widgets,
-      # see http://stackoverflow.com/questions/38438920/shiny-selectinput-very-slow-on-larger-data-15-000-entries-in-browser
-      observe({
-        updateSelectizeInput(
-          session = session,
-          inputId = 'avail_ids',
-          choices = c(Choose = '', rownames(values$dds_obj)),
-          server = TRUE)
-      })
-      
-      
-      # variables that should be accessible to all but not reactive
-      # globalIdeal <<- list()
-      # globalIdeal$avail_symbols <<- ""
-      # remember the value without being reactive
-      # observe(label = "avail_symbolsOBS", {
-      #   globalIdeal$avail_symbols <<- input$avail_symbols
-      # })
-      observe({
+      paste(rownames(mydata_sig), collapse = " ")
+    })
+    
+    # server ui update/observers --------------------------------------------------------
+    output$color_by <- renderUI({
+      # browser()
+      if(is.null(values$dds_obj))
+        return(NULL)
+      poss_covars <- names(colData(values$dds_obj))
+      selectInput('color_by', label = 'Group/color by: ',
+                  choices = c(NULL, poss_covars), selected = "STIMULUS",multiple = TRUE)
+    })
+    
+    # this trick speeds up the populating of the select(ize) input widgets,
+    # see http://stackoverflow.com/questions/38438920/shiny-selectinput-very-slow-on-larger-data-15-000-entries-in-browser
+    observe({
+      updateSelectizeInput(
+        session = session,
+        inputId = 'avail_ids',
+        choices = c(Choose = '', rownames(values$dds_obj)),
+        server = TRUE)
+    })
+    
+    
+    # variables that should be accessible to all but not reactive
+    # globalIdeal <<- list()
+    # globalIdeal$avail_symbols <<- ""
+    # remember the value without being reactive
+    # observe(label = "avail_symbolsOBS", {
+    #   globalIdeal$avail_symbols <<- input$avail_symbols
+    # })
+    observe({
+      # oldSelected = globalIdeal$avail_symbols
+      avVals = values$annotation_obj$gene_name[match(rownames(values$dds_obj), values$annotation_obj$gene_id)]
+      # oldSelected = oldSelected[oldSelected %in% avVals]
+      updateSelectizeInput(
+        session = session,
+        # selected = oldSelected,
+        inputId = 'avail_symbols',
+        choices = c(Choose = '', avVals),
+        server = TRUE)
+    })
+    
+    output$available_genes <- renderUI({
+      # browser()
+      if(!is.null(values$annotation_obj)) {
         # oldSelected = globalIdeal$avail_symbols
         avVals = values$annotation_obj$gene_name[match(rownames(values$dds_obj), values$annotation_obj$gene_id)]
         # oldSelected = oldSelected[oldSelected %in% avVals]
-        updateSelectizeInput(
-          session = session,
-          # selected = oldSelected,
-          inputId = 'avail_symbols',
-          choices = c(Choose = '', avVals),
-          server = TRUE)
-      })
+        selectizeInput("avail_symbols", label = "Select the gene(s) of interest",
+                       choices = avVals,
+                       # selected = oldSelected,
+                       multiple = TRUE)
+      } else { # else use the rownames as identifiers
+        selectizeInput("avail_ids", label = "Select the gene(s) of interest - ids",
+                       choices = NULL, selected = NULL, multiple = TRUE)
+      }
+    })
+    
+    design_factors <- reactive({
+      # rev(attributes(terms.formula(design(values$dds_obj)))$term.labels)
+      cat(file = stderr(), "design_factors triggered\n")
+      resultsNames(values$dds_obj)
       
-      output$available_genes <- renderUI({
-        # browser()
-        if(!is.null(values$annotation_obj)) {
-          # oldSelected = globalIdeal$avail_symbols
-          avVals = values$annotation_obj$gene_name[match(rownames(values$dds_obj), values$annotation_obj$gene_id)]
-          # oldSelected = oldSelected[oldSelected %in% avVals]
-          selectizeInput("avail_symbols", label = "Select the gene(s) of interest",
-                         choices = avVals,
-                         # selected = oldSelected,
-                         multiple = TRUE)
-        } else { # else use the rownames as identifiers
-          selectizeInput("avail_ids", label = "Select the gene(s) of interest - ids",
-                         choices = NULL, selected = NULL, multiple = TRUE)
-        }
-      })
+    })
+    
+    output$choose_fac <- renderUI({
+      selectInput("choose_expfac",label = "Choose the experimental factor to build the contrast (numerator)",
+                  choices = c("",design_factors()), selected = "", multiple = TRUE)
+    })
+    output$choose_fac2 <- renderUI({
+      selectInput("choose_expfac2",label = "Choose the experimental factor to build the contrast (denominator)",
+                  choices = c("",design_factors()), selected = "", multiple = TRUE)
+    })
+    
+    # observe({
+    #   updateSelectizeInput(session = session, inputId = 'color_by', selected = input$choose_expfac)
+    # })
+    
+    
+    # server DE results --------------------------------------------------------
+    # nrl <- reactive
+    # output$lrtavailable <- renderUI({
+    #   if(is.null(values$dds_obj))
+    #     return(NULL)
+    #   shiny::validate(
+    #     need(input$choose_expfac!="",
+    #          ""
+    #     )
+    #   )
+    #   fac1 <- input$choose_expfac
+    #   nrl <- length(levels(colData(values$dds_obj)[,fac1]))
+    # 
+    #   if(nrl > 2)
+    #     p("I can perform a LRT test on the chosen factor, select the full and the reduced model")
+    # 
+    # })
+    # 
+    # output$lrtfull <- renderUI({
+    #   if(is.null(values$dds_obj))
+    #     return(NULL)
+    #   shiny::validate(
+    #     need(input$choose_expfac!="",
+    #          ""
+    #     )
+    #   )
+    #   fac1 <- input$choose_expfac
+    #   nrl <- length(levels(colData(values$dds_obj)[,fac1]))
+    #   
+    #   if(nrl > 2)
+    #     selectInput("choose_lrt_full",label = "Choose the factors for the full model",
+    #                 choices = c("",design_factors()), selected = "", multiple = TRUE)
+    #   
+    # })
+    # 
+    # output$lrtreduced <- renderUI({
+    #   if(is.null(values$dds_obj))
+    #     return(NULL)
+    #   shiny::validate(
+    #     need(input$choose_expfac!="",
+    #          ""
+    #     )
+    #   )
+    #   fac1 <- input$choose_expfac
+    #   nrl <- length(levels(colData(values$dds_obj)[,fac1]))
+    #   
+    #   if(nrl > 2)
+    #     selectInput("choose_lrt_reduced",label = "Choose the factor(s) for the reduced model",
+    #                 choices = c("",design_factors()), selected = "", multiple = TRUE)
+    # })
+    # 
+    # 
+    # output$runlrt <- renderUI({
+    #   if(is.null(values$dds_obj))
+    #     return(NULL)
+    #   shiny::validate(
+    #     need(input$choose_expfac!="",
+    #          ""
+    #     )
+    #   )
+    #   fac1 <- input$choose_expfac
+    #   nrl <- length(levels(colData(values$dds_obj)[,fac1]))
+    #   
+    #   if(nrl > 2)
+    #     actionButton("button_runlrt",label = "(re)Run LRT for the dataset",class = "btn btn-primary")
+    # })
+    # 
+    # observeEvent(input$button_runlrt,{
+    #   withProgress(message="Computing the LRT results...",
+    #                detail = "This step can take a little while",
+    #                value = 0,{
+    #                  
+    #                  values$ddslrt <- tryCatch(DESeq(values$dds_obj,test = "LRT",
+    #                                                  full = as.formula(paste0("~",paste(input$choose_lrt_full, collapse=" + "))),
+    #                                                  reduced = as.formula(paste0("~",paste(input$choose_lrt_reduced, collapse=" + ")))),
+    #                                            error = function(e){
+    #                                              showNotification(paste("Error while computing the LRT results:\n", e),
+    #                                                               type = "error")
+    #                                              return(NULL)
+    #                                            })
+    #                  
+    #                  values$reslrt <- tryCatch(results(values$ddslrt),
+    #                                            error = function(e){
+    #                                              showNotification(paste("Error while computing the LRT results:\n", e),
+    #                                                               type = "error")
+    #                                              return(NULL)
+    #                                            })
+    #                  
+    #                  
+    #                  if(!is.null(values$annotation_obj))
+    #                    values$reslrt$symbol <- values$annotation_obj$gene_name[match(rownames(values$reslrt),
+    #                                                                                  rownames(values$annotation_obj))]
+    #                })
+    #   
+    # })
+    # 
+    # copy this in the report for debugging purposes or so
+    # # section title
+    #
+    # ```{r setup, include=FALSE}
+    # knitr::opts_chunk$set(echo = TRUE)
+    # ```
+    #
+    # ## R Markdown
+    #
+    # This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+    #
+    # When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+    #
+    #   ```{r cars}
+    # values$reslrt
+    # summary(values$reslrt)
+    #
+    # deseqresult2DEgenes(values$reslrt)
+    # plotCounts(dds_airway_lrt,intgroup="cell",gene="ENSG00000262902")
+    # plotCounts(dds_airway_lrt,intgroup="cell",gene="ENSG00000123243")
+    # resultsNames(dds_airway_lrt)
+    # ```
+    #
+    #
+    # ```{r}
+    # footertemplate()
+    # ```
+    
+    ## TODO; think if we want to allow for a continuous factor in the results, if so then do something like building
+    # the ui elements accordingly
+    
+    # output$fac1 <- renderUI({
+    #   shiny::validate(
+    #     need(input$choose_expfac!="",
+    #          "Please select an experimental factor to generate the results"
+    #     )
+    #   )
+    #   fac1 <- input$choose_expfac
+    #   fac1_vals <- colData(values$dds_obj)[,fac1]
+    #   
+    #   fac1_levels <- levels(fac1_vals)
+    #   if(is.factor(colData(values$dds_obj)[,fac1]))
+    #     selectInput("fac1_c1","Select the name of the numerator level for the fold change",choices = c("",fac1_levels), selected = "")
+    #   # selectInput("fac1_c2","c2",choices = fac1_levels)
+    # })
+    # 
+    # output$fac2 <- renderUI({
+    #   shiny::validate(
+    #     need(input$choose_expfac!="",
+    #          ""
+    #     )
+    #   )
+    #   fac1 <- input$choose_expfac
+    #   fac1_vals <- colData(values$dds_obj)[,fac1]
+    #   fac1_levels <- levels(fac1_vals)
+    #   if(is.factor(colData(values$dds_obj)[,fac1]))
+    #     # selectInput("fac1_c1","c1",choices = fac1_levels)
+    #     selectInput("fac1_c2","Select the name of the denominator level for the fold change (must be different from the numerator)",choices = c("",fac1_levels), selected = "")
+    # })
+    # 
+    # output$facnum <- renderPrint({
+    #   shiny::validate(
+    #     need(input$choose_expfac!="",
+    #          ""
+    #     )
+    #   )
+    #   fac1 <- input$choose_expfac
+    #   fac1_vals <- colData(values$dds_obj)[,fac1]
+    #   
+    #   # fac1_levels <- levels(fac1_vals)
+    #   if(class(colData(values$dds_obj)[,fac1]) %in% c("integer","numeric"))
+    #     print("numeric/integer factor provided")
+    #   
+    #   # selectInput("fac1_num","num/int",choices = c("",fac1_levels), selected = "")
+    #   # selectInput("fac1_c2","c2",choices = fac1_levels)
+    # })
+    
+    output$runresults <- renderUI({
+      shiny::validate(
+        need(input$choose_expfac!="",
+             "Select a factor for the contrast first")
+      )
       
-      design_factors <- reactive({
-        # rev(attributes(terms.formula(design(values$dds_obj)))$term.labels)
-        cat(file = stderr(), "design_factors triggered\n")
-        resultsNames(values$dds_obj)
-        
-      })
-      
-      output$choose_fac <- renderUI({
-        selectInput("choose_expfac",label = "Choose the experimental factor to build the contrast (numerator)",
-                    choices = c("",design_factors()), selected = "", multiple = TRUE)
-      })
-      output$choose_fac2 <- renderUI({
-        selectInput("choose_expfac2",label = "Choose the experimental factor to build the contrast (denominator)",
-                    choices = c("",design_factors()), selected = "", multiple = TRUE)
-      })
-      
-      # observe({
-      #   updateSelectizeInput(session = session, inputId = 'color_by', selected = input$choose_expfac)
-      # })
-      
-      
-      # server DE results --------------------------------------------------------
-      # nrl <- reactive
-      # output$lrtavailable <- renderUI({
-      #   if(is.null(values$dds_obj))
-      #     return(NULL)
+      # fac1 <- input$choose_expfac
+      # fac1_vals <- colData(values$dds_obj)[,fac1]
+      # 
+      # if(!(class(colData(values$dds_obj)[,fac1]) %in% c("integer","numeric"))){
+      #   
       #   shiny::validate(
-      #     need(input$choose_expfac!="",
-      #          ""
-      #     )
+      #     need(input$fac1_c1 != "" & input$fac1_c2 != "" & input$fac1_c1 != input$fac1_c2,
+      #          "Select two different levels of the factor for the contrast")
       #   )
-      #   fac1 <- input$choose_expfac
-      #   nrl <- length(levels(colData(values$dds_obj)[,fac1]))
+      # }
       # 
-      #   if(nrl > 2)
-      #     p("I can perform a LRT test on the chosen factor, select the full and the reduced model")
+      # if((class(colData(values$dds_obj)[,fac1]) %in% c("integer","numeric"))){
       # 
-      # })
-      # 
-      # output$lrtfull <- renderUI({
-      #   if(is.null(values$dds_obj))
-      #     return(NULL)
       #   shiny::validate(
-      #     need(input$choose_expfac!="",
-      #          ""
-      #     )
+      #     need(input$resu_lfcshrink==FALSE,
+      #          "Set the Add the unshrunken MLE to FALSE")
       #   )
-      #   fac1 <- input$choose_expfac
-      #   nrl <- length(levels(colData(values$dds_obj)[,fac1]))
-      #   
-      #   if(nrl > 2)
-      #     selectInput("choose_lrt_full",label = "Choose the factors for the full model",
-      #                 choices = c("",design_factors()), selected = "", multiple = TRUE)
-      #   
-      # })
-      # 
-      # output$lrtreduced <- renderUI({
-      #   if(is.null(values$dds_obj))
-      #     return(NULL)
-      #   shiny::validate(
-      #     need(input$choose_expfac!="",
-      #          ""
-      #     )
+      # }
+      # shiny::validate(
+      #   need("results" %in% mcols(mcols(values$dds_obj))$type ,
+      #        "I couldn't find results. you should first run DESeq() with the button up here"
       #   )
-      #   fac1 <- input$choose_expfac
-      #   nrl <- length(levels(colData(values$dds_obj)[,fac1]))
-      #   
-      #   if(nrl > 2)
-      #     selectInput("choose_lrt_reduced",label = "Choose the factor(s) for the reduced model",
-      #                 choices = c("",design_factors()), selected = "", multiple = TRUE)
-      # })
-      # 
-      # 
-      # output$runlrt <- renderUI({
-      #   if(is.null(values$dds_obj))
-      #     return(NULL)
-      #   shiny::validate(
-      #     need(input$choose_expfac!="",
-      #          ""
-      #     )
-      #   )
-      #   fac1 <- input$choose_expfac
-      #   nrl <- length(levels(colData(values$dds_obj)[,fac1]))
-      #   
-      #   if(nrl > 2)
-      #     actionButton("button_runlrt",label = "(re)Run LRT for the dataset",class = "btn btn-primary")
-      # })
-      # 
-      # observeEvent(input$button_runlrt,{
-      #   withProgress(message="Computing the LRT results...",
-      #                detail = "This step can take a little while",
-      #                value = 0,{
-      #                  
-      #                  values$ddslrt <- tryCatch(DESeq(values$dds_obj,test = "LRT",
-      #                                                  full = as.formula(paste0("~",paste(input$choose_lrt_full, collapse=" + "))),
-      #                                                  reduced = as.formula(paste0("~",paste(input$choose_lrt_reduced, collapse=" + ")))),
-      #                                            error = function(e){
-      #                                              showNotification(paste("Error while computing the LRT results:\n", e),
-      #                                                               type = "error")
-      #                                              return(NULL)
-      #                                            })
-      #                  
-      #                  values$reslrt <- tryCatch(results(values$ddslrt),
-      #                                            error = function(e){
-      #                                              showNotification(paste("Error while computing the LRT results:\n", e),
-      #                                                               type = "error")
-      #                                              return(NULL)
-      #                                            })
-      #                  
-      #                  
-      #                  if(!is.null(values$annotation_obj))
-      #                    values$reslrt$symbol <- values$annotation_obj$gene_name[match(rownames(values$reslrt),
-      #                                                                                  rownames(values$annotation_obj))]
-      #                })
-      #   
-      # })
-      # 
-      # copy this in the report for debugging purposes or so
-      # # section title
-      #
-      # ```{r setup, include=FALSE}
-      # knitr::opts_chunk$set(echo = TRUE)
-      # ```
-      #
-      # ## R Markdown
-      #
-      # This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-      #
-      # When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-      #
-      #   ```{r cars}
-      # values$reslrt
-      # summary(values$reslrt)
-      #
-      # deseqresult2DEgenes(values$reslrt)
-      # plotCounts(dds_airway_lrt,intgroup="cell",gene="ENSG00000262902")
-      # plotCounts(dds_airway_lrt,intgroup="cell",gene="ENSG00000123243")
-      # resultsNames(dds_airway_lrt)
-      # ```
-      #
-      #
-      # ```{r}
-      # footertemplate()
-      # ```
-      
-      ## TODO; think if we want to allow for a continuous factor in the results, if so then do something like building
-      # the ui elements accordingly
-      
-      # output$fac1 <- renderUI({
-      #   shiny::validate(
-      #     need(input$choose_expfac!="",
-      #          "Please select an experimental factor to generate the results"
-      #     )
-      #   )
-      #   fac1 <- input$choose_expfac
-      #   fac1_vals <- colData(values$dds_obj)[,fac1]
-      #   
-      #   fac1_levels <- levels(fac1_vals)
-      #   if(is.factor(colData(values$dds_obj)[,fac1]))
-      #     selectInput("fac1_c1","Select the name of the numerator level for the fold change",choices = c("",fac1_levels), selected = "")
-      #   # selectInput("fac1_c2","c2",choices = fac1_levels)
-      # })
-      # 
-      # output$fac2 <- renderUI({
-      #   shiny::validate(
-      #     need(input$choose_expfac!="",
-      #          ""
-      #     )
-      #   )
-      #   fac1 <- input$choose_expfac
-      #   fac1_vals <- colData(values$dds_obj)[,fac1]
-      #   fac1_levels <- levels(fac1_vals)
-      #   if(is.factor(colData(values$dds_obj)[,fac1]))
-      #     # selectInput("fac1_c1","c1",choices = fac1_levels)
-      #     selectInput("fac1_c2","Select the name of the denominator level for the fold change (must be different from the numerator)",choices = c("",fac1_levels), selected = "")
-      # })
-      # 
-      # output$facnum <- renderPrint({
-      #   shiny::validate(
-      #     need(input$choose_expfac!="",
-      #          ""
-      #     )
-      #   )
-      #   fac1 <- input$choose_expfac
-      #   fac1_vals <- colData(values$dds_obj)[,fac1]
-      #   
-      #   # fac1_levels <- levels(fac1_vals)
-      #   if(class(colData(values$dds_obj)[,fac1]) %in% c("integer","numeric"))
-      #     print("numeric/integer factor provided")
-      #   
-      #   # selectInput("fac1_num","num/int",choices = c("",fac1_levels), selected = "")
-      #   # selectInput("fac1_c2","c2",choices = fac1_levels)
-      # })
-      
-      output$runresults <- renderUI({
-        shiny::validate(
-          need(input$choose_expfac!="",
-               "Select a factor for the contrast first")
-        )
-        
-        # fac1 <- input$choose_expfac
-        # fac1_vals <- colData(values$dds_obj)[,fac1]
-        # 
-        # if(!(class(colData(values$dds_obj)[,fac1]) %in% c("integer","numeric"))){
-        #   
-        #   shiny::validate(
-        #     need(input$fac1_c1 != "" & input$fac1_c2 != "" & input$fac1_c1 != input$fac1_c2,
-        #          "Select two different levels of the factor for the contrast")
-        #   )
-        # }
-        # 
-        # if((class(colData(values$dds_obj)[,fac1]) %in% c("integer","numeric"))){
-        # 
-        #   shiny::validate(
-        #     need(input$resu_lfcshrink==FALSE,
-        #          "Set the Add the unshrunken MLE to FALSE")
-        #   )
-        # }
-        # shiny::validate(
-        #   need("results" %in% mcols(mcols(values$dds_obj))$type ,
-        #        "I couldn't find results. you should first run DESeq() with the button up here"
-        #   )
-        # )
-        
-        # if(input$choose_expfac=="" | input$fac1_c1 == "" | input$fac1_c2 == "" | input$fac1_c1 == input$fac1_c2)
-        #   return(NULL)
-        # else
-        actionButton("button_runresults","Extract the results!", icon = icon("spinner"), class = "btn btn-success")
-      })
-      
-      observeEvent(input$button_runresults, {
-        choose_expfac2 <- input$choose_expfac2
-        if (is.null(choose_expfac2)) 
-          choose_expfac2 = character()
-        resultsNames(values$dds_obj)
-        choose_expfac <- input$choose_expfac
-        # choose_expfac <- c("Intercept", "STIMULUS_LPS_vs_antiCD3CD28" )
-        # choose_expfac2 = "STIMULUS_null_vs_antiCD3CD28"
-        # browser()
-        withProgress(message="Computing the results...",
-                     detail = "DE table on its way!",
-                     value = 0,{
-                       # handling the experimental covariate correctly to extract the results...
-                       # if(is.factor(colData(values$dds_obj)[,input$choose_expfac])) {
-                       if(input$resu_ihw) {
-                         values$res_obj <- results(values$dds_obj,
-                                                   # contrast = c(input$choose_expfac, input$fac1_c1, input$fac1_c2),
-                                                   contrast = list(c(choose_expfac),c(choose_expfac2)),
-                                                   independentFiltering = input$resu_indfil, 
-                                                   alpha = input$FDR,
-                                                   filterFun = ihw)
-                         
-                         # if(input$resu_lfcshrink) {
-                         #   incProgress(amount = 0.15,detail = "Results extracted. Shrinking the logFC now...")
-                         #   values$res_obj <- lfcShrink(values$dds_obj,
-                         #                               # contrast = c(input$choose_expfac, input$fac1_c1, input$fac1_c2),
-                         #                               contrast = list(c(input$choose_expfac),c(choose_expfac2)),
-                         #                               res = values$res_obj)
-                         #   incProgress(amount = 0.8,detail = "logFC shrunken, adding annotation info...")
-                         # } else {
-                         incProgress(amount = 0.9,detail = "logFC left unshrunken, adding annotation info...")
-                         # }
-                       } else {
-                         values$res_obj <- results(values$dds_obj,
-                                                   # contrast = c(input$choose_expfac, input$fac1_c1, input$fac1_c2),
-                                                   contrast = list(c(choose_expfac),c(choose_expfac2)),
-                                                   independentFiltering = input$resu_indfil, 
-                                                   alpha = input$FDR)
-                         # if(input$resu_lfcshrink) {
-                         #   incProgress(amount = 0.15,detail = "Results extracted. Shrinking the logFC now...")
-                         #   
-                         #   coef = c("Intercept", "STIMULUS_LPS_vs_antiCD3CD28")
-                         #   values$res_obj <- lfcShrink(values$dds_obj,
-                         #                               # contrast = c(input$choose_expfac, input$fac1_c1, input$fac1_c2),
-                         #                               contrast = list(c(input$choose_expfac),c(choose_expfac2)),
-                         #                               res = values$res_obj,
-                         #                               type = "ashr")
-                         #   incProgress(amount = 0.8,detail = "logFC shrunken, adding annotation info...")
-                         # } else {
-                         incProgress(amount = 0.9,detail = "logFC left unshrunken, adding annotation info...")
-                         # }
-                       }
-                       # }
-                       # should not happen as all are factors,
-                       # BJ commenting out
-                       # if(class(colData(values$dds_obj)[,input$choose_expfac]) %in% c("integer","numeric"))
-                       #   values$res_obj <- results(values$dds_obj,name = input$choose_expfac,
-                       #                             independentFiltering = input$resu_indfil, 
-                       #                             alpha = input$FDR
-                       #                             # , addMLE = input$resu_lfcshrink
-                       #   )
-                       
-                       # adding info from the annotation
-                       if(!is.null(values$annotation_obj))
-                         values$res_obj$symbol <- values$annotation_obj$gene_name[
-                           match(rownames(values$res_obj),
-                                 rownames(values$annotation_obj))]
-                     })
-      })
-      
-      output$diyres_summary <- renderPrint({
-        c1  = input$choose_expfac
-        c2 = input$choose_expfac2
-        # browser()
-        shiny::validate(
-          # need(input$choose_expfac!="" & input$fac1_c1 != "" & input$fac1_c2 != "" & input$fac1_c1 != input$fac1_c2 ,
-          need(input$choose_expfac != ""  ,
-               "Please select a coefficient to build the contrast"
-          )
-        )
-        shiny::validate(
-          need(!is.null(values$res_obj), "Parameters selected, please compute the results first")
-        )
-        # summary(results(values$dds_obj,contrast = c(input$choose_expfac, input$fac1_c1, input$fac1_c2)))
-        summary(values$res_obj,alpha = input$FDR)
-      })
-      
-      output$printdds <- renderPrint({
-        shiny::validate(
-          need(!is.null(values$dds_obj),
-               "Please provide a count matrix/dds object"
-          )
-        )
-        
-        values$dds_obj
-        design(values$dds_obj)
-      })
-      
-      output$printres <- renderPrint({
-        shiny::validate(
-          need(!is.null(values$res_obj),
-               "Please provide a DESeqResults object"
-          )
-        )
-        print(sub(".*p-value: (.*)","\\1",mcols(values$res_obj, use.names=TRUE)["pvalue","description"]))
-        summary(values$res_obj,alpha = input$FDR) # use fdr shiny widget
-      })
-      
-      
-      output$store_result <- renderUI({
-        if(is.null(values$res_obj))
-          return(NULL)
-        actionButton("button_store_result", "Store current results",class = "btn btn-primary")
-      })
-      
-      observeEvent(input$button_store_result,
-                   {
-                     values$stored_res <- values$res_obj
-                     # this is in such a way to store & compare later if some parameters are edited
-                   })
-      
-      output$table_res <- DT::renderDataTable(server=T,{
-        if(is.null(values$res_obj))
-          return(NULL)
-        mydf <- as.data.frame(values$res_obj[order(values$res_obj$padj),])#[1:500,]
-        rownames(mydf) <- createLinkENS(rownames(mydf),species = annoSpecies_df$ensembl_db[match(values$cur_species,annoSpecies_df$species)]) ## TODO: check what are the species from ensembl and
-        ## TODO: add a check to see if wanted?
-        mydf$symbol <- createLinkGeneSymbol(mydf$symbol)
-        # browser()
-        datatable(mydf, extensions = 'Buttons', 
-                  options = list(dom = 'lfrtipB', buttons = c('csv')),
-                  escape = FALSE, filter = list(position = 'top', clear = FALSE))%>%
-          formatRound(columns=c('baseMean', 'log2FoldChange', 'lfcSE', 'stat', 'pvalue', 'padj'), digits=3)
-      })
-      
-      # server resu diagnostics --------------------------------------------------------
-      output$pvals_hist <- renderPlot({
-        shiny::validate(
-          need(!is.null(values$res_obj),message = "")
-        )
-        
-        res_df <- as.data.frame(values$res_obj)
-        res_df <- dplyr::filter(res_df, !is.na(pvalue))
-        p <- ggplot(res_df, aes_string("pvalue")) +
-          geom_histogram(binwidth = 0.01, boundary = 0) + theme_bw()
-        
-        # for visual estimation of the false discovery proportion in the first bin
-        alpha <- binw <- input$FDR
-        pi0 <- 2*mean(res_df$pvalue > 0.5)
-        p <- p + geom_hline(yintercept = pi0 * binw * nrow(res_df), col = "steelblue") + 
-          geom_vline(xintercept = alpha, col = "red")
-        
-        p <- p + ggtitle(
-          label = "p-value histogram",
-          subtitle = paste0(
-            "Expected nulls = ", pi0 * binw * nrow(res_df), 
-            " - #elements in the selected bins = ", sum(res_df$pvalue < alpha)
-          ))
-        
-        exportPlots$plot_pvals_hist <- p
-        p
-        
-      })
-      
-      output$pvals_hist_strat <- renderPlot({
-        shiny::validate(
-          need(!is.null(values$res_obj),message = "")
-        )
-        
-        res_df <- as.data.frame(values$res_obj)
-        res_df <- dplyr::filter(res_df, !is.na(pvalue))
-        
-        res_df <- mutate(
-          res_df, 
-          stratum = cut(baseMean, include.lowest = TRUE, 
-                        breaks = signif(quantile(baseMean, probs = seq(0,1, length.out = 10)),2)))
-        
-        p <- ggplot(res_df, aes_string("pvalue")) +
-          geom_histogram(binwidth = 0.01, boundary = 0) + 
-          facet_wrap(~stratum) + 
-          theme_bw()
-        
-        p <- p + ggtitle(
-          label = "p-value histogram",
-          subtitle = "stratified on the different value classes of mean expression values")
-        
-        exportPlots$plot_pvals_hist_strat <- p
-        p
-      })
-      
-      output$pvals_ss <- renderPlot({
-        shiny::validate(
-          need(!is.null(values$res_obj),message = "")
-        )
-        
-        res_df <- as.data.frame(values$res_obj)
-        res_df <- dplyr::filter(res_df, !is.na(pvalue))
-        
-        phi <- input$FDR
-        res_df <- mutate(res_df, rank = rank(pvalue))
-        m <- nrow(res_df)
-        
-        p <- ggplot(filter(res_df, rank <= 6000), 
-                    aes_string(x = "rank", y = "pvalue")) + 
-          geom_line() + 
-          geom_abline(slope = phi/m, col = "red") + 
-          theme_bw()
-        
-        p <- p + ggtitle(
-          label = "Schweder-Spjotvoll plot",
-          subtitle = paste0(
-            "Intersection point at rank ", with(arrange(res_df,rank), last(which(pvalue <= phi * rank / m))))
-        )
-        exportPlots$plot_pvals_ss <- p
-        p
-      })
-      
-      
-      output$logfc_hist <- renderPlot({
-        shiny::validate(
-          need(!is.null(values$res_obj),message = "")
-        )
-        res_df <- as.data.frame(values$res_obj)
-        res_df <- dplyr::filter(res_df, !is.na(pvalue))
-        
-        p <- ggplot(res_df, aes_string("log2FoldChange")) +
-          geom_histogram(binwidth = 0.1) + theme_bw()
-        
-        p <- p + ggtitle(
-          "Histogram of the log2 fold changes"
-        )
-        
-        exportPlots$plot_logfc_hist <- p
-        p
-      })
-      
-      
-      output$dds_design <- renderPrint({
-        design(values$dds_obj)
-      })
-      
-      output$res_names <- renderPrint({
-        resultsNames(values$dds_obj)
-      })
-      
-      output$explore_res <- renderPrint({
-        expfac <- attributes(terms.formula(design(values$dds_obj)))$term.labels
-        expfac # plus, support up to four factors that are either there or not according to the length
-      })
-      
-      output$nonZeroCountsPlot <- renderPlot({
-        # browser()
-        if(is.null(values$dds_obj)) return(NULL)
-        counts <- assays(values$dds_obj)[["counts"]]
-        # colSums sums over each column producing a vector of counts.
-        countsNz <- colSums(counts)
-        # adjust the maximum for being able to plot numbers on top of the bars
-        ylim <- c(0, 1.3 * max(countsNz))
-        # las=2 rotates the labels
-        par(mar = c(4, 10, 4, 2) + 0.1)
-        xx <- barplot(countsNz,
-                      xlim = ylim, main = "number of non-zero countsNz",
-                      las = 2, horiz = T, cex.names = 0.75
-        )
-        text(
-          y = xx, x = countsNz, label = prettyNum(countsNz, big.mark = ","),
-          pos = 4, cex = 0.6, col = "darkgreen"
-        )
-      })
-      output$alignedSequencesPlot <- renderPlot({
-        if(is.null(values$dds_obj)) return(NULL)
-        counts <- assays(values$dds_obj)[["counts"]]
-        ylim <- c(0, 1.4 * max(colSums(counts)))
-        op <- par(mar = c(4, 10, 4, 2) + 0.1)
-        
-        # Here we use a different orientation of the bar plot.
-        xx <- barplot(colSums(counts),
-                      xlim = ylim, main = "Number of Aligned Sequences",
-                      horiz = T, las = 2, cex.names = 0.75
-        )
-        text(
-          y = xx, x = colSums(counts), label = prettyNum(colSums(counts),
-                                                         big.mark = ","
-          ), pos = 4,
-          cex = 0.8, col = "red"
-        )
-      })
-      # output$correlationPlot <- renderPlot({
-      #   # Predifined color tables, i.e. ordered colours used for plotting.
-      #   suppressMessages(require("RColorBrewer"))
-      #   
-      #   counts <- assays(dds_obj)[["counts"]]
-      #   
-      #   # Apply a 'regularized log' transformation
-      #   rld <- vst(counts, blind = FALSE)
-      #   
-      #   # t() transposes a matrix
-      #   # The dist() function computes and returns the distance matrix computed by
-      #   # using the specified distance measure to compute the distances between the
-      #   # rows of a data matrix.
-      #   sampleDists <- dist(t(rld))
-      #   
-      #   # since the dist function returns its own class (see class(sampleDists)) we
-      #   # have to transform it to a matrix for plotting.
-      #   sampleDistMatrix <- as.matrix(sampleDists)
-      #   # we can set either the column names or the row names to NULL. For
-      #   # visualization in a Word document it is better to remove the row names
-      #   rownames(sampleDistMatrix) <- NULL
-      #   colors <- colorRampPalette(rev(brewer.pal(9, "Blues")))(255)
-      #   # add information about other meta data
-      #   save(file = "~/SCHNAPPsDebug/idealImmunoTP.RData", list = c(ls()))
-      #   # load(file = "~/SCHNAPPsDebug/idealImmunoTP.RData")
-      #   cat(file = stderr(), "\npheatmap\n\n")
-      #   browser()
-      #   class(pheatmap(sampleDistMatrix,
-      #            clustering_distance_rows = sampleDists,
-      #            clustering_distance_cols = sampleDists,
-      #            col = colors
-      #   ))
-      # })
-      
-      output$plotma <- renderPlot({
-        p <- plot_ma(values$res_obj,annotation_obj = values$annotation_obj,FDR = input$FDR)
-        exportPlots$plot_ma <- p
-        p
-      })
-      
-      output$mazoom <- renderPlot({
-        if(is.null(input$ma_brush)) return(ggplot() + annotate("text",label="click and drag to zoom in",0,0) + theme_bw())
-        
-        if(!is.null(values$annotation_obj))
-          p <- plot_ma(values$res_obj,annotation_obj = values$annotation_obj,FDR = input$FDR) +
-            coord_cartesian(xlim = c(input$ma_brush$xmin,input$ma_brush$xmax),
-                            ylim = c(input$ma_brush$ymin,input$ma_brush$ymax)) +
-            geom_text(aes_string(label="genename"),size=input$size_genelabels,hjust=0.25, vjust=-0.75)
-        else
-          p <-  plot_ma(values$res_obj,annotation_obj = values$annotation_obj,FDR = input$FDR) +
-            coord_cartesian(xlim = c(input$ma_brush$xmin,input$ma_brush$xmax),
-                            ylim = c(input$ma_brush$ymin,input$ma_brush$ymax))
-        exportPlots$plot_mazoom <- p
-        p
-      })
-      
-      output$ma_highlight <- renderPlot({
-        shiny::validate(
-          need(!is.null(values$res_obj),message = "Please generate the results object to display the plot and show the combined tables")
-        )
-        
-        if("symbol" %in% names(values$res_obj)) {
-          p <- plot_ma(values$res_obj,
-                       intgenes = input$avail_symbols,annotation_obj = values$annotation_obj,FDR = input$FDR)
-        } else {
-          p <- plot_ma(values$res_obj,
-                       intgenes = input$avail_ids,annotation_obj = values$annotation_obj,FDR = input$FDR)
-        }
-        
-        exportPlots$plot_mahighlight <- p
-        p
-      })
-      
-      output$ma_hl_list <- renderPlot({
-        shiny::validate(
-          need(!is.null(values$genelist_ma),message = "Need a list of ma to plot here")
-        )
-        shiny::validate(
-          need("symbol" %in% names(values$res_obj),
-               message = "Need annotation with symbol column")
-        )
-        if(is.null(values$genelist_ma))
-          return(NULL)
-        if("symbol" %in% names(values$res_obj)) {
-          p <- plot_ma(values$res_obj,
-                       intgenes = values$genelist_ma$`Gene Symbol`,annotation_obj = values$annotation_obj,FDR = input$FDR)
-        } else {
-          # plot_ma(values$res_obj,
-          # intgenes = values$genelist_ma,annotation_obj = values$annotation_obj)
-          return(NULL)
-        }
-        exportPlots$plot_mahllist <- p
-        p
-      })
-      
-      
-      curData <- reactive({
-        mama <- data.frame(mean=values$res_obj$baseMean,lfc=values$res_obj$log2FoldChange,padj = values$res_obj$padj,isDE= ifelse(is.na(values$res_obj$padj), FALSE, values$res_obj$padj < 0.10),ID=rownames(values$res_obj))
-        mama$genename <- values$annotation_obj$gene_name[match(mama$ID,rownames(values$annotation_obj))]
-        # mama$yesorno <- ifelse(mama$isDE,"yes","no")
-        mama$yesorno <- ifelse(mama$isDE,"red","black")
-        mama$logmean <- log10(mama$mean) # TO ALLOW FOR BRUSHING!!
-        res <- brushedPoints(mama, input$ma_brush,xvar="logmean",yvar="lfc")
-        res
-      })
-      
-      
-      curDataClick <- reactive({
-        mama <- data.frame(mean=values$res_obj$baseMean,lfc=values$res_obj$log2FoldChange,padj = values$res_obj$padj,isDE= ifelse(is.na(values$res_obj$padj), FALSE, values$res_obj$padj < 0.10),ID=rownames(values$res_obj))
-        mama$genename <- values$annotation_obj$gene_name[match(mama$ID,rownames(values$annotation_obj))]
-        # mama$yesorno <- ifelse(mama$isDE,"yes","no")
-        mama$yesorno <- ifelse(mama$isDE,"red","black")
-        mama$logmean <- log10(mama$mean) # TO ALLOW FOR BRUSHING!!
-        res <- nearPoints(mama, input$mazoom_click,threshold = 20, maxpoints = 1,
-                          addDist = TRUE)
-        res
-      })
-      
-      
-      
-      
-      output$ma_brush_out <- DT::renderDataTable({
-        if(nrow(curData())==0)
-          return(NULL)
-        # browser()
-        # curData()
-        brushedObject <- curData()
-        selectedGenes <- as.character(brushedObject$ID)
-        rownames(brushedObject) = selectedGenes
-        brushedObject
-      },options=list(pageLength=100))
-      
-      output$selectedGenesMAplot <- renderText({
-        brushedObject <- curData()
-        selectedGenes <- as.character(brushedObject$ID)
-        paste(selectedGenes, collapse = " ")
-      })
-      output$heatbrush <- renderPlotly({
-        if((is.null(input$ma_brush))|is.null(values$dds_obj)) {
-          return(NULL)
-        }
-        #
-        
-        brushedObject <- curData()
-        selectedGenes <- as.character(brushedObject$ID)
-        toplot <- assay(values$dds_obj)[selectedGenes,]
-        rownames(toplot) <- values$annotation_obj$gene_name[match(rownames(toplot),rownames(values$annotation_obj))]
-        
-        if(input$pseudocounts) toplot <- log2(1+toplot)
-        mat_rowscale <- function(x)
-        {
-          m <- apply(x, 1, mean, na.rm = TRUE)
-          s <- apply(x, 1, sd, na.rm = TRUE)
-          return((x - m)/s)
-        }
-        if(input$rowscale) toplot <- mat_rowscale(toplot)
-        heatmaply::heatmaply(toplot,cluster_cols = as.logical(input$heatmap_colv))
-      })
-      
-      
-      output$hpi_brush <- renderPlotly({
-        # if((is.null(input$ma_brush))|is.null(values$dds_obj)) {
-        #   # plot(100:1)
-        # }
-        #return(NULL)
-        # browser()
-        brushedObject <- curData()
-        selectedGenes <- as.character(brushedObject$ID)
-        toplot <- assay(values$dds_obj)[selectedGenes,]
-        rownames(toplot) <- values$annotation_obj$gene_name[match(rownames(toplot),rownames(values$annotation_obj))]
-        mycolss <- c("#313695","#4575b4","#74add1","#abd9e9","#e0f3f8","#fee090","#fdae61","#f46d43","#d73027","#a50026") # to be consistent with red/blue usual coding
-        if(input$pseudocounts) toplot <- log2(1+toplot)
-        mat_rowscale <- function (x)
-        {
-          m = apply(x, 1, mean, na.rm = TRUE)
-          s = apply(x, 1, sd, na.rm = TRUE)
-          return((x - m)/s)
-        }
-        if(input$rowscale) toplot <- mat_rowscale(toplot)
-        if(nrow(toplot) <1){
-          cat(file = stderr(), "\ntoplot nrow <1\n")
-          return(NULL)
-        }
-        heatmaply::heatmaply(toplot,Colv = as.logical(input$heatmap_colv),colors = mycolss, cexCol = 1)
-      })
-      
-      
-      output$deb <- renderPrint({
-        # curDataClick()
-        selectedGene <- curDataClick()$ID
-        #         selectedGeneSymbol <- cm2$fromgtf[match(selectedGene,rownames(cm2))]
-        #         # plotCounts(dds_cleaner,)
-        #         genedata <- plotCounts(dds_cleaner,gene=selectedGene,intgroup = "condition",returnData = T)
-        #         genedata
-        # str(as.character(selectedGene))
-        selectedGene
-      })
-      
-      output$volcanoplot <- renderPlotly({
-        p <- plot_volcano(values$res_obj, FDR = input$FDR)
-        exportPlots$plot_volcanoplot <- p
-        plotly::ggplotly(p)
-      })
-      
-      # server genefinder --------------------------------------------------------
-      output$genefinder_plot <- renderPlot({
-        
-        shiny::validate(
-          need(
-            length(input$color_by)>0,
-            "Select an experimental factor in the Group/color by element in the sidebar"
-          )
-        )
-        shiny::validate(
-          need(
-            !is.null(values$annotation_obj),
-            "Please set the annotation"
-          )
-        )
-        
-        if(is.null(input$ma_brush)) return(NULL)
-        
-        if(is.null(input$mazoom_click)) return(ggplot() + annotate("text",label="click to generate the boxplot\nfor the selected gene",0,0) + theme_bw())
-        
-        selectedGene <- as.character(curDataClick()$ID)
-        selectedGeneSymbol <- values$annotation_obj$gene_name[match(selectedGene,values$annotation_obj$gene_id)]
-        
-        p <- ggplotCounts(values$dds_obj, selectedGene, intgroup = input$color_by, annotation_obj=values$annotation_obj)
-        
-        if(input$ylimZero_genes)
-          p <- p + ylim(0.1, NA)
-        
-        exportPlots$plot_genefinder <- p
-        p
-      })
-      
-      output$rentrez_infobox <- renderUI({
-        shiny::validate(
-          need(
-            (nrow(curDataClick()) > 0),
-            "Select a gene first to display additional info (retrieved from the NCBI/ENTREZ db website)"
-          )
-        )
-        shiny::validate(
-          need(
-            (!is.null(values$cur_species)),
-            "Select a species first in the Data Setup panel"
-          )
-        )
-        # browser()
-        selectedGene <- as.character(curDataClick()$ID)
-        selgene_entrez <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
-                                 selectedGene, "ENTREZID", values$cur_type)
-        fullinfo <- geneinfo(selgene_entrez)
-        
-        ## TODO: build up link manually to paste under the info!
-        #
-        link_pubmed <- paste0('<a href="http://www.ncbi.nlm.nih.gov/gene/?term=',
-                              selgene_entrez,
-                              '" target="_blank" >Click here to see more at NCBI</a>')
-        
-        if(fullinfo$summary == "")
-          return(HTML(paste0("<b>",fullinfo$name, "</b><br/><br/>",
-                             fullinfo$description,"<br/><br/>",
-                             link_pubmed
-          )))
-        else
-          return(HTML(paste0("<b>",fullinfo$name, "</b><br/><br/>",
-                             fullinfo$description, "<br/><br/>",
-                             fullinfo$summary, "<br/><br/>",
-                             link_pubmed
-          )))
-      })
-      
-      
-      cur_combires <- reactive({
-        
-        if(is.null(values$res_obj))
-          return(NULL)
-        
-        normCounts <- as.data.frame(counts(estimateSizeFactors(values$dds_obj),normalized=TRUE))
-        normCounts$id <- rownames(normCounts)
-        res_df <- deseqresult2tbl(values$res_obj)
-        
-        combi_obj <- dplyr::inner_join(res_df,normCounts,by="id")
-        combi_obj$symbol <- values$annotation_obj$gene_name[match(combi_obj$id,values$annotation_obj$gene_id)]
-        
-        
-        if("symbol" %in% names(values$res_obj)) {
-          sel_genes <- input$avail_symbols
-          sel_genes_ids <- values$annotation_obj$gene_id[match(sel_genes,values$annotation_obj$gene_name)]
-        } else {
-          sel_genes_ids <- input$avail_ids
-        }
-        
-        if(length(sel_genes_ids) > 0) {
-          combi_obj[match(sel_genes_ids,combi_obj$id),]
-        } else {
-          combi_obj
-        }
-      })
-      
-      output$table_combi <- DT::renderDataTable({
-        datatable(cur_combires(),options = list(scrollX=TRUE))
-      })
-      
-      cur_combires_list <- reactive({
-        if(is.null(values$res_obj))
-          return(NULL)
-        
-        normCounts <- as.data.frame(counts(estimateSizeFactors(values$dds_obj),normalized=TRUE))
-        normCounts$id <- rownames(normCounts)
-        res_df <- deseqresult2tbl(values$res_obj)
-        
-        combi_obj <- dplyr::inner_join(res_df,normCounts,by="id")
-        combi_obj$symbol <- values$annotation_obj$gene_name[match(combi_obj$id,values$annotation_obj$gene_id)]
-        
-        
-        if("symbol" %in% names(values$res_obj)) {
-          sel_genes <- values$genelist_ma$`Gene Symbol`
-          sel_genes_ids <- values$annotation_obj$gene_id[match(sel_genes,values$annotation_obj$gene_name)]
-        } else {
-          # sel_genes_ids <- values$genelist_ma$`Gene Symbol`
-        }
-        
-        if(length(sel_genes_ids) > 0) {
-          combi_obj[match(sel_genes_ids,combi_obj$id),]
-        } else {
-          combi_obj
-        }
-      })
-      
-      output$table_combi_list <- DT::renderDataTable({
-        if(is.null(values$genelist_ma))
-          return(NULL)
-        datatable(cur_combires_list(),options = list(scrollX=TRUE))
-      })
-      
-      output$bp1 <- renderPlot({
-        shiny::validate(
-          need(
-            length(input$color_by)>0,
-            "Select an experimental factor in the Group/color by element in the sidebar"
-          )
-        )
-        shiny::validate(
-          need(
-            (length(input$avail_symbols)>0 | length(input$avail_ids)>0),
-            "Select at least a gene to plot"
-          )
-        )
-        if(length(input$avail_symbols)>0) {
-          # got the symbol, look for the id
-          mysym <- input$avail_symbols[1]
-          myid <- values$annotation_obj$gene_id[match(mysym, values$annotation_obj$gene_name)]
-        } else {
-          myid <- input$avail_ids[1]
-          # make it optional if annot is available
-          if(!is.null(values$annotation_obj)) {
-            mysim <- values$annotation_obj$gene_name[match(myid, values$annotation_obj$gene_id)]
-          } else {
-            mysim <- ""
-          }
-        }
-        p <- ggplotCounts(values$dds_obj, myid, intgroup = input$color_by, annotation_obj=values$annotation_obj)
-        if(input$ylimZero_genefinder)
-          p <- p + ylim(0.1, NA)
-        exportPlots$plotbp1 <- p
-        p
-      })
-      
-      output$bp2 <- renderPlot({
-        shiny::validate(
-          need(
-            length(input$color_by)>0,
-            "Select an experimental factor in the Group/color by element in the sidebar"
-          )
-        )
-        shiny::validate(
-          need(
-            (length(input$avail_symbols)>1 | length(input$avail_ids)>1),
-            "Select at least a second gene to plot"
-          )
-        )
-        if(length(input$avail_symbols)>0) {
-          # got the symbol, look for the id
-          mysym <- input$avail_symbols[2]
-          myid <- values$annotation_obj$gene_id[match(mysym, values$annotation_obj$gene_name)]
-        } else {
-          myid <- input$avail_ids[2]
-          # make it optional if annot is available
-          if(!is.null(values$annotation_obj)) {
-            mysim <- values$annotation_obj$gene_name[match(myid, values$annotation_obj$gene_id)]
-          } else {
-            mysim <- ""
-          }
-        }
-        p <- ggplotCounts(values$dds_obj, myid, intgroup = input$color_by,annotation_obj=values$annotation_obj)
-        if(input$ylimZero_genefinder)
-          p <- p + ylim(0.1, NA)
-        exportPlots$plotbp2 <- p
-        p
-      })
-      
-      output$bp3 <- renderPlot({
-        shiny::validate(
-          need(
-            length(input$color_by)>0,
-            "Select an experimental factor in the Group/color by element in the sidebar"
-          )
-        )
-        shiny::validate(
-          need(
-            (length(input$avail_symbols)>2 | length(input$avail_ids)>2),
-            "Select at least a third gene to plot"
-          )
-        )
-        if(length(input$avail_symbols)>0) {
-          # got the symbol, look for the id
-          mysym <- input$avail_symbols[3]
-          myid <- values$annotation_obj$gene_id[match(mysym, values$annotation_obj$gene_name)]
-        } else {
-          myid <- input$avail_ids[3]
-          # make it optional if annot is available
-          if(!is.null(values$annotation_obj)) {
-            mysim <- values$annotation_obj$gene_name[match(myid, values$annotation_obj$gene_id)]
-          } else {
-            mysim <- ""
-          }
-        }
-        p <- ggplotCounts(values$dds_obj, myid, intgroup = input$color_by,annotation_obj=values$annotation_obj)
-        if(input$ylimZero_genefinder)
-          p <- p + ylim(0.1, NA)
-        exportPlots$plotbp3 <- p
-        p
-      })
-      
-      output$bp4 <- renderPlot({
-        shiny::validate(
-          need(
-            length(input$color_by)>0,
-            "Select an experimental factor in the Group/color by element in the sidebar"
-          )
-        )
-        shiny::validate(
-          need(
-            (length(input$avail_symbols)>3 | length(input$avail_ids)>3),
-            "Select at least a fourth gene to plot"
-          )
-        )
-        if(length(input$avail_symbols)>0) {
-          # got the symbol, look for the id
-          mysym <- input$avail_symbols[4]
-          myid <- values$annotation_obj$gene_id[match(mysym, values$annotation_obj$gene_name)]
-        } else {
-          myid <- input$avail_ids[4]
-          # make it optional if annot is available
-          if(!is.null(values$annotation_obj)) {
-            mysim <- values$annotation_obj$gene_name[match(myid, values$annotation_obj$gene_id)]
-          } else {
-            mysim <- ""
-          }
-        }
-        p <- ggplotCounts(values$dds_obj, myid, intgroup = input$color_by,annotation_obj=values$annotation_obj)
-        if(input$ylimZero_genefinder)
-          p <- p + ylim(0.1, NA)
-        exportPlots$plotbp4 <- p
-        dds = values$dds_obj
-        ann =values$annotation_obj
-        cb=input$color_by
-        # save(file = "~/SCHNAPPsDebug/idealImmunoTP2.RData", list = ls())
-        # cp = load("~/SCHNAPPsDebug/idealImmunoTP2.RData")
-        ggplotCounts(dds, myid, intgroup=cb, annotation_obj = ann)
-        p
-      })
-      
-      output$plotCoefficients<- renderPlot({
-        shiny::validate(
-          need(
-            length(input$color_by)>0,
-            "Select an experimental factor in the Group/color by element in the sidebar"
-          )
-        )
-        shiny::validate(
-          need(
-            (length(input$avail_symbols)>0 | length(input$avail_ids)>0),
-            "Select at least a gene to plot"
-          )
-        )
-        # browser()
-        mysym <- input$avail_symbols[1]
-        myid <- values$annotation_obj$gene_id[match(mysym, values$annotation_obj$gene_name)]
-        plotCoefficients(values$dds_obj, myid, legend = T)
-        
-        
-      })
-      
-      # server report editor --------------------------------------------------------
-      ### yaml generation
-      rmd_yaml <- reactive({
-        paste0("---",
-               "\ntitle: '", input$report_title,
-               "'\nauthor: '", input$report_author,
-               "'\ndate: '", Sys.Date(),
-               "'\noutput:\n  html_document:\n    toc: ", input$report_toc, "\n    number_sections: ", input$report_ns, "\n    theme: ", input$report_theme, "\n---\n\n",collapse = "\n")
-      })
-      
-      
-      # rmd_full <- reactive({
-      #   paste0(rmd_yaml(),"\n",
-      #          readLines("reportTemplate.Rmd"))
-      # })
-      # output$loadedRmd <- renderPrint({
-      #   # rmd_yaml() # or rmd_full()
-      #   paste0(
-      #     # rmd_yaml(),
-      #     paste0(readLines("reportTemplate.Rmd"),collapse = "\n"))
-      #   # head(paste0(rmd_yaml(),
-      #   # readLines("reportTemplate.Rmd")),collapse="\n")
-      # })
-      
-      ### loading report template
-      # update aceEditor module
-      observe({
-        # loading rmd report from disk
-        inFile <- system.file("extdata", "irt.Rmd",package = "idealImmunoTP")
-        
-        isolate({
-          if(!is.null(inFile) && !is.na(inFile)) {
-            
-            rmdfilecontent <- paste0(readLines(inFile),collapse="\n")
-            
-            shinyAce::updateAceEditor(session, "acereport_rmd", value = rmdfilecontent)
-          }
-        })
-      })
-      
-      
-      ### ace editor options
-      # observe({
-      #   autoComplete <- if(input$enableAutocomplete) {
-      #     if(input$enableLiveCompletion) "live" else "enabled"
-      #   } else {
-      #     "disabled"
-      #   }
-      #   
-      #   updateAceEditor(session, "acereport_rmd", autoComplete = autoComplete,theme=input$theme, mode=input$mode)
-      #   # updateAceEditor(session, "plot", autoComplete = autoComplete)
-      # })
-      
-      # #Enable/Disable R code completion
-      # rmdOb <- aceAutocomplete("acereport_rmd")
-      # observe({
-      #   if(input$enableRCompletion) {
-      #     rmdOb$resume()
-      #   } else {
-      #     rmdOb$suspend()
-      #   }
-      # })
-      
-      # ## currently not working as I want with rmarkdown::render, but can leave it like this - the yaml will be taken in the final version only
-      # output$knitDoc <- renderUI({
-      #   input$updatepreview_button
-      #   
-      #   
-      #   ## TODO: this does what it should do but messes up with CSS and so
-      #   #
-      #   #     # error_I <- 0
-      #   #     withProgress(message = 'Processing', value = 0, {
-      #   #       isolate({
-      #   #         fileConn<-file("www/tmp.Rmd")
-      #   #         tmp_content <-
-      #   #           paste0(rmd_yaml(),
-      #   #                  input$acereport_rmd,collapse = "\n")
-      #   #         writeLines(tmp_content, fileConn)
-      #   #         close(fileConn)
-      #   #         incProgress(0.5, detail = "Synthesizing report...")
-      #   #         # tryCatch({
-      #   #           rmarkdown::render(input = "www/tmp.Rmd", output_format = "html_document", output_file = "../www/Rmd_preview.html",quiet = TRUE) #},
-      #   #           # error = function(e) {
-      #   #           #   # error_I <<- 1
-      #   #           # }
-      #   #         # )
-      #   #       })
-      #   #       setProgress(1)
-      #   #     })
-      #   #
-      #   #     return(isolate(includeHTML("www/Rmd_preview.html")))
-      #   #     # return(isolate(includeHTML("<iframe src='www/Rmd_preview.html', width='100%', height='800'></iframe>")))
-      #   #     # return(isolate(HTML("<iframe src='www/Rmd_preview.html', width='100%', height='800'></iframe>")))
-      #   
-      #   
-      #   return(
-      #     withProgress({
-      #       # temporarily switch to the temp dir, in case you do not have write
-      #       # permission to the current working directory
-      #       owd <- setwd(tempdir())
-      #       on.exit(setwd(owd))
-      #       tmp_content <- paste0(rmd_yaml(),input$acereport_rmd,collapse = "\n")
-      #       isolate(HTML(knit2html(text = tmp_content, fragment.only = TRUE, quiet = TRUE)))
-      #     },
-      #     message = "Updating the report in the app body",
-      #     detail = "This can take some time"
-      #     )
-      #   )
-      # })
-      # 
-      # # Generate and Download module
-      # output$saveRmd <- downloadHandler(
-      #   filename = function() {
-      #     if(input$rmd_dl_format == "rmd") {
-      #       "report.Rmd"
-      #     } else {
-      #       "report.html" # TODO: maybe add Sys.time() to the filename to improve traceability?
-      #     }
-      #   },
-      #   content = function(file) {
-      #     
-      #     # knit2html(text = input$rmd, fragment.only = TRUE, quiet = TRUE))
-      #     
-      #     tmp_content <-
-      #       paste0(rmd_yaml(),
-      #              input$acereport_rmd,collapse = "\n")
-      #     if(input$rmd_dl_format == "rmd") {
-      #       cat(tmp_content,file=file,sep="\n")
-      #     } else {
-      #       if(input$rmd_dl_format == "html") {
-      #         # temporarily switch to the temp dir, in case you do not have write
-      #         # permission to the current working directory
-      #         owd <- setwd(tempdir())
-      #         on.exit(setwd(owd))
-      #         cat(tmp_content,file="ideal_tempreport.Rmd",sep="\n")
-      #         withProgress(rmarkdown::render(input = "ideal_tempreport.Rmd",
-      #                                        output_file = file,
-      #                                        # fragment.only = TRUE,
-      #                                        quiet = TRUE),
-      #                      message = "Generating the html report",
-      #                      detail = "This can take some time")
-      #       }
-      #     }
-      #   }
       # )
       
-      output$ui_iSEEexport <- renderUI({
-        validate(
-          need(((!is.null(values$dds_obj)) & (!is.null(values$res_obj))),
-               message = "Please build and compute the dds and res object to export as 
-             SummarizedExperiment for use in iSEE")
+      # if(input$choose_expfac=="" | input$fac1_c1 == "" | input$fac1_c2 == "" | input$fac1_c1 == input$fac1_c2)
+      #   return(NULL)
+      # else
+      actionButton("button_runresults","Extract the results!", icon = icon("spinner"), class = "btn btn-success")
+    })
+    
+    observeEvent(input$button_runresults, {
+      choose_expfac2 <- input$choose_expfac2
+      if (is.null(choose_expfac2)) 
+        choose_expfac2 = character()
+      resultsNames(values$dds_obj)
+      choose_expfac <- input$choose_expfac
+      # choose_expfac <- c("Intercept", "STIMULUS_LPS_vs_antiCD3CD28" )
+      # choose_expfac2 = "STIMULUS_null_vs_antiCD3CD28"
+      # browser()
+      withProgress(message="Computing the results...",
+                   detail = "DE table on its way!",
+                   value = 0,{
+                     # handling the experimental covariate correctly to extract the results...
+                     # if(is.factor(colData(values$dds_obj)[,input$choose_expfac])) {
+                     if(input$resu_ihw) {
+                       values$res_obj <- results(values$dds_obj,
+                                                 # contrast = c(input$choose_expfac, input$fac1_c1, input$fac1_c2),
+                                                 contrast = list(c(choose_expfac),c(choose_expfac2)),
+                                                 independentFiltering = input$resu_indfil, 
+                                                 alpha = input$FDR,
+                                                 filterFun = ihw)
+                       
+                       # if(input$resu_lfcshrink) {
+                       #   incProgress(amount = 0.15,detail = "Results extracted. Shrinking the logFC now...")
+                       #   values$res_obj <- lfcShrink(values$dds_obj,
+                       #                               # contrast = c(input$choose_expfac, input$fac1_c1, input$fac1_c2),
+                       #                               contrast = list(c(input$choose_expfac),c(choose_expfac2)),
+                       #                               res = values$res_obj)
+                       #   incProgress(amount = 0.8,detail = "logFC shrunken, adding annotation info...")
+                       # } else {
+                       incProgress(amount = 0.9,detail = "logFC left unshrunken, adding annotation info...")
+                       # }
+                     } else {
+                       values$res_obj <- results(values$dds_obj,
+                                                 # contrast = c(input$choose_expfac, input$fac1_c1, input$fac1_c2),
+                                                 contrast = list(c(choose_expfac),c(choose_expfac2)),
+                                                 independentFiltering = input$resu_indfil, 
+                                                 alpha = input$FDR)
+                       # if(input$resu_lfcshrink) {
+                       #   incProgress(amount = 0.15,detail = "Results extracted. Shrinking the logFC now...")
+                       #   
+                       #   coef = c("Intercept", "STIMULUS_LPS_vs_antiCD3CD28")
+                       #   values$res_obj <- lfcShrink(values$dds_obj,
+                       #                               # contrast = c(input$choose_expfac, input$fac1_c1, input$fac1_c2),
+                       #                               contrast = list(c(input$choose_expfac),c(choose_expfac2)),
+                       #                               res = values$res_obj,
+                       #                               type = "ashr")
+                       #   incProgress(amount = 0.8,detail = "logFC shrunken, adding annotation info...")
+                       # } else {
+                       incProgress(amount = 0.9,detail = "logFC left unshrunken, adding annotation info...")
+                       # }
+                     }
+                     # }
+                     # should not happen as all are factors,
+                     # BJ commenting out
+                     # if(class(colData(values$dds_obj)[,input$choose_expfac]) %in% c("integer","numeric"))
+                     #   values$res_obj <- results(values$dds_obj,name = input$choose_expfac,
+                     #                             independentFiltering = input$resu_indfil, 
+                     #                             alpha = input$FDR
+                     #                             # , addMLE = input$resu_lfcshrink
+                     #   )
+                     
+                     # adding info from the annotation
+                     if(!is.null(values$annotation_obj))
+                       values$res_obj$symbol <- values$annotation_obj$gene_name[
+                         match(rownames(values$res_obj),
+                               rownames(values$annotation_obj))]
+                   })
+    })
+    
+    output$diyres_summary <- renderPrint({
+      c1  = input$choose_expfac
+      c2 = input$choose_expfac2
+      # browser()
+      shiny::validate(
+        # need(input$choose_expfac!="" & input$fac1_c1 != "" & input$fac1_c2 != "" & input$fac1_c1 != input$fac1_c2 ,
+        need(input$choose_expfac != ""  ,
+             "Please select a coefficient to build the contrast"
         )
-        return(
-          tagList(
-            textInput(
-              "se_export_name",label = "Choose a filename for the serialized .rds object",
-              value = "se_ideal_toiSEE.rds"),
-            downloadButton(
-              "button_iSEEexport",
-              label = "Export as serialized SummarizedExperiment"
-            )
-          )
+      )
+      shiny::validate(
+        need(!is.null(values$res_obj), "Parameters selected, please compute the results first")
+      )
+      # summary(results(values$dds_obj,contrast = c(input$choose_expfac, input$fac1_c1, input$fac1_c2)))
+      summary(values$res_obj,alpha = input$FDR)
+    })
+    
+    output$printdds <- renderPrint({
+      shiny::validate(
+        need(!is.null(values$dds_obj),
+             "Please provide a count matrix/dds object"
         )
-      })
-      
-      output$button_iSEEexport <- downloadHandler(
-        filename = function() {
-          # paste0("se_ideal_toiSEE_",gsub(" ","_",gsub("-","",gsub(":","-",as.character(Sys.time())))),".rds")
-          input$se_export_name
-        }, content = function(file) {
-          se <- wrapup_for_iSEE(values$dds_obj, values$res_obj)
-          saveRDS(se, file = file)
-        }
       )
       
-      # server state saving --------------------------------------------------------
-      ### to environment
-      observe({
-        if(is.null(input$task_exit_and_save) || input$task_exit_and_save ==0 ) return()
-        
-        # quit R, unless you are running an interactive session
-        if(interactive()) {
-          # flush input and values to the environment in two distinct objects (to be reused later?)
-          isolate({
-            
-            # ideal_env <<- new.env(parent = emptyenv())
-            cur_inputs <- reactiveValuesToList(input)
-            cur_values <- reactiveValuesToList(values)
-            tstamp <- gsub(" ","_",gsub("-","",gsub(":","-",as.character(Sys.time()))))
-            
-            # myvar <- "frfr"
-            # assign("test", myvar, ideal_env)
-            
-            # better practice rather than assigning to global env - notify users of this
-            assign(paste0("ideal_inputs_", tstamp),cur_inputs, envir = ideal_env)
-            assign(paste0("ideal_values_", tstamp),cur_values, envir = ideal_env)
-            stopApp("idealImmunoTP closed, state successfully saved to global R environment.")
-            
-            # assign(paste0("ideal_inputs_",
-            #               gsub(" ","_",gsub("-","",gsub(":","-",as.character(Sys.time()))))),
-            #        reactiveValuesToList(input), envir = .GlobalEnv)
-            # assign(paste0("ideal_values_",
-            #               gsub(" ","_",gsub("-","",gsub(":","-",as.character(Sys.time()))))),
-            #        reactiveValuesToList(values), envir = .GlobalEnv)
-            # stopApp("ideal closed, state successfully saved to global R environment.")
-          })
-        } else {
-          stopApp("idealImmunoTP closed")
-          q("no")
-        }
-      })
+      values$dds_obj
+      design(values$dds_obj)
+    })
+    
+    output$printres <- renderPrint({
+      shiny::validate(
+        need(!is.null(values$res_obj),
+             "Please provide a DESeqResults object"
+        )
+      )
+      print(sub(".*p-value: (.*)","\\1",mcols(values$res_obj, use.names=TRUE)["pvalue","description"]))
+      summary(values$res_obj,alpha = input$FDR) # use fdr shiny widget
+    })
+    
+    
+    output$store_result <- renderUI({
+      if(is.null(values$res_obj))
+        return(NULL)
+      actionButton("button_store_result", "Store current results",class = "btn btn-primary")
+    })
+    
+    observeEvent(input$button_store_result,
+                 {
+                   values$stored_res <- values$res_obj
+                   # this is in such a way to store & compare later if some parameters are edited
+                 })
+    
+    output$table_res <- DT::renderDataTable(server=T,{
+      if(is.null(values$res_obj))
+        return(NULL)
+      mydf <- as.data.frame(values$res_obj[order(values$res_obj$padj),])#[1:500,]
+      rownames(mydf) <- createLinkENS(rownames(mydf),species = annoSpecies_df$ensembl_db[match(values$cur_species,annoSpecies_df$species)]) ## TODO: check what are the species from ensembl and
+      ## TODO: add a check to see if wanted?
+      mydf$symbol <- createLinkGeneSymbol(mydf$symbol)
+      # browser()
+      datatable(mydf, extensions = 'Buttons', 
+                options = list(dom = 'lfrtipB', buttons = c('csv')),
+                escape = FALSE, filter = list(position = 'top', clear = FALSE))%>%
+        formatRound(columns=c('baseMean', 'log2FoldChange', 'lfcSE', 'stat', 'pvalue', 'padj'), digits=3)
+    })
+    
+    # server resu diagnostics --------------------------------------------------------
+    output$pvals_hist <- renderPlot({
+      shiny::validate(
+        need(!is.null(values$res_obj),message = "")
+      )
       
-      ### to binary data
-      saveState <- function(filename) {
-        isolate({
-          LiveInputs <- reactiveValuesToList(input)
-          # values[names(LiveInputs)] <- LiveInputs
-          r_data <- reactiveValuesToList(values)
-          save(LiveInputs, r_data , file = filename)
-        })
+      res_df <- as.data.frame(values$res_obj)
+      res_df <- dplyr::filter(res_df, !is.na(pvalue))
+      p <- ggplot(res_df, aes_string("pvalue")) +
+        geom_histogram(binwidth = 0.01, boundary = 0) + theme_bw()
+      
+      # for visual estimation of the false discovery proportion in the first bin
+      alpha <- binw <- input$FDR
+      pi0 <- 2*mean(res_df$pvalue > 0.5)
+      p <- p + geom_hline(yintercept = pi0 * binw * nrow(res_df), col = "steelblue") + 
+        geom_vline(xintercept = alpha, col = "red")
+      
+      p <- p + ggtitle(
+        label = "p-value histogram",
+        subtitle = paste0(
+          "Expected nulls = ", pi0 * binw * nrow(res_df), 
+          " - #elements in the selected bins = ", sum(res_df$pvalue < alpha)
+        ))
+      
+      exportPlots$plot_pvals_hist <- p
+      p
+      
+    })
+    
+    output$pvals_hist_strat <- renderPlot({
+      shiny::validate(
+        need(!is.null(values$res_obj),message = "")
+      )
+      
+      res_df <- as.data.frame(values$res_obj)
+      res_df <- dplyr::filter(res_df, !is.na(pvalue))
+      
+      res_df <- mutate(
+        res_df, 
+        stratum = cut(baseMean, include.lowest = TRUE, 
+                      breaks = signif(quantile(baseMean, probs = seq(0,1, length.out = 10)),2)))
+      
+      p <- ggplot(res_df, aes_string("pvalue")) +
+        geom_histogram(binwidth = 0.01, boundary = 0) + 
+        facet_wrap(~stratum) + 
+        theme_bw()
+      
+      p <- p + ggtitle(
+        label = "p-value histogram",
+        subtitle = "stratified on the different value classes of mean expression values")
+      
+      exportPlots$plot_pvals_hist_strat <- p
+      p
+    })
+    
+    output$pvals_ss <- renderPlot({
+      shiny::validate(
+        need(!is.null(values$res_obj),message = "")
+      )
+      
+      res_df <- as.data.frame(values$res_obj)
+      res_df <- dplyr::filter(res_df, !is.na(pvalue))
+      
+      phi <- input$FDR
+      res_df <- mutate(res_df, rank = rank(pvalue))
+      m <- nrow(res_df)
+      
+      p <- ggplot(filter(res_df, rank <= 6000), 
+                  aes_string(x = "rank", y = "pvalue")) + 
+        geom_line() + 
+        geom_abline(slope = phi/m, col = "red") + 
+        theme_bw()
+      
+      p <- p + ggtitle(
+        label = "Schweder-Spjotvoll plot",
+        subtitle = paste0(
+          "Intersection point at rank ", with(arrange(res_df,rank), last(which(pvalue <= phi * rank / m))))
+      )
+      exportPlots$plot_pvals_ss <- p
+      p
+    })
+    
+    
+    output$logfc_hist <- renderPlot({
+      shiny::validate(
+        need(!is.null(values$res_obj),message = "")
+      )
+      res_df <- as.data.frame(values$res_obj)
+      res_df <- dplyr::filter(res_df, !is.na(pvalue))
+      
+      p <- ggplot(res_df, aes_string("log2FoldChange")) +
+        geom_histogram(binwidth = 0.1) + theme_bw()
+      
+      p <- p + ggtitle(
+        "Histogram of the log2 fold changes"
+      )
+      
+      exportPlots$plot_logfc_hist <- p
+      p
+    })
+    
+    
+    output$dds_design <- renderPrint({
+      design(values$dds_obj)
+    })
+    
+    output$res_names <- renderPrint({
+      resultsNames(values$dds_obj)
+    })
+    
+    output$explore_res <- renderPrint({
+      expfac <- attributes(terms.formula(design(values$dds_obj)))$term.labels
+      expfac # plus, support up to four factors that are either there or not according to the length
+    })
+    
+    output$nonZeroCountsPlot <- renderPlot({
+      # browser()
+      if(is.null(values$dds_obj)) return(NULL)
+      counts <- assays(values$dds_obj)[["counts"]]
+      # colSums sums over each column producing a vector of counts.
+      countsNz <- colSums(counts)
+      # adjust the maximum for being able to plot numbers on top of the bars
+      ylim <- c(0, 1.3 * max(countsNz))
+      # las=2 rotates the labels
+      par(mar = c(4, 10, 4, 2) + 0.1)
+      xx <- barplot(countsNz,
+                    xlim = ylim, main = "number of non-zero countsNz",
+                    las = 2, horiz = T, cex.names = 0.75
+      )
+      text(
+        y = xx, x = countsNz, label = prettyNum(countsNz, big.mark = ","),
+        pos = 4, cex = 0.6, col = "darkgreen"
+      )
+    })
+    output$alignedSequencesPlot <- renderPlot({
+      if(is.null(values$dds_obj)) return(NULL)
+      counts <- assays(values$dds_obj)[["counts"]]
+      ylim <- c(0, 1.4 * max(colSums(counts)))
+      op <- par(mar = c(4, 10, 4, 2) + 0.1)
+      
+      # Here we use a different orientation of the bar plot.
+      xx <- barplot(colSums(counts),
+                    xlim = ylim, main = "Number of Aligned Sequences",
+                    horiz = T, las = 2, cex.names = 0.75
+      )
+      text(
+        y = xx, x = colSums(counts), label = prettyNum(colSums(counts),
+                                                       big.mark = ","
+        ), pos = 4,
+        cex = 0.8, col = "red"
+      )
+    })
+    # output$correlationPlot <- renderPlot({
+    #   # Predifined color tables, i.e. ordered colours used for plotting.
+    #   suppressMessages(require("RColorBrewer"))
+    #   
+    #   counts <- assays(dds_obj)[["counts"]]
+    #   
+    #   # Apply a 'regularized log' transformation
+    #   rld <- vst(counts, blind = FALSE)
+    #   
+    #   # t() transposes a matrix
+    #   # The dist() function computes and returns the distance matrix computed by
+    #   # using the specified distance measure to compute the distances between the
+    #   # rows of a data matrix.
+    #   sampleDists <- dist(t(rld))
+    #   
+    #   # since the dist function returns its own class (see class(sampleDists)) we
+    #   # have to transform it to a matrix for plotting.
+    #   sampleDistMatrix <- as.matrix(sampleDists)
+    #   # we can set either the column names or the row names to NULL. For
+    #   # visualization in a Word document it is better to remove the row names
+    #   rownames(sampleDistMatrix) <- NULL
+    #   colors <- colorRampPalette(rev(brewer.pal(9, "Blues")))(255)
+    #   # add information about other meta data
+    #   save(file = "~/SCHNAPPsDebug/idealImmunoTP.RData", list = c(ls()))
+    #   # load(file = "~/SCHNAPPsDebug/idealImmunoTP.RData")
+    #   cat(file = stderr(), "\npheatmap\n\n")
+    #   browser()
+    #   class(pheatmap(sampleDistMatrix,
+    #            clustering_distance_rows = sampleDists,
+    #            clustering_distance_cols = sampleDists,
+    #            col = colors
+    #   ))
+    # })
+    
+    output$plotma <- renderPlot({
+      p <- plot_ma(values$res_obj,annotation_obj = values$annotation_obj,FDR = input$FDR)
+      exportPlots$plot_ma <- p
+      p
+    })
+    
+    output$mazoom <- renderPlot({
+      if(is.null(input$ma_brush)) return(ggplot() + annotate("text",label="click and drag to zoom in",0,0) + theme_bw())
+      
+      if(!is.null(values$annotation_obj))
+        p <- plot_ma(values$res_obj,annotation_obj = values$annotation_obj,FDR = input$FDR) +
+          coord_cartesian(xlim = c(input$ma_brush$xmin,input$ma_brush$xmax),
+                          ylim = c(input$ma_brush$ymin,input$ma_brush$ymax)) +
+          geom_text(aes_string(label="genename"),size=input$size_genelabels,hjust=0.25, vjust=-0.75)
+      else
+        p <-  plot_ma(values$res_obj,annotation_obj = values$annotation_obj,FDR = input$FDR) +
+          coord_cartesian(xlim = c(input$ma_brush$xmin,input$ma_brush$xmax),
+                          ylim = c(input$ma_brush$ymin,input$ma_brush$ymax))
+      exportPlots$plot_mazoom <- p
+      p
+    })
+    
+    output$ma_highlight <- renderPlot({
+      shiny::validate(
+        need(!is.null(values$res_obj),message = "Please generate the results object to display the plot and show the combined tables")
+      )
+      
+      if("symbol" %in% names(values$res_obj)) {
+        p <- plot_ma(values$res_obj,
+                     intgenes = input$avail_symbols,annotation_obj = values$annotation_obj,FDR = input$FDR)
+      } else {
+        p <- plot_ma(values$res_obj,
+                     intgenes = input$avail_ids,annotation_obj = values$annotation_obj,FDR = input$FDR)
       }
       
-      output$task_state_save <- downloadHandler(
-        filename = function() {
-          paste0("idealState_",gsub(" ","_",gsub("-","",gsub(":","-",as.character(Sys.time())))),".RData")
-        },
-        content = function(file) {
-          saveState(file)
-        }
-      )
-      
-      output$sessioninfo <- renderPrint({
-        sessionInfo()
-      })
-      
-      # server export plots and tables --------------------------------------------------------
-      
-      ## here, all export of plots and tables
-      output$download_plot_pvals_hist <- downloadHandler(filename = function() {
-        input$filename_plot_pvals_hist
-      }, content = function(file) {
-        ggsave(file, exportPlots$plot_pvals_hist, width = input$export_width,
-               height = input$export_height, units = "cm")
-      })
-      
-      output$download_plot_logfc_hist <- downloadHandler(filename = function() {
-        input$filename_plot_logfc_hist
-      }, content = function(file) {
-        ggsave(file, exportPlots$plot_logfc_hist, width = input$export_width,
-               height = input$export_height, units = "cm")
-      })
-      
-      output$download_plot_ma <- downloadHandler(filename = function() {
-        input$filename_plot_ma
-      }, content = function(file) {
-        ggsave(file, exportPlots$plot_ma, width = input$export_width,
-               height = input$export_height, units = "cm")
-      })
-      
-      output$download_plot_mazoom <- downloadHandler(filename = function() {
-        input$filename_plot_mazoom
-      }, content = function(file) {
-        ggsave(file, exportPlots$plot_mazoom, width = input$export_width,
-               height = input$export_height, units = "cm")
-      })
-      
-      output$download_plot_mahighlight <- downloadHandler(filename = function() {
-        input$filename_plot_mahighlight
-      }, content = function(file) {
-        ggsave(file, exportPlots$plot_mahighlight, width = input$export_width,
-               height = input$export_height, units = "cm")
-      })
-      
-      output$download_plot_mahllist <- downloadHandler(filename = function() {
-        input$filename_plot_mahllist
-      }, content = function(file) {
-        ggsave(file, exportPlots$plot_mahllist, width = input$export_width,
-               height = input$export_height, units = "cm")
-      })
-      
-      output$download_plot_volcanoplot <- downloadHandler(filename = function() {
-        input$filename_plot_volcanoplot
-      }, content = function(file) {
-        ggsave(file, exportPlots$plot_volcanoplot, width = input$export_width,
-               height = input$export_height, units = "cm")
-      })
-      
-      output$download_plot_genefinder <- downloadHandler(filename = function() {
-        input$filename_plot_genefinder
-      }, content = function(file) {
-        ggsave(file, exportPlots$plot_genefinder, width = input$export_width,
-               height = input$export_height, units = "cm")
-      })
-      
-      output$download_plotbp1 <- downloadHandler(filename = function() {
-        input$filename_plotbp1
-      }, content = function(file) {
-        ggsave(file, exportPlots$plotbp1, width = input$export_width,
-               height = input$export_height, units = "cm")
-      })
-      
-      output$download_plotbp2 <- downloadHandler(filename = function() {
-        input$filename_plotbp2
-      }, content = function(file) {
-        ggsave(file, exportPlots$plotbp2, width = input$export_width,
-               height = input$export_height, units = "cm")
-      })
-      
-      output$download_plotbp3 <- downloadHandler(filename = function() {
-        input$filename_plotbp3
-      }, content = function(file) {
-        ggsave(file, exportPlots$plotbp3, width = input$export_width,
-               height = input$export_height, units = "cm")
-      })
-      
-      output$download_plotbp4 <- downloadHandler(filename = function() {
-        input$filename_plotbp4
-      }, content = function(file) {
-        ggsave(file, exportPlots$plotbp4, width = input$export_width,
-               height = input$export_height, units = "cm")
-      })
-      
-      # tbls
-      output$downloadTblResu <- downloadHandler(
-        filename = function() {
-          "table_results.csv"
-        },
-        content = function(file) {
-          mydf <- as.data.frame(values$res_obj[order(values$res_obj$padj),])
-          write.csv(mydf, file)
-        }
-      )
-      output$downloadTblMabrush <- downloadHandler(
-        filename = function() {
-          "table_mabrush.csv"
-        },
-        content = function(file) {
-          write.csv(curData(), file)
-        }
-      )
-      output$downloadTblCombi <- downloadHandler(
-        filename = function() {
-          "table_combi.csv"
-        },
-        content = function(file) {
-          write.csv(cur_combires(), file)
-        }
-      )
-      output$downloadTblCombiList <- downloadHandler(
-        filename = function() {
-          "table_combilist.csv"
-        },
-        content = function(file) {
-          write.csv(cur_combires_list(), file)
-        }
-      )
-      
-      # base graphics plots
-      output$download_plot_heatbrush <- downloadHandler(filename = function() {
-        input$filename_plot_heatbrush
-      }, content = function(file) {
-        pdf(file)
-        brushedObject <- curData()
-        
-        selectedGenes <- as.character(brushedObject$ID)
-        toplot <- assay(values$dds_obj)[selectedGenes,]
-        rownames(toplot) <- values$annotation_obj$gene_name[match(rownames(toplot),rownames(values$annotation_obj))]
-        
-        if(input$pseudocounts) toplot <- log2(1+toplot)
-        
-        mat_rowscale <- function(x)
-        {
-          m <- apply(x, 1, mean, na.rm = TRUE)
-          s <- apply(x, 1, sd, na.rm = TRUE)
-          return((x - m)/s)
-        }
-        
-        if(input$rowscale) toplot <- mat_rowscale(toplot)
-        
-        heatmaply(toplot,cluster_cols = as.logical(input$heatmap_colv))
-        dev.off()
-      })
-      
-      output$download_plot_vennlists <- downloadHandler(filename = function() {
-        input$filename_plot_vennlists
-      }, content = function(file) {
-        pdf(file)
-        gplots::venn(gll())
-        dev.off()
-      })
-      
-      output$download_plot_upsetlists <- downloadHandler(filename = function() {
-        input$filename_plot_upsetlists
-      }, content = function(file) {
-        pdf(file)
-        UpSetR::upset(fromList(gll()))
-        dev.off()
-      })
-      
-      ## GO tbls topGO
-      output$downloadGOTbl_up <- downloadHandler(
-        filename = function() {
-          "table_GOresults_up.csv"
-        },
-        content = function(file) {
-          write.csv(values$topgo_up, file)
-        }
-      )
-      output$downloadGOTbl_down <- downloadHandler(
-        filename = function() {
-          "table_GOresults_down.csv"
-        },
-        content = function(file) {
-          write.csv(values$topgo_down, file)
-        }
-      )
-      output$downloadGOTbl_updown <- downloadHandler(
-        filename = function() {
-          "table_GOresults_updown.csv"
-        },
-        content = function(file) {
-          write.csv(values$topgo_updown, file)
-        }
-      )
-      output$downloadGOTbl_l1 <- downloadHandler(
-        filename = function() {
-          "table_GOresults_list1.csv"
-        },
-        content = function(file) {
-          write.csv(values$topgo_list1, file)
-        }
-      )
-      output$downloadGOTbl_l2 <- downloadHandler(
-        filename = function() {
-          "table_GOresults_list2.csv"
-        },
-        content = function(file) {
-          write.csv(values$topgo_list2, file)
-        }
-      )
-      output$downloadGOTbl_l3 <- downloadHandler(
-        filename = function() {
-          "table_GOresults_list3.csv"
-        },
-        content = function(file) {
-          write.csv(values$topgo_list3, file)
-        }
-      )
-      output$downloadGOTbl_l4 <- downloadHandler(
-        filename = function() {
-          "table_GOresults_list4.csv"
-        },
-        content = function(file) {
-          write.csv(values$topgo_list4, file)
-        }
-      )
-      
-    }) # end of server function definition
-    #nocov end
+      exportPlots$plot_mahighlight <- p
+      p
+    })
     
-    options(shiny.reactlog=TRUE)
-    # launch the app!
-    shinyApp(ui = idealImmunoTP_ui, server = idealImmunoTP_server, enableBookmarking = "server")
+    output$ma_hl_list <- renderPlot({
+      shiny::validate(
+        need(!is.null(values$genelist_ma),message = "Need a list of ma to plot here")
+      )
+      shiny::validate(
+        need("symbol" %in% names(values$res_obj),
+             message = "Need annotation with symbol column")
+      )
+      if(is.null(values$genelist_ma))
+        return(NULL)
+      if("symbol" %in% names(values$res_obj)) {
+        p <- plot_ma(values$res_obj,
+                     intgenes = values$genelist_ma$`Gene Symbol`,annotation_obj = values$annotation_obj,FDR = input$FDR)
+      } else {
+        # plot_ma(values$res_obj,
+        # intgenes = values$genelist_ma,annotation_obj = values$annotation_obj)
+        return(NULL)
+      }
+      exportPlots$plot_mahllist <- p
+      p
+    })
+    
+    
+    curData <- reactive({
+      mama <- data.frame(mean=values$res_obj$baseMean,lfc=values$res_obj$log2FoldChange,padj = values$res_obj$padj,isDE= ifelse(is.na(values$res_obj$padj), FALSE, values$res_obj$padj < 0.10),ID=rownames(values$res_obj))
+      mama$genename <- values$annotation_obj$gene_name[match(mama$ID,rownames(values$annotation_obj))]
+      # mama$yesorno <- ifelse(mama$isDE,"yes","no")
+      mama$yesorno <- ifelse(mama$isDE,"red","black")
+      mama$logmean <- log10(mama$mean) # TO ALLOW FOR BRUSHING!!
+      res <- brushedPoints(mama, input$ma_brush,xvar="logmean",yvar="lfc")
+      res
+    })
+    
+    
+    curDataClick <- reactive({
+      mama <- data.frame(mean=values$res_obj$baseMean,lfc=values$res_obj$log2FoldChange,padj = values$res_obj$padj,isDE= ifelse(is.na(values$res_obj$padj), FALSE, values$res_obj$padj < 0.10),ID=rownames(values$res_obj))
+      mama$genename <- values$annotation_obj$gene_name[match(mama$ID,rownames(values$annotation_obj))]
+      # mama$yesorno <- ifelse(mama$isDE,"yes","no")
+      mama$yesorno <- ifelse(mama$isDE,"red","black")
+      mama$logmean <- log10(mama$mean) # TO ALLOW FOR BRUSHING!!
+      res <- nearPoints(mama, input$mazoom_click,threshold = 20, maxpoints = 1,
+                        addDist = TRUE)
+      res
+    })
+    
+    
+    
+    
+    output$ma_brush_out <- DT::renderDataTable({
+      if(nrow(curData())==0)
+        return(NULL)
+      # browser()
+      # curData()
+      brushedObject <- curData()
+      selectedGenes <- as.character(brushedObject$ID)
+      rownames(brushedObject) = selectedGenes
+      brushedObject
+    },options=list(pageLength=100))
+    
+    output$selectedGenesMAplot <- renderText({
+      brushedObject <- curData()
+      selectedGenes <- as.character(brushedObject$ID)
+      paste(selectedGenes, collapse = " ")
+    })
+    output$heatbrush <- renderPlotly({
+      if((is.null(input$ma_brush))|is.null(values$dds_obj)) {
+        return(NULL)
+      }
+      #
+      
+      brushedObject <- curData()
+      selectedGenes <- as.character(brushedObject$ID)
+      toplot <- assay(values$dds_obj)[selectedGenes,]
+      rownames(toplot) <- values$annotation_obj$gene_name[match(rownames(toplot),rownames(values$annotation_obj))]
+      
+      if(input$pseudocounts) toplot <- log2(1+toplot)
+      mat_rowscale <- function(x)
+      {
+        m <- apply(x, 1, mean, na.rm = TRUE)
+        s <- apply(x, 1, sd, na.rm = TRUE)
+        return((x - m)/s)
+      }
+      if(input$rowscale) toplot <- mat_rowscale(toplot)
+      heatmaply::heatmaply(toplot,cluster_cols = as.logical(input$heatmap_colv))
+    })
+    
+    
+    output$hpi_brush <- renderPlotly({
+      # if((is.null(input$ma_brush))|is.null(values$dds_obj)) {
+      #   # plot(100:1)
+      # }
+      #return(NULL)
+      # browser()
+      brushedObject <- curData()
+      selectedGenes <- as.character(brushedObject$ID)
+      toplot <- assay(values$dds_obj)[selectedGenes,]
+      rownames(toplot) <- values$annotation_obj$gene_name[match(rownames(toplot),rownames(values$annotation_obj))]
+      mycolss <- c("#313695","#4575b4","#74add1","#abd9e9","#e0f3f8","#fee090","#fdae61","#f46d43","#d73027","#a50026") # to be consistent with red/blue usual coding
+      if(input$pseudocounts) toplot <- log2(1+toplot)
+      mat_rowscale <- function (x)
+      {
+        m = apply(x, 1, mean, na.rm = TRUE)
+        s = apply(x, 1, sd, na.rm = TRUE)
+        return((x - m)/s)
+      }
+      if(input$rowscale) toplot <- mat_rowscale(toplot)
+      if(nrow(toplot) <1){
+        cat(file = stderr(), "\ntoplot nrow <1\n")
+        return(NULL)
+      }
+      heatmaply::heatmaply(toplot,Colv = as.logical(input$heatmap_colv),colors = mycolss, cexCol = 1)
+    })
+    
+    
+    output$deb <- renderPrint({
+      # curDataClick()
+      selectedGene <- curDataClick()$ID
+      #         selectedGeneSymbol <- cm2$fromgtf[match(selectedGene,rownames(cm2))]
+      #         # plotCounts(dds_cleaner,)
+      #         genedata <- plotCounts(dds_cleaner,gene=selectedGene,intgroup = "condition",returnData = T)
+      #         genedata
+      # str(as.character(selectedGene))
+      selectedGene
+    })
+    
+    output$volcanoplot <- renderPlotly({
+      p <- plot_volcano(values$res_obj, FDR = input$FDR)
+      exportPlots$plot_volcanoplot <- p
+      plotly::ggplotly(p)
+    })
+    
+    # server genefinder --------------------------------------------------------
+    output$genefinder_plot <- renderPlot({
+      
+      shiny::validate(
+        need(
+          length(input$color_by)>0,
+          "Select an experimental factor in the Group/color by element in the sidebar"
+        )
+      )
+      shiny::validate(
+        need(
+          !is.null(values$annotation_obj),
+          "Please set the annotation"
+        )
+      )
+      
+      if(is.null(input$ma_brush)) return(NULL)
+      
+      if(is.null(input$mazoom_click)) return(ggplot() + annotate("text",label="click to generate the boxplot\nfor the selected gene",0,0) + theme_bw())
+      
+      selectedGene <- as.character(curDataClick()$ID)
+      selectedGeneSymbol <- values$annotation_obj$gene_name[match(selectedGene,values$annotation_obj$gene_id)]
+      
+      p <- ggplotCounts(values$dds_obj, selectedGene, intgroup = input$color_by, annotation_obj=values$annotation_obj)
+      
+      if(input$ylimZero_genes)
+        p <- p + ylim(0.1, NA)
+      
+      exportPlots$plot_genefinder <- p
+      p
+    })
+    
+    output$rentrez_infobox <- renderUI({
+      shiny::validate(
+        need(
+          (nrow(curDataClick()) > 0),
+          "Select a gene first to display additional info (retrieved from the NCBI/ENTREZ db website)"
+        )
+      )
+      shiny::validate(
+        need(
+          (!is.null(values$cur_species)),
+          "Select a species first in the Data Setup panel"
+        )
+      )
+      # browser()
+      selectedGene <- as.character(curDataClick()$ID)
+      selgene_entrez <- mapIds(get(annoSpecies_df[values$cur_species,]$pkg),
+                               selectedGene, "ENTREZID", values$cur_type)
+      fullinfo <- geneinfo(selgene_entrez)
+      
+      ## TODO: build up link manually to paste under the info!
+      #
+      link_pubmed <- paste0('<a href="http://www.ncbi.nlm.nih.gov/gene/?term=',
+                            selgene_entrez,
+                            '" target="_blank" >Click here to see more at NCBI</a>')
+      
+      if(fullinfo$summary == "")
+        return(HTML(paste0("<b>",fullinfo$name, "</b><br/><br/>",
+                           fullinfo$description,"<br/><br/>",
+                           link_pubmed
+        )))
+      else
+        return(HTML(paste0("<b>",fullinfo$name, "</b><br/><br/>",
+                           fullinfo$description, "<br/><br/>",
+                           fullinfo$summary, "<br/><br/>",
+                           link_pubmed
+        )))
+    })
+    
+    
+    cur_combires <- reactive({
+      
+      if(is.null(values$res_obj))
+        return(NULL)
+      
+      normCounts <- as.data.frame(counts(estimateSizeFactors(values$dds_obj),normalized=TRUE))
+      normCounts$id <- rownames(normCounts)
+      res_df <- deseqresult2tbl(values$res_obj)
+      
+      combi_obj <- dplyr::inner_join(res_df,normCounts,by="id")
+      combi_obj$symbol <- values$annotation_obj$gene_name[match(combi_obj$id,values$annotation_obj$gene_id)]
+      
+      
+      if("symbol" %in% names(values$res_obj)) {
+        sel_genes <- input$avail_symbols
+        sel_genes_ids <- values$annotation_obj$gene_id[match(sel_genes,values$annotation_obj$gene_name)]
+      } else {
+        sel_genes_ids <- input$avail_ids
+      }
+      
+      if(length(sel_genes_ids) > 0) {
+        combi_obj[match(sel_genes_ids,combi_obj$id),]
+      } else {
+        combi_obj
+      }
+    })
+    
+    output$table_combi <- DT::renderDataTable({
+      datatable(cur_combires(),options = list(scrollX=TRUE))
+    })
+    
+    cur_combires_list <- reactive({
+      if(is.null(values$res_obj))
+        return(NULL)
+      
+      normCounts <- as.data.frame(counts(estimateSizeFactors(values$dds_obj),normalized=TRUE))
+      normCounts$id <- rownames(normCounts)
+      res_df <- deseqresult2tbl(values$res_obj)
+      
+      combi_obj <- dplyr::inner_join(res_df,normCounts,by="id")
+      combi_obj$symbol <- values$annotation_obj$gene_name[match(combi_obj$id,values$annotation_obj$gene_id)]
+      
+      
+      if("symbol" %in% names(values$res_obj)) {
+        sel_genes <- values$genelist_ma$`Gene Symbol`
+        sel_genes_ids <- values$annotation_obj$gene_id[match(sel_genes,values$annotation_obj$gene_name)]
+      } else {
+        # sel_genes_ids <- values$genelist_ma$`Gene Symbol`
+      }
+      
+      if(length(sel_genes_ids) > 0) {
+        combi_obj[match(sel_genes_ids,combi_obj$id),]
+      } else {
+        combi_obj
+      }
+    })
+    
+    output$table_combi_list <- DT::renderDataTable({
+      if(is.null(values$genelist_ma))
+        return(NULL)
+      datatable(cur_combires_list(),options = list(scrollX=TRUE))
+    })
+    
+    output$bp1 <- renderPlot({
+      shiny::validate(
+        need(
+          length(input$color_by)>0,
+          "Select an experimental factor in the Group/color by element in the sidebar"
+        )
+      )
+      shiny::validate(
+        need(
+          (length(input$avail_symbols)>0 | length(input$avail_ids)>0),
+          "Select at least a gene to plot"
+        )
+      )
+      if(length(input$avail_symbols)>0) {
+        # got the symbol, look for the id
+        mysym <- input$avail_symbols[1]
+        myid <- values$annotation_obj$gene_id[match(mysym, values$annotation_obj$gene_name)]
+      } else {
+        myid <- input$avail_ids[1]
+        # make it optional if annot is available
+        if(!is.null(values$annotation_obj)) {
+          mysim <- values$annotation_obj$gene_name[match(myid, values$annotation_obj$gene_id)]
+        } else {
+          mysim <- ""
+        }
+      }
+      p <- ggplotCounts(values$dds_obj, myid, intgroup = input$color_by, annotation_obj=values$annotation_obj)
+      if(input$ylimZero_genefinder)
+        p <- p + ylim(0.1, NA)
+      exportPlots$plotbp1 <- p
+      p
+    })
+    
+    output$bp2 <- renderPlot({
+      shiny::validate(
+        need(
+          length(input$color_by)>0,
+          "Select an experimental factor in the Group/color by element in the sidebar"
+        )
+      )
+      shiny::validate(
+        need(
+          (length(input$avail_symbols)>1 | length(input$avail_ids)>1),
+          "Select at least a second gene to plot"
+        )
+      )
+      if(length(input$avail_symbols)>0) {
+        # got the symbol, look for the id
+        mysym <- input$avail_symbols[2]
+        myid <- values$annotation_obj$gene_id[match(mysym, values$annotation_obj$gene_name)]
+      } else {
+        myid <- input$avail_ids[2]
+        # make it optional if annot is available
+        if(!is.null(values$annotation_obj)) {
+          mysim <- values$annotation_obj$gene_name[match(myid, values$annotation_obj$gene_id)]
+        } else {
+          mysim <- ""
+        }
+      }
+      p <- ggplotCounts(values$dds_obj, myid, intgroup = input$color_by,annotation_obj=values$annotation_obj)
+      if(input$ylimZero_genefinder)
+        p <- p + ylim(0.1, NA)
+      exportPlots$plotbp2 <- p
+      p
+    })
+    
+    output$bp3 <- renderPlot({
+      shiny::validate(
+        need(
+          length(input$color_by)>0,
+          "Select an experimental factor in the Group/color by element in the sidebar"
+        )
+      )
+      shiny::validate(
+        need(
+          (length(input$avail_symbols)>2 | length(input$avail_ids)>2),
+          "Select at least a third gene to plot"
+        )
+      )
+      if(length(input$avail_symbols)>0) {
+        # got the symbol, look for the id
+        mysym <- input$avail_symbols[3]
+        myid <- values$annotation_obj$gene_id[match(mysym, values$annotation_obj$gene_name)]
+      } else {
+        myid <- input$avail_ids[3]
+        # make it optional if annot is available
+        if(!is.null(values$annotation_obj)) {
+          mysim <- values$annotation_obj$gene_name[match(myid, values$annotation_obj$gene_id)]
+        } else {
+          mysim <- ""
+        }
+      }
+      p <- ggplotCounts(values$dds_obj, myid, intgroup = input$color_by,annotation_obj=values$annotation_obj)
+      if(input$ylimZero_genefinder)
+        p <- p + ylim(0.1, NA)
+      exportPlots$plotbp3 <- p
+      p
+    })
+    
+    output$bp4 <- renderPlot({
+      shiny::validate(
+        need(
+          length(input$color_by)>0,
+          "Select an experimental factor in the Group/color by element in the sidebar"
+        )
+      )
+      shiny::validate(
+        need(
+          (length(input$avail_symbols)>3 | length(input$avail_ids)>3),
+          "Select at least a fourth gene to plot"
+        )
+      )
+      if(length(input$avail_symbols)>0) {
+        # got the symbol, look for the id
+        mysym <- input$avail_symbols[4]
+        myid <- values$annotation_obj$gene_id[match(mysym, values$annotation_obj$gene_name)]
+      } else {
+        myid <- input$avail_ids[4]
+        # make it optional if annot is available
+        if(!is.null(values$annotation_obj)) {
+          mysim <- values$annotation_obj$gene_name[match(myid, values$annotation_obj$gene_id)]
+        } else {
+          mysim <- ""
+        }
+      }
+      p <- ggplotCounts(values$dds_obj, myid, intgroup = input$color_by,annotation_obj=values$annotation_obj)
+      if(input$ylimZero_genefinder)
+        p <- p + ylim(0.1, NA)
+      exportPlots$plotbp4 <- p
+      dds = values$dds_obj
+      ann =values$annotation_obj
+      cb=input$color_by
+      # save(file = "~/SCHNAPPsDebug/idealImmunoTP2.RData", list = ls())
+      # cp = load("~/SCHNAPPsDebug/idealImmunoTP2.RData")
+      ggplotCounts(dds, myid, intgroup=cb, annotation_obj = ann)
+      p
+    })
+    
+    output$plotCoefficients<- renderPlot({
+      shiny::validate(
+        need(
+          length(input$color_by)>0,
+          "Select an experimental factor in the Group/color by element in the sidebar"
+        )
+      )
+      shiny::validate(
+        need(
+          (length(input$avail_symbols)>0 | length(input$avail_ids)>0),
+          "Select at least a gene to plot"
+        )
+      )
+      # browser()
+      mysym <- input$avail_symbols[1]
+      myid <- values$annotation_obj$gene_id[match(mysym, values$annotation_obj$gene_name)]
+      plotCoefficients(values$dds_obj, myid, legend = T)
+      
+      
+    })
+    
+    # server report editor --------------------------------------------------------
+    ### yaml generation
+    rmd_yaml <- reactive({
+      paste0("---",
+             "\ntitle: '", input$report_title,
+             "'\nauthor: '", input$report_author,
+             "'\ndate: '", Sys.Date(),
+             "'\noutput:\n  html_document:\n    toc: ", input$report_toc, "\n    number_sections: ", input$report_ns, "\n    theme: ", input$report_theme, "\n---\n\n",collapse = "\n")
+    })
+    
+    
+    # rmd_full <- reactive({
+    #   paste0(rmd_yaml(),"\n",
+    #          readLines("reportTemplate.Rmd"))
+    # })
+    # output$loadedRmd <- renderPrint({
+    #   # rmd_yaml() # or rmd_full()
+    #   paste0(
+    #     # rmd_yaml(),
+    #     paste0(readLines("reportTemplate.Rmd"),collapse = "\n"))
+    #   # head(paste0(rmd_yaml(),
+    #   # readLines("reportTemplate.Rmd")),collapse="\n")
+    # })
+    
+    ### loading report template
+    # update aceEditor module
+    observe({
+      # loading rmd report from disk
+      inFile <- system.file("extdata", "irt.Rmd",package = "idealImmunoTP")
+      
+      isolate({
+        if(!is.null(inFile) && !is.na(inFile)) {
+          
+          rmdfilecontent <- paste0(readLines(inFile),collapse="\n")
+          
+          shinyAce::updateAceEditor(session, "acereport_rmd", value = rmdfilecontent)
+        }
+      })
+    })
+    
+    
+    ### ace editor options
+    # observe({
+    #   autoComplete <- if(input$enableAutocomplete) {
+    #     if(input$enableLiveCompletion) "live" else "enabled"
+    #   } else {
+    #     "disabled"
+    #   }
+    #   
+    #   updateAceEditor(session, "acereport_rmd", autoComplete = autoComplete,theme=input$theme, mode=input$mode)
+    #   # updateAceEditor(session, "plot", autoComplete = autoComplete)
+    # })
+    
+    # #Enable/Disable R code completion
+    # rmdOb <- aceAutocomplete("acereport_rmd")
+    # observe({
+    #   if(input$enableRCompletion) {
+    #     rmdOb$resume()
+    #   } else {
+    #     rmdOb$suspend()
+    #   }
+    # })
+    
+    # ## currently not working as I want with rmarkdown::render, but can leave it like this - the yaml will be taken in the final version only
+    # output$knitDoc <- renderUI({
+    #   input$updatepreview_button
+    #   
+    #   
+    #   ## TODO: this does what it should do but messes up with CSS and so
+    #   #
+    #   #     # error_I <- 0
+    #   #     withProgress(message = 'Processing', value = 0, {
+    #   #       isolate({
+    #   #         fileConn<-file("www/tmp.Rmd")
+    #   #         tmp_content <-
+    #   #           paste0(rmd_yaml(),
+    #   #                  input$acereport_rmd,collapse = "\n")
+    #   #         writeLines(tmp_content, fileConn)
+    #   #         close(fileConn)
+    #   #         incProgress(0.5, detail = "Synthesizing report...")
+    #   #         # tryCatch({
+    #   #           rmarkdown::render(input = "www/tmp.Rmd", output_format = "html_document", output_file = "../www/Rmd_preview.html",quiet = TRUE) #},
+    #   #           # error = function(e) {
+    #   #           #   # error_I <<- 1
+    #   #           # }
+    #   #         # )
+    #   #       })
+    #   #       setProgress(1)
+    #   #     })
+    #   #
+    #   #     return(isolate(includeHTML("www/Rmd_preview.html")))
+    #   #     # return(isolate(includeHTML("<iframe src='www/Rmd_preview.html', width='100%', height='800'></iframe>")))
+    #   #     # return(isolate(HTML("<iframe src='www/Rmd_preview.html', width='100%', height='800'></iframe>")))
+    #   
+    #   
+    #   return(
+    #     withProgress({
+    #       # temporarily switch to the temp dir, in case you do not have write
+    #       # permission to the current working directory
+    #       owd <- setwd(tempdir())
+    #       on.exit(setwd(owd))
+    #       tmp_content <- paste0(rmd_yaml(),input$acereport_rmd,collapse = "\n")
+    #       isolate(HTML(knit2html(text = tmp_content, fragment.only = TRUE, quiet = TRUE)))
+    #     },
+    #     message = "Updating the report in the app body",
+    #     detail = "This can take some time"
+    #     )
+    #   )
+    # })
+    # 
+    # # Generate and Download module
+    # output$saveRmd <- downloadHandler(
+    #   filename = function() {
+    #     if(input$rmd_dl_format == "rmd") {
+    #       "report.Rmd"
+    #     } else {
+    #       "report.html" # TODO: maybe add Sys.time() to the filename to improve traceability?
+    #     }
+    #   },
+    #   content = function(file) {
+    #     
+    #     # knit2html(text = input$rmd, fragment.only = TRUE, quiet = TRUE))
+    #     
+    #     tmp_content <-
+    #       paste0(rmd_yaml(),
+    #              input$acereport_rmd,collapse = "\n")
+    #     if(input$rmd_dl_format == "rmd") {
+    #       cat(tmp_content,file=file,sep="\n")
+    #     } else {
+    #       if(input$rmd_dl_format == "html") {
+    #         # temporarily switch to the temp dir, in case you do not have write
+    #         # permission to the current working directory
+    #         owd <- setwd(tempdir())
+    #         on.exit(setwd(owd))
+    #         cat(tmp_content,file="ideal_tempreport.Rmd",sep="\n")
+    #         withProgress(rmarkdown::render(input = "ideal_tempreport.Rmd",
+    #                                        output_file = file,
+    #                                        # fragment.only = TRUE,
+    #                                        quiet = TRUE),
+    #                      message = "Generating the html report",
+    #                      detail = "This can take some time")
+    #       }
+    #     }
+    #   }
+    # )
+    
+    output$ui_iSEEexport <- renderUI({
+      validate(
+        need(((!is.null(values$dds_obj)) & (!is.null(values$res_obj))),
+             message = "Please build and compute the dds and res object to export as 
+             SummarizedExperiment for use in iSEE")
+      )
+      return(
+        tagList(
+          textInput(
+            "se_export_name",label = "Choose a filename for the serialized .rds object",
+            value = "se_ideal_toiSEE.rds"),
+          downloadButton(
+            "button_iSEEexport",
+            label = "Export as serialized SummarizedExperiment"
+          )
+        )
+      )
+    })
+    
+    output$button_iSEEexport <- downloadHandler(
+      filename = function() {
+        # paste0("se_ideal_toiSEE_",gsub(" ","_",gsub("-","",gsub(":","-",as.character(Sys.time())))),".rds")
+        input$se_export_name
+      }, content = function(file) {
+        se <- wrapup_for_iSEE(values$dds_obj, values$res_obj)
+        saveRDS(se, file = file)
+      }
+    )
+    
+    # server state saving --------------------------------------------------------
+    ### to environment
+    observe({
+      if(is.null(input$task_exit_and_save) || input$task_exit_and_save ==0 ) return()
+      
+      # quit R, unless you are running an interactive session
+      if(interactive()) {
+        # flush input and values to the environment in two distinct objects (to be reused later?)
+        isolate({
+          
+          # ideal_env <<- new.env(parent = emptyenv())
+          cur_inputs <- reactiveValuesToList(input)
+          cur_values <- reactiveValuesToList(values)
+          tstamp <- gsub(" ","_",gsub("-","",gsub(":","-",as.character(Sys.time()))))
+          
+          # myvar <- "frfr"
+          # assign("test", myvar, ideal_env)
+          
+          # better practice rather than assigning to global env - notify users of this
+          assign(paste0("ideal_inputs_", tstamp),cur_inputs, envir = ideal_env)
+          assign(paste0("ideal_values_", tstamp),cur_values, envir = ideal_env)
+          stopApp("idealImmunoTP closed, state successfully saved to global R environment.")
+          
+          # assign(paste0("ideal_inputs_",
+          #               gsub(" ","_",gsub("-","",gsub(":","-",as.character(Sys.time()))))),
+          #        reactiveValuesToList(input), envir = .GlobalEnv)
+          # assign(paste0("ideal_values_",
+          #               gsub(" ","_",gsub("-","",gsub(":","-",as.character(Sys.time()))))),
+          #        reactiveValuesToList(values), envir = .GlobalEnv)
+          # stopApp("ideal closed, state successfully saved to global R environment.")
+        })
+      } else {
+        stopApp("idealImmunoTP closed")
+        q("no")
+      }
+    })
+    
+    ### to binary data
+    saveState <- function(filename) {
+      isolate({
+        LiveInputs <- reactiveValuesToList(input)
+        # values[names(LiveInputs)] <- LiveInputs
+        r_data <- reactiveValuesToList(values)
+        save(LiveInputs, r_data , file = filename)
+      })
+    }
+    
+    output$task_state_save <- downloadHandler(
+      filename = function() {
+        paste0("idealState_",gsub(" ","_",gsub("-","",gsub(":","-",as.character(Sys.time())))),".RData")
+      },
+      content = function(file) {
+        saveState(file)
+      }
+    )
+    
+    output$sessioninfo <- renderPrint({
+      sessionInfo()
+    })
+    
+    # server export plots and tables --------------------------------------------------------
+    
+    ## here, all export of plots and tables
+    output$download_plot_pvals_hist <- downloadHandler(filename = function() {
+      input$filename_plot_pvals_hist
+    }, content = function(file) {
+      ggsave(file, exportPlots$plot_pvals_hist, width = input$export_width,
+             height = input$export_height, units = "cm")
+    })
+    
+    output$download_plot_logfc_hist <- downloadHandler(filename = function() {
+      input$filename_plot_logfc_hist
+    }, content = function(file) {
+      ggsave(file, exportPlots$plot_logfc_hist, width = input$export_width,
+             height = input$export_height, units = "cm")
+    })
+    
+    output$download_plot_ma <- downloadHandler(filename = function() {
+      input$filename_plot_ma
+    }, content = function(file) {
+      ggsave(file, exportPlots$plot_ma, width = input$export_width,
+             height = input$export_height, units = "cm")
+    })
+    
+    output$download_plot_mazoom <- downloadHandler(filename = function() {
+      input$filename_plot_mazoom
+    }, content = function(file) {
+      ggsave(file, exportPlots$plot_mazoom, width = input$export_width,
+             height = input$export_height, units = "cm")
+    })
+    
+    output$download_plot_mahighlight <- downloadHandler(filename = function() {
+      input$filename_plot_mahighlight
+    }, content = function(file) {
+      ggsave(file, exportPlots$plot_mahighlight, width = input$export_width,
+             height = input$export_height, units = "cm")
+    })
+    
+    output$download_plot_mahllist <- downloadHandler(filename = function() {
+      input$filename_plot_mahllist
+    }, content = function(file) {
+      ggsave(file, exportPlots$plot_mahllist, width = input$export_width,
+             height = input$export_height, units = "cm")
+    })
+    
+    output$download_plot_volcanoplot <- downloadHandler(filename = function() {
+      input$filename_plot_volcanoplot
+    }, content = function(file) {
+      ggsave(file, exportPlots$plot_volcanoplot, width = input$export_width,
+             height = input$export_height, units = "cm")
+    })
+    
+    output$download_plot_genefinder <- downloadHandler(filename = function() {
+      input$filename_plot_genefinder
+    }, content = function(file) {
+      ggsave(file, exportPlots$plot_genefinder, width = input$export_width,
+             height = input$export_height, units = "cm")
+    })
+    
+    output$download_plotbp1 <- downloadHandler(filename = function() {
+      input$filename_plotbp1
+    }, content = function(file) {
+      ggsave(file, exportPlots$plotbp1, width = input$export_width,
+             height = input$export_height, units = "cm")
+    })
+    
+    output$download_plotbp2 <- downloadHandler(filename = function() {
+      input$filename_plotbp2
+    }, content = function(file) {
+      ggsave(file, exportPlots$plotbp2, width = input$export_width,
+             height = input$export_height, units = "cm")
+    })
+    
+    output$download_plotbp3 <- downloadHandler(filename = function() {
+      input$filename_plotbp3
+    }, content = function(file) {
+      ggsave(file, exportPlots$plotbp3, width = input$export_width,
+             height = input$export_height, units = "cm")
+    })
+    
+    output$download_plotbp4 <- downloadHandler(filename = function() {
+      input$filename_plotbp4
+    }, content = function(file) {
+      ggsave(file, exportPlots$plotbp4, width = input$export_width,
+             height = input$export_height, units = "cm")
+    })
+    
+    # tbls
+    output$downloadTblResu <- downloadHandler(
+      filename = function() {
+        "table_results.csv"
+      },
+      content = function(file) {
+        mydf <- as.data.frame(values$res_obj[order(values$res_obj$padj),])
+        write.csv(mydf, file)
+      }
+    )
+    output$downloadTblMabrush <- downloadHandler(
+      filename = function() {
+        "table_mabrush.csv"
+      },
+      content = function(file) {
+        write.csv(curData(), file)
+      }
+    )
+    output$downloadTblCombi <- downloadHandler(
+      filename = function() {
+        "table_combi.csv"
+      },
+      content = function(file) {
+        write.csv(cur_combires(), file)
+      }
+    )
+    output$downloadTblCombiList <- downloadHandler(
+      filename = function() {
+        "table_combilist.csv"
+      },
+      content = function(file) {
+        write.csv(cur_combires_list(), file)
+      }
+    )
+    
+    # base graphics plots
+    output$download_plot_heatbrush <- downloadHandler(filename = function() {
+      input$filename_plot_heatbrush
+    }, content = function(file) {
+      pdf(file)
+      brushedObject <- curData()
+      
+      selectedGenes <- as.character(brushedObject$ID)
+      toplot <- assay(values$dds_obj)[selectedGenes,]
+      rownames(toplot) <- values$annotation_obj$gene_name[match(rownames(toplot),rownames(values$annotation_obj))]
+      
+      if(input$pseudocounts) toplot <- log2(1+toplot)
+      
+      mat_rowscale <- function(x)
+      {
+        m <- apply(x, 1, mean, na.rm = TRUE)
+        s <- apply(x, 1, sd, na.rm = TRUE)
+        return((x - m)/s)
+      }
+      
+      if(input$rowscale) toplot <- mat_rowscale(toplot)
+      
+      heatmaply(toplot,cluster_cols = as.logical(input$heatmap_colv))
+      dev.off()
+    })
+    
+    output$download_plot_vennlists <- downloadHandler(filename = function() {
+      input$filename_plot_vennlists
+    }, content = function(file) {
+      pdf(file)
+      gplots::venn(gll())
+      dev.off()
+    })
+    
+    output$download_plot_upsetlists <- downloadHandler(filename = function() {
+      input$filename_plot_upsetlists
+    }, content = function(file) {
+      pdf(file)
+      UpSetR::upset(fromList(gll()))
+      dev.off()
+    })
+    
+    ## GO tbls topGO
+    output$downloadGOTbl_up <- downloadHandler(
+      filename = function() {
+        "table_GOresults_up.csv"
+      },
+      content = function(file) {
+        write.csv(values$topgo_up, file)
+      }
+    )
+    output$downloadGOTbl_down <- downloadHandler(
+      filename = function() {
+        "table_GOresults_down.csv"
+      },
+      content = function(file) {
+        write.csv(values$topgo_down, file)
+      }
+    )
+    output$downloadGOTbl_updown <- downloadHandler(
+      filename = function() {
+        "table_GOresults_updown.csv"
+      },
+      content = function(file) {
+        write.csv(values$topgo_updown, file)
+      }
+    )
+    output$downloadGOTbl_l1 <- downloadHandler(
+      filename = function() {
+        "table_GOresults_list1.csv"
+      },
+      content = function(file) {
+        write.csv(values$topgo_list1, file)
+      }
+    )
+    output$downloadGOTbl_l2 <- downloadHandler(
+      filename = function() {
+        "table_GOresults_list2.csv"
+      },
+      content = function(file) {
+        write.csv(values$topgo_list2, file)
+      }
+    )
+    output$downloadGOTbl_l3 <- downloadHandler(
+      filename = function() {
+        "table_GOresults_list3.csv"
+      },
+      content = function(file) {
+        write.csv(values$topgo_list3, file)
+      }
+    )
+    output$downloadGOTbl_l4 <- downloadHandler(
+      filename = function() {
+        "table_GOresults_list4.csv"
+      },
+      content = function(file) {
+        write.csv(values$topgo_list4, file)
+      }
+    )
+    
+  }) # end of server function definition
+  #nocov end
+  
+  options(shiny.reactlog=TRUE)
+  # launch the app!
+  shinyApp(ui = idealImmunoTP_ui, server = idealImmunoTP_server, enableBookmarking = "server")
 }
 
 
