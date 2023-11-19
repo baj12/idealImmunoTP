@@ -5,8 +5,8 @@
 # .libPaths("c:/Rlibs/")
 
 BiocManager::install("DEFormats",ask = F, update = T)
-install.packages("ashr", dependencies = T )
-BiocManager::install(c('DESeq2', 'pcaExplorer', 'IHW', 'goseq', 'GOstats', 'GO.db', 'rentrez', 'rintrojs'))
+install.packages(c("ashr","readr"), dependencies = T )
+BiocManager::install(c('DESeq2', "iSEE",'pcaExplorer', 'IHW', 'goseq', 'GOstats', 'GO.db', 'rentrez', 'rintrojs'))
 BiocManager::install(c('airway', 'apeglm', 'BiocStyle', 'org.Hs.eg.db','TxDb.Hsapiens.UCSC.hg38.knownGene'))
 library(ashr)
  library(airway)
