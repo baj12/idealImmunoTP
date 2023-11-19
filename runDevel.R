@@ -4,10 +4,10 @@
 
 # .libPaths("c:/Rlibs/")
 
-BiocManager::install("DEFormats",ask = F, update = T)
-install.packages(c("ashr","readr"), dependencies = T )
-BiocManager::install(c('DESeq2', "iSEE",'pcaExplorer', 'IHW', 'goseq', 'GOstats', 'GO.db', 'rentrez', 'rintrojs'))
-BiocManager::install(c('airway', 'apeglm', 'BiocStyle', 'org.Hs.eg.db','TxDb.Hsapiens.UCSC.hg38.knownGene'))
+# BiocManager::install("DEFormats",ask = F, update = T)
+# install.packages(c("ashr","readr"), dependencies = T )
+# BiocManager::install(c('DESeq2', 'pcaExplorer', 'IHW', 'goseq', 'GOstats', 'GO.db', 'rentrez', 'rintrojs'))
+# BiocManager::install(c('airway', 'apeglm', 'BiocStyle', 'org.Hs.eg.db','TxDb.Hsapiens.UCSC.hg38.knownGene'))
 library(ashr)
  library(airway)
  library(shinyjqui)
@@ -96,9 +96,11 @@ countmatrix = NULL
 
   # app <- shinyApp(ui = ideal_ui, server = ideal_server)
   # runApp(app)
+  cp = load("idealState_20231118_123859.RData")
 # idealImmunoTP(dds_obj = dds_airway, annotation_obj = annotation_airway, res_obj = res_airway)
-idealImmunoTP()
-
+  source("R/ideal.R", local = T); 
+  idealImmunoTP(dds_obj = r_data$dds_obj, res_obj = r_data$res_obj, annotation_obj = r_data$annotation_obj, expdesign = r_data$expdesign)
+  idealImmunoTP()
 # cp = load(file = "test.Rdata")
 # dds_obj = ideal_env$ideal_values_20210526_152858$dds_obj 
 # res_obj = ideal_env$ideal_values_20210526_152858$res_obj
