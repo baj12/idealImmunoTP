@@ -1,0 +1,89 @@
+---
+title: "Untitled"
+author: "Bernd Jagla"
+date: "2022-11-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyr)
+library(SingleCellExperiment)
+library(tibble)
+library(ggplot2)
+library(dplyr)
+```
+
+## Violin plot of raw counts
+
+
+```{r rawCounts}
+se = readRDS("~/Downloads/se_ideal_toiSEE.rds")
+raw = assays(se)[["counts"]]
+raw_long = raw %>% 
+           as_tibble() %>% 
+           tibble::add_column(gene = rownames(raw)) %>% 
+           pivot_longer(!gene,names_to = "sample", values_to = "count") %>% 
+           filter(sample %in% c("D4g_O_P_N_f","D4g_O_P_A_f","D4g_O_P_P_f", "D4g_O_P_L_f"))
+p <- ggplot(raw_long, aes(x=sample, y=count)) + 
+  geom_violin()
+p
+raw_long$sample = as.factor(raw_long$sample)
+raw_long2 = raw_long 
+p <- ggplot(raw_long2, aes(x=sample, y=count)) + 
+  geom_violin()
+p
+
+raw_long2 = raw_long2 %>% filter(count >5)
+
+raw_long2 = raw_long2 %>% filter(count < 1000)
+p <- ggplot(raw_long2, aes(x=sample, y=count)) + 
+  geom_violin()
+p
+
+```
+
+```{r normcounts}
+se = readRDS("~/Downloads/se_ideal_toiSEE.rds")
+nCount = assays(se)[["normcounts"]]
+nCount_long = nCount %>% 
+           as_tibble() %>% 
+           tibble::add_column(gene = rownames(raw)) %>% 
+           pivot_longer(!gene,names_to = "sample", values_to = "count") %>% 
+           filter(sample %in% c("D4g_O_P_N_f","D4g_O_P_A_f","D4g_O_P_P_f", "D4g_O_P_L_f"))
+p <- ggplot(nCount_long, aes(x=sample, y=count)) + 
+  geom_violin()
+p
+nCount_long$sample = as.factor(nCount_long$sample)
+nCount_long2 = nCount_long 
+p <- ggplot(nCount_long2, aes(x=sample, y=count)) + 
+  geom_violin()
+p
+
+nCount_long2 = nCount_long2 %>% filter(count >5)
+
+nCount_long2 = nCount_long2 %>% filter(count < 1000)
+p <- ggplot(nCount_long2, aes(x=sample, y=count)) + 
+  geom_violin()
+p
+
+```
+
+
+
+
+```{r load state}
+cp = load("~/Downloads/idealState_20221122_093219.RData")
+
+dds = r_data$dds_obj
+
+co = coef(dds)
+colnames(co)
+
+hist(co[,3], breaks=1000, main="LPS_vs_null", xlab = "coeffient")
+```
+
+
+
+
+

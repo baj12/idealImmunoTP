@@ -1,5 +1,30 @@
+# if (!require("BiocManager", quietly = TRUE))
+#   install.packages("BiocManager")
+# 
+BiocManager::install(c("airway", "DESeq2","SummarizedExperiment"
+                       ,"GenomicRanges"
+                       ,"IRanges"
+                       ,"S4Vectors"
+                       ,"pcaExplorer"
+                       ,"IHW"
+                       ,"goseq"
+                       ,"limma"
+                       ,"GOstats"
+                       ,"GO.db"
+                       ,"AnnotationDbi"
+                       ,"BiocParallel"
+                       ,"BiocStyle"
+                       ,"airway" , "apeglm", "ashr"
+                       ,"org.Hs.eg.db"
+                       ,"TxDb.Hsapiens.UCSC.hg38.knownGene"
+                       ,"DEFormats"
+                       ,"edgeR"))
+install.packages('shinyjqui')
+install.packages("markdown")
+
 library(idealImmunoTP)
 library(airway)
+
 
 library(DESeq2) 
 library(SummarizedExperiment) 
@@ -8,6 +33,7 @@ library(IRanges)
 library(S4Vectors) 
 library(ggplot2) 
 library(heatmaply)
+
 library(plotly)
 library(pcaExplorer) 
 library(IHW) 
@@ -45,3 +71,4 @@ library(edgeR)
 load(file = "testData.RData")
 
 idealImmunoTP(dds_obj = dds_airway, annotation_obj = annotation_airway, res_obj = res_airway)
+

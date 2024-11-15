@@ -20,6 +20,7 @@ Imports:
     tidyr,
     SummarizedExperiment, 
     GenomicRanges, 
+    reshape2,
     IRanges,
     S4Vectors, 
     ggplot2 (>= 2.0.0), 

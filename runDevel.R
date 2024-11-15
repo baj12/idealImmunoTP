@@ -15,6 +15,7 @@ library(ashr)
 library(DESeq2) 
 library(SummarizedExperiment) 
 library(GenomicRanges) 
+library(reshape2)
 library(IRanges)
 library(S4Vectors) 
 library(ggplot2) 
@@ -67,7 +68,7 @@ source("R/helpers.R")
 #                                 stringsAsFactors = FALSE)
 # save(file = "testData.RData", list = c("genenames_airway", "annotation_airway", "dds_airway", "res_airway"))
 
-load(file = "testData.RData")
+cp = load(file = "testData.RData")
 ideal_ui <- NULL
 ideal_server <- NULL
 library(RColorBrewer)
